@@ -1,0 +1,8 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic {YYYY}FD.xml index: two PTR rows (one electronic, one paper-style DocID whose PDF is absent under ptr-pdfs), an annual report (FilingType O, Year = covered year), an extension (X), and one malformed row (blank FilingDate/DocID) that must be skip-counted. The zipped variant is produced in-test with fflate.zipSync so the unzip path is exercised. Replace/augment with a real index ZIP via the sourceUrl pattern.",
+  "sourceUrl": null,
+  "sourceUrlPattern": "https://disclosures-clerk.house.gov/public_disc/financial-pdfs/{YYYY}FD.zip",
+  "parser": "house-fd-index@1"
+}
