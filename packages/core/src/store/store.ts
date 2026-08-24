@@ -466,4 +466,49 @@ export class DocketStore {
       state: row.state === null ? null : String(row.state),
     }));
   }
+
+  /**
+   * Bumps the company↔ticker cache's freshness without rewriting it — the
+   * conditional-GET 304 path: upstream confirmed the map is unchanged.
+   */
+  async touchCikTickersRefreshedAt(): Promise<void> {
+    await this.driver.run(`UPDATE "cik_tickers" SET "refreshed_at" = ?`, [isoNow()]);
+  }
+
+  // ── CUSIP→ticker enrichment (the `docket resolve cusips` loop) ─────────
+
+  /** Distinct CUSIPs on 13F holding rows whose ticker is still unresolved. */
+  async distinctUnresolvedCusips(limit?: number): Promise<string[]> {
+    const sql =
+      `SELECT DISTINCT "cusip" FROM "thirteenf_holdings" WHERE "ticker" IS NULL ORDER BY "cusip"` +
+      (limit !== undefined ? ` LIMIT ?` : ``);
+    const rows = await this.driver.all<{ cusip: string }>(
+      sql,
+      limit !== undefined ? [limit] : [],
+    );
+    return rows.map((r) => r.cusip);
+  }
+
+  /**
+   * Applies resolved CUSIP→ticker mappings to 13F holding rows that still
+   * lack a ticker. Null tickers (cached misses) never touch rows; already
+   * resolved rows are never overwritten.
+   */
+  async applyCusipTickers(map: Map<string, string | null>): Promise<{ updated: number }> {
+    const entries = [...map.entries()].filter(
+      (entry): entry is [string, string] => entry[1] !== null,
+    );
+    if (entries.length === 0) return { updated: 0 };
+    let updated = 0;
+    await this.driver.transaction(async () => {
+      for (const [cusip, ticker] of entries) {
+        const { changes } = await this.driver.run(
+          `UPDATE "thirteenf_holdings" SET "ticker" = ? WHERE "cusip" = ? AND "ticker" IS NULL`,
+          [ticker, cusip],
+        );
+        updated += changes;
+      }
+    });
+    return { updated };
+  }
 }
