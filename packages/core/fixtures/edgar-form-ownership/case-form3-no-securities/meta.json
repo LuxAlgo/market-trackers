@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic Form 3 with noSecuritiesOwned=1: an empty nonDerivativeTable element, no derivativeTable at all. Zero rows is a valid parse — the filing legitimately reports that no securities are beneficially owned.",
+  "sourceUrl": null,
+  "parser": "form-ownership-xml@1",
+  "parseInput": {
+    "accessionNumber": "0000123456-26-000066",
+    "filedAt": "2026-09-21",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/123456/0000123456-26-000066-index.htm",
+    "retrievedAt": "2026-09-21T00:00:00.000Z"
+  }
+}

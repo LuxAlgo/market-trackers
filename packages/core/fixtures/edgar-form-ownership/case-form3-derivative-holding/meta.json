@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic Form 3 with a derivativeHolding row (employee stock option): no transaction fields, no postTransactionAmounts, footnote-only exerciseDate — everything nullable must be null, isDerivative true. Also carries a plain nonDerivativeHolding.",
+  "sourceUrl": null,
+  "parser": "form-ownership-xml@1",
+  "parseInput": {
+    "accessionNumber": "0000123456-26-000055",
+    "filedAt": "2026-09-14",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/123456/0000123456-26-000055-index.htm",
+    "retrievedAt": "2026-09-14T00:00:00.000Z"
+  }
+}

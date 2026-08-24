@@ -58,7 +58,41 @@ export class EdgarClient {
     });
     return (await response.json()) as T;
   }
+
+  /**
+   * Conditional GET: sends If-None-Match / If-Modified-Since from previously
+   * stored validators and reports an upstream 304 as `notModified` instead of
+   * re-downloading. On 200 the fresh validators are returned for the caller
+   * to persist (see `DocketStore.getFetchCache`/`setFetchCache`).
+   */
+  async jsonConditional<T>(
+    url: string,
+    cached: { etag: string | null; lastModified: string | null } | null,
+  ): Promise<ConditionalJsonResult<T>> {
+    const headers: Record<string, string> = { accept: "application/json" };
+    if (cached?.etag) headers["if-none-match"] = cached.etag;
+    if (cached?.lastModified) headers["if-modified-since"] = cached.lastModified;
+    const response = await this.politeFetch(url, { headers });
+    if (response.status === 304) {
+      await response.arrayBuffer().catch(() => undefined);
+      return { notModified: true };
+    }
+    if (!response.ok) {
+      await response.arrayBuffer().catch(() => undefined);
+      throw new HttpError(url, response.status);
+    }
+    return {
+      notModified: false,
+      body: (await response.json()) as T,
+      etag: response.headers.get("etag"),
+      lastModified: response.headers.get("last-modified"),
+    };
+  }
 }
+
+export type ConditionalJsonResult<T> =
+  | { notModified: true }
+  | { notModified: false; body: T; etag: string | null; lastModified: string | null };
 
 /** Daily index of every filing received on a date. 404s on weekends/holidays. */
 export function dailyIndexUrl(date: string): string {

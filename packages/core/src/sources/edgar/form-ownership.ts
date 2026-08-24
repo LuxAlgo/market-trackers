@@ -15,8 +15,12 @@ import { extractXmlDocuments, padCik } from "./full-submission.js";
  *
  * Known scope limits (tracked in docs/sources/edgar.md):
  *  - Filings with multiple reporting owners are attributed to the first
- *    listed owner (rows are per-transaction, so share counts stay correct).
- *  - Footnotes are not extracted yet.
+ *    listed owner and every row is flagged `needsReview: true` — the
+ *    per-transaction share counts stay correct, but the attribution needs a
+ *    human eye until rows fan out per owner.
+ *  - Footnotes are not extracted yet; footnote-only values parse as null.
+ *  - Empty transaction/holding tables are a valid parse (zero rows), not an
+ *    error — e.g. a Form 3 reporting no securities beneficially owned.
  */
 
 export const FORM_OWNERSHIP_PARSER = "form-ownership-xml@1";
@@ -141,6 +145,10 @@ export function parseOwnershipForm(input: OwnershipParseInput): OwnershipParseRe
   if (!firstOwner) {
     throw new OwnershipParseError(`No reportingOwner in ${input.accessionNumber}`);
   }
+  // Joint filings list several reporting owners for the same transactions.
+  // Rows are attributed to the first owner (share counts stay correct) and
+  // flagged for review rather than silently pretending single ownership.
+  const needsReview = owners.length > 1;
   const ownerId = (firstOwner.reportingOwnerId ?? {}) as Record<string, XmlNode>;
   const relationship = (firstOwner.reportingOwnerRelationship ?? {}) as Record<string, XmlNode>;
   const ownerName = val(ownerId.rptOwnerName);
@@ -199,7 +207,7 @@ export function parseOwnershipForm(input: OwnershipParseInput): OwnershipParseRe
         retrievedAt: input.retrievedAt,
         parser: FORM_OWNERSHIP_PARSER,
         confidence: 1,
-        needsReview: false,
+        needsReview,
       },
     };
     rows.push(insiderTransactionSchema.parse(row));
