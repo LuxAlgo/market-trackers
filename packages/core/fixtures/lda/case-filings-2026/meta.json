@@ -1,0 +1,17 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic LDA filings list pair (page 1 with next, page 2 final), newest-first by dt_posted. Exercises an income filing with a mapped client (Lockheed → LMT), an expenses-only filing, a filing with no reported amount (stays null), a multi-issue filing with a duplicate issue code (deduped, order preserved), a prefix-mapped client (Oracle America → ORCL), and a registration with a null filing_document_url whose provenance falls back to the API detail URL.",
+  "sourceUrl": null,
+  "parser": "lda-filings@1",
+  "parseInput": {
+    "request": {
+      "url": "https://lda.senate.gov/api/v1/filings/",
+      "filing_year": 2026,
+      "ordering": "-dt_posted",
+      "page_size": 25
+    },
+    "retrievedAt": "2026-08-24T12:00:00.000Z"
+  },
+  "expectedStats": { "attempted": 5, "succeeded": 5 }
+}

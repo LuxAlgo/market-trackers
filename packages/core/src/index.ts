@@ -43,6 +43,7 @@ export * from "./sources/usaspending/source.js";
 export * from "./sources/lda/source.js";
 
 export * from "./resolve/normalize.js";
+export * from "./resolve/recipients.js";
 export * from "./resolve/cik-ticker.js";
 export * from "./resolve/cusip.js";
 export * from "./resolve/members.js";
