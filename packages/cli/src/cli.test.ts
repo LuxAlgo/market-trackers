@@ -99,4 +99,26 @@ describe("docket CLI", () => {
     expect(() => docket(["sync", "--source", "quiverquant", "--db", "cli-test.db"])).toThrow();
     expect(() => docket(["export", "--dataset", "nope", "--db", "cli-test.db"])).toThrow();
   });
+
+  it("resolve cusips --json reports all zeros on a store with nothing unresolved", () => {
+    // Fully offline: with no unresolved CUSIPs the command never calls OpenFIGI.
+    const out = docket(["resolve", "cusips", "--json", "--db", "resolve-test.db"]);
+    expect(JSON.parse(out)).toEqual({
+      unresolvedCusips: 0,
+      resolved: 0,
+      stillUnresolved: 0,
+      rowsUpdated: 0,
+    });
+  });
+
+  it("resolve rejects unknown targets and bad limits", () => {
+    expect(() => docket(["resolve", "tickers", "--db", "resolve-test.db"])).toThrow();
+    expect(() =>
+      docket(["resolve", "cusips", "--limit", "zero", "--db", "resolve-test.db"]),
+    ).toThrow();
+  });
+
+  it("--help lists the resolve command", () => {
+    expect(docket(["--help"])).toContain("resolve");
+  });
 });

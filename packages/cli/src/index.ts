@@ -12,6 +12,7 @@ import { statusCommand } from "./commands/status.js";
 import { exportCommand } from "./commands/export.js";
 import { canaryCommand } from "./commands/canary.js";
 import { serveCommand } from "./commands/serve.js";
+import { resolveCommand } from "./commands/resolve.js";
 
 const program = new Command();
 
@@ -89,6 +90,22 @@ globalOptions(
 ).action(async (flags) => {
   try {
     process.exit(await canaryCommand(flags));
+  } catch (error) {
+    fail(error);
+  }
+});
+
+globalOptions(
+  program
+    .command("resolve <what>")
+    .description(
+      "Run an entity-resolution loop over stored rows (currently: cusips — CUSIP→ticker for 13F holdings via cached OpenFIGI mappings)",
+    )
+    .option("--retry-misses", "re-query CUSIPs whose cached resolution was a miss")
+    .option("--limit <n>", "cap how many distinct CUSIPs to resolve this run"),
+).action(async (what, flags) => {
+  try {
+    process.exit(await resolveCommand(what, flags));
   } catch (error) {
     fail(error);
   }
