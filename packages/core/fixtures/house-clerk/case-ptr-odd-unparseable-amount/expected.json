@@ -1,0 +1,62 @@
+{
+  "headerSignature": "ID|OWNER|ASSET|TRANSACTION|DATE|NOTIFICATION|AMOUNT|CAP.",
+  "stats": { "attempted": 3, "succeeded": 2 },
+  "rows": [
+    {
+      "id": "house:20039990:0",
+      "chamber": "house",
+      "docId": "20039990",
+      "rowIndex": 0,
+      "member": {
+        "name": "Hon. Robert Kestrel",
+        "bioguideId": "K000715",
+        "party": "Republican",
+        "state": "OH"
+      },
+      "filedAt": "2026-08-22",
+      "transactedAt": "2026-08-15",
+      "ticker": null,
+      "assetDescription": "Undisclosed Managed Account [OT]",
+      "assetType": "other",
+      "side": "buy",
+      "amountRange": { "min": 0, "max": null, "text": "See attached statement" },
+      "owner": null,
+      "provenance": {
+        "source": "house-clerk",
+        "sourceUrl": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20039990.pdf",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "house-ptr-pdf@1",
+        "confidence": 0.9,
+        "needsReview": true
+      }
+    },
+    {
+      "id": "house:20039990:1",
+      "chamber": "house",
+      "docId": "20039990",
+      "rowIndex": 1,
+      "member": {
+        "name": "Hon. Robert Kestrel",
+        "bioguideId": "K000715",
+        "party": "Republican",
+        "state": "OH"
+      },
+      "filedAt": "2026-08-22",
+      "transactedAt": "2026-08-16",
+      "ticker": "PLMC",
+      "assetDescription": "Palladium Metals Corp (PLMC) [ST]",
+      "assetType": "stock",
+      "side": "sell",
+      "amountRange": { "min": 1000000, "max": null, "text": "Over $1,000,000" },
+      "owner": "spouse",
+      "provenance": {
+        "source": "house-clerk",
+        "sourceUrl": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20039990.pdf",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "house-ptr-pdf@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    }
+  ]
+}

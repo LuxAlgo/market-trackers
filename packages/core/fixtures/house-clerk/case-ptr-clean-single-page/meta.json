@@ -1,0 +1,20 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Clean single-page electronic PTR as positioned text items: three rows (spouse buy with ticker, self partial sale with a cap-gains tick in the flag column, joint T-bill buy with no ticker), a per-row FILING STATUS annotation, wrapped header words, and the footer that terminates the table. Coordinates are format-faithful to the fd.house.gov PTR layout (portrait letter, table header ~y=600, 12pt line steps).",
+  "sourceUrl": null,
+  "sourceUrlPattern": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/{YYYY}/{DocID}.pdf",
+  "parser": "house-ptr-pdf@1",
+  "parseInput": {
+    "docId": "20031234",
+    "filedAt": "2026-08-18",
+    "member": {
+      "name": "Hon. Robert Kestrel",
+      "bioguideId": "K000715",
+      "party": "Republican",
+      "state": "OH"
+    },
+    "sourceUrl": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20031234.pdf",
+    "retrievedAt": "2026-08-24T00:00:00.000Z"
+  }
+}

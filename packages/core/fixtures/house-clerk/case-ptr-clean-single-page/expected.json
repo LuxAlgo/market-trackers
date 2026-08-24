@@ -1,0 +1,90 @@
+{
+  "headerSignature": "ID|OWNER|ASSET|TRANSACTION|DATE|NOTIFICATION|AMOUNT|CAP.",
+  "stats": { "attempted": 3, "succeeded": 3 },
+  "rows": [
+    {
+      "id": "house:20031234:0",
+      "chamber": "house",
+      "docId": "20031234",
+      "rowIndex": 0,
+      "member": {
+        "name": "Hon. Robert Kestrel",
+        "bioguideId": "K000715",
+        "party": "Republican",
+        "state": "OH"
+      },
+      "filedAt": "2026-08-18",
+      "transactedAt": "2026-08-12",
+      "ticker": "MSFT",
+      "assetDescription": "Microsoft Corporation (MSFT) [ST]",
+      "assetType": "stock",
+      "side": "buy",
+      "amountRange": { "min": 1001, "max": 15000, "text": "$1,001 - $15,000" },
+      "owner": "spouse",
+      "provenance": {
+        "source": "house-clerk",
+        "sourceUrl": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20031234.pdf",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "house-ptr-pdf@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    },
+    {
+      "id": "house:20031234:1",
+      "chamber": "house",
+      "docId": "20031234",
+      "rowIndex": 1,
+      "member": {
+        "name": "Hon. Robert Kestrel",
+        "bioguideId": "K000715",
+        "party": "Republican",
+        "state": "OH"
+      },
+      "filedAt": "2026-08-18",
+      "transactedAt": "2026-08-13",
+      "ticker": "VTI",
+      "assetDescription": "Vanguard Total Stock Market ETF (VTI) [EF]",
+      "assetType": "fund",
+      "side": "sell",
+      "amountRange": { "min": 15001, "max": 50000, "text": "$15,001 - $50,000" },
+      "owner": "self",
+      "provenance": {
+        "source": "house-clerk",
+        "sourceUrl": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20031234.pdf",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "house-ptr-pdf@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    },
+    {
+      "id": "house:20031234:2",
+      "chamber": "house",
+      "docId": "20031234",
+      "rowIndex": 2,
+      "member": {
+        "name": "Hon. Robert Kestrel",
+        "bioguideId": "K000715",
+        "party": "Republican",
+        "state": "OH"
+      },
+      "filedAt": "2026-08-18",
+      "transactedAt": "2026-08-13",
+      "ticker": null,
+      "assetDescription": "U.S. Treasury Bills due 11/2026 [GS]",
+      "assetType": "bond",
+      "side": "buy",
+      "amountRange": { "min": 50001, "max": 100000, "text": "$50,001 - $100,000" },
+      "owner": "joint",
+      "provenance": {
+        "source": "house-clerk",
+        "sourceUrl": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20031234.pdf",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "house-ptr-pdf@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    }
+  ]
+}

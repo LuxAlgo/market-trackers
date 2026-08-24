@@ -1,0 +1,20 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Odd PTR: an unrecognized owner code (XX → owner null + needsReview), a free-text amount that is not a range (kept verbatim as {min: 0, max: null} + needsReview — the unknown-bounds convention), an open-ended 'Over $1,000,000' range (min only, max null, NOT flagged), and a row with an unrecognized transaction type (Q) that must fail honestly (attempted 3, succeeded 2) instead of guessing a side.",
+  "sourceUrl": null,
+  "sourceUrlPattern": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/{YYYY}/{DocID}.pdf",
+  "parser": "house-ptr-pdf@1",
+  "parseInput": {
+    "docId": "20039990",
+    "filedAt": "2026-08-22",
+    "member": {
+      "name": "Hon. Robert Kestrel",
+      "bioguideId": "K000715",
+      "party": "Republican",
+      "state": "OH"
+    },
+    "sourceUrl": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20039990.pdf",
+    "retrievedAt": "2026-08-24T00:00:00.000Z"
+  }
+}

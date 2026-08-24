@@ -1,0 +1,118 @@
+{
+  "headerSignature": "ID|OWNER|ASSET|TRANSACTION|DATE|NOTIFICATION|AMOUNT|CAP.",
+  "stats": { "attempted": 4, "succeeded": 4 },
+  "rows": [
+    {
+      "id": "house:20035678:0",
+      "chamber": "house",
+      "docId": "20035678",
+      "rowIndex": 0,
+      "member": {
+        "name": "Hon. Lucia Ramirez-Ortega",
+        "bioguideId": "R000901",
+        "party": "Democrat",
+        "state": "TX"
+      },
+      "filedAt": "2026-08-21",
+      "transactedAt": "2026-08-10",
+      "ticker": "GOOGL",
+      "assetDescription": "Alphabet Inc. - Class A Common Stock (GOOGL) [ST]",
+      "assetType": "stock",
+      "side": "buy",
+      "amountRange": { "min": 100001, "max": 250000, "text": "$100,001 - $250,000" },
+      "owner": "spouse",
+      "provenance": {
+        "source": "house-clerk",
+        "sourceUrl": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20035678.pdf",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "house-ptr-pdf@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    },
+    {
+      "id": "house:20035678:1",
+      "chamber": "house",
+      "docId": "20035678",
+      "rowIndex": 1,
+      "member": {
+        "name": "Hon. Lucia Ramirez-Ortega",
+        "bioguideId": "R000901",
+        "party": "Democrat",
+        "state": "TX"
+      },
+      "filedAt": "2026-08-21",
+      "transactedAt": "2026-08-11",
+      "ticker": "AGG",
+      "assetDescription": "iShares Core U.S. Aggregate Bond ETF (AGG) [EF]",
+      "assetType": "fund",
+      "side": "sell",
+      "amountRange": { "min": 1001, "max": 15000, "text": "$1,001 - $15,000" },
+      "owner": "dependent",
+      "provenance": {
+        "source": "house-clerk",
+        "sourceUrl": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20035678.pdf",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "house-ptr-pdf@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    },
+    {
+      "id": "house:20035678:2",
+      "chamber": "house",
+      "docId": "20035678",
+      "rowIndex": 2,
+      "member": {
+        "name": "Hon. Lucia Ramirez-Ortega",
+        "bioguideId": "R000901",
+        "party": "Democrat",
+        "state": "TX"
+      },
+      "filedAt": "2026-08-21",
+      "transactedAt": "2026-08-12",
+      "ticker": "ETH",
+      "assetDescription": "Ethereum (ETH) [CT]",
+      "assetType": "crypto",
+      "side": "exchange",
+      "amountRange": { "min": 15001, "max": 50000, "text": "$15,001 - $50,000" },
+      "owner": "joint",
+      "provenance": {
+        "source": "house-clerk",
+        "sourceUrl": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20035678.pdf",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "house-ptr-pdf@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    },
+    {
+      "id": "house:20035678:3",
+      "chamber": "house",
+      "docId": "20035678",
+      "rowIndex": 3,
+      "member": {
+        "name": "Hon. Lucia Ramirez-Ortega",
+        "bioguideId": "R000901",
+        "party": "Democrat",
+        "state": "TX"
+      },
+      "filedAt": "2026-08-21",
+      "transactedAt": "2026-08-13",
+      "ticker": "MAH.L",
+      "assetDescription": "Meridian Aviation Holdings plc (MAH.L)",
+      "assetType": "stock",
+      "side": "buy",
+      "amountRange": { "min": 1001, "max": 15000, "text": "$1,001 - $15,000" },
+      "owner": "self",
+      "provenance": {
+        "source": "house-clerk",
+        "sourceUrl": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20035678.pdf",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "house-ptr-pdf@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    }
+  ]
+}
