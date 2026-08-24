@@ -1,0 +1,97 @@
+[
+  {
+    "id": "3f7a2b1c-4d5e-6f70-8192-a3b4c5d6e7f8",
+    "filingUuid": "3f7a2b1c-4d5e-6f70-8192-a3b4c5d6e7f8",
+    "registrant": { "name": "Capitol Strategies Group, LLC" },
+    "client": { "name": "Lockheed Martin Corporation", "tickers": ["LMT"] },
+    "amountUsd": 230000,
+    "filingYear": 2026,
+    "filingPeriod": "second_quarter",
+    "filingType": "Q2",
+    "issues": ["DEF"],
+    "provenance": {
+      "source": "lda",
+      "sourceUrl": "https://lda.senate.gov/filings/public/filing/3f7a2b1c-4d5e-6f70-8192-a3b4c5d6e7f8/print/",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "lda-filings@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "5b1e9c3a-7d2f-4e86-9a01-b2c3d4e5f607",
+    "filingUuid": "5b1e9c3a-7d2f-4e86-9a01-b2c3d4e5f607",
+    "registrant": { "name": "Riverbend Water Utilities Association" },
+    "client": { "name": "Riverbend Water Utilities Association", "tickers": [] },
+    "amountUsd": 45000,
+    "filingYear": 2026,
+    "filingPeriod": "second_quarter",
+    "filingType": "Q2",
+    "issues": ["ENV", "BUD"],
+    "provenance": {
+      "source": "lda",
+      "sourceUrl": "https://lda.senate.gov/filings/public/filing/5b1e9c3a-7d2f-4e86-9a01-b2c3d4e5f607/print/",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "lda-filings@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "7c2d8e4f-9a0b-4c1d-8e2f-3a4b5c6d7e8f",
+    "filingUuid": "7c2d8e4f-9a0b-4c1d-8e2f-3a4b5c6d7e8f",
+    "registrant": { "name": "Prairie Health Advocacy LLC" },
+    "client": { "name": "Prairie Community Health Alliance", "tickers": [] },
+    "amountUsd": null,
+    "filingYear": 2026,
+    "filingPeriod": "second_quarter",
+    "filingType": "Q2",
+    "issues": ["HCR"],
+    "provenance": {
+      "source": "lda",
+      "sourceUrl": "https://lda.senate.gov/filings/public/filing/7c2d8e4f-9a0b-4c1d-8e2f-3a4b5c6d7e8f/print/",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "lda-filings@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "8d3e9f50-1b2c-4d5e-9f60-718293a4b5c6",
+    "filingUuid": "8d3e9f50-1b2c-4d5e-9f60-718293a4b5c6",
+    "registrant": { "name": "Meridian Public Affairs, LLC" },
+    "client": { "name": "Oracle America, Inc.", "tickers": ["ORCL"] },
+    "amountUsd": 1250000,
+    "filingYear": 2026,
+    "filingPeriod": "second_quarter",
+    "filingType": "Q2",
+    "issues": ["TAX", "TEC", "CPI"],
+    "provenance": {
+      "source": "lda",
+      "sourceUrl": "https://lda.senate.gov/filings/public/filing/8d3e9f50-1b2c-4d5e-9f60-718293a4b5c6/print/",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "lda-filings@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "9e4f0a61-2c3d-4e5f-a071-8293a4b5c6d7",
+    "filingUuid": "9e4f0a61-2c3d-4e5f-a071-8293a4b5c6d7",
+    "registrant": { "name": "Summit Ridge Government Relations" },
+    "client": { "name": "Summit Ridge Energy Cooperative", "tickers": [] },
+    "amountUsd": null,
+    "filingYear": 2026,
+    "filingPeriod": "second_quarter",
+    "filingType": "RR",
+    "issues": ["ENG"],
+    "provenance": {
+      "source": "lda",
+      "sourceUrl": "https://lda.senate.gov/api/v1/filings/9e4f0a61-2c3d-4e5f-a071-8293a4b5c6d7/",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "lda-filings@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  }
+]
