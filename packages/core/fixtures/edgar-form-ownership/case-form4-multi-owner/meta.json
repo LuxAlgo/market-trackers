@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic joint Form 4 with two reportingOwner elements (GP LLC + fund LP). Rows are attributed to the first listed owner and every row must carry needsReview: true — the honest flag for first-owner attribution until rows fan out per owner.",
+  "sourceUrl": null,
+  "parser": "form-ownership-xml@1",
+  "parseInput": {
+    "accessionNumber": "0001127602-26-020707",
+    "filedAt": "2026-09-08",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/123456/0001127602-26-020707-index.htm",
+    "retrievedAt": "2026-09-08T00:00:00.000Z"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic 13F-HR for a period ending 2022-12-31 — the pre-2023 era where <value> is reported in thousands of dollars and must be normalized ×1000 (104,650 → 104,650,000 USD). Also exercises comma-formatted numbers and a PRN (principal amount) bond row with no putCall. Pairs with case-13f-2026 (whole-dollar era) across the value-unit boundary.",
+  "sourceUrl": null,
+  "parser": "thirteenf-xml@1",
+  "parseInput": {
+    "accessionNumber": "0009876543-23-000104",
+    "filedAt": "2023-02-14",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/9876543/0009876543-23-000104-index.htm",
+    "retrievedAt": "2026-08-24T00:00:00.000Z"
+  }
+}

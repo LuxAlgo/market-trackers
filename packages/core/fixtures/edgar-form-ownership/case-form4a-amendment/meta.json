@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic Form 4/A amendment correcting a previously reported sale (shares 4,000 → 4,500). Amendments are parsed as their own accession with formType 4/A; supersede-the-original logic is a query-time concern, not the parser's.",
+  "sourceUrl": null,
+  "parser": "form-ownership-xml@1",
+  "parseInput": {
+    "accessionNumber": "0001127602-26-020101",
+    "filedAt": "2026-08-26",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/123456/0001127602-26-020101-index.htm",
+    "retrievedAt": "2026-08-27T00:00:00.000Z"
+  }
+}

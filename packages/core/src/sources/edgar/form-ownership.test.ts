@@ -42,4 +42,34 @@ describe("parseOwnershipForm (goldens)", () => {
       }),
     ).toThrow(OwnershipParseError);
   });
+
+  it("flags every row for review when a filing lists multiple reporting owners", () => {
+    const meta = readFixtureJson<FixtureMeta>(
+      "edgar-form-ownership",
+      "case-form4-multi-owner",
+      "meta.json",
+    );
+    const result = parseOwnershipForm({
+      text: readFixture("edgar-form-ownership", "case-form4-multi-owner", "input.txt"),
+      ...meta.parseInput,
+    });
+    expect(result.rows.length).toBeGreaterThan(0);
+    // First-owner attribution is honest but lossy — every row must say so.
+    expect(result.rows.every((row) => row.provenance.needsReview)).toBe(true);
+    expect(result.rows[0]?.insider.name).toBe("Example Ventures GP LLC");
+  });
+
+  it("parses an ownership document with empty tables as zero rows, not an error", () => {
+    const meta = readFixtureJson<FixtureMeta>(
+      "edgar-form-ownership",
+      "case-form3-no-securities",
+      "meta.json",
+    );
+    const result = parseOwnershipForm({
+      text: readFixture("edgar-form-ownership", "case-form3-no-securities", "input.txt"),
+      ...meta.parseInput,
+    });
+    expect(result.rows).toEqual([]);
+    expect(result.issuerCik).toBe("0000123456");
+  });
 });

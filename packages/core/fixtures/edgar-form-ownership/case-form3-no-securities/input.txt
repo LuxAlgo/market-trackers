@@ -1,0 +1,61 @@
+<SEC-DOCUMENT>0000123456-26-000066.txt : 20260921
+<SEC-HEADER>0000123456-26-000066.hdr.sgml : 20260921
+ACCESSION NUMBER:		0000123456-26-000066
+CONFORMED SUBMISSION TYPE:	3
+PUBLIC DOCUMENT COUNT:		1
+CONFORMED PERIOD OF REPORT:	20260918
+FILED AS OF DATE:		20260921
+
+REPORTING-OWNER:
+
+	OWNER DATA:
+		COMPANY CONFORMED NAME:			Vale Morgan
+		CENTRAL INDEX KEY:			0008642097
+
+ISSUER:
+
+	COMPANY DATA:
+		COMPANY CONFORMED NAME:			EXAMPLECORP INC
+		CENTRAL INDEX KEY:			0000123456
+</SEC-HEADER>
+<DOCUMENT>
+<TYPE>3
+<SEQUENCE>1
+<FILENAME>form3.xml
+<DESCRIPTION>OWNERSHIP DOCUMENT
+<TEXT>
+<XML>
+<?xml version="1.0"?>
+<ownershipDocument>
+    <schemaVersion>X0206</schemaVersion>
+    <documentType>3</documentType>
+    <periodOfReport>2026-09-18</periodOfReport>
+    <noSecuritiesOwned>1</noSecuritiesOwned>
+    <issuer>
+        <issuerCik>0000123456</issuerCik>
+        <issuerName>EXAMPLECORP INC</issuerName>
+        <issuerTradingSymbol>EXCO</issuerTradingSymbol>
+    </issuer>
+    <reportingOwner>
+        <reportingOwnerId>
+            <rptOwnerCik>0008642097</rptOwnerCik>
+            <rptOwnerName>Vale Morgan</rptOwnerName>
+        </reportingOwnerId>
+        <reportingOwnerRelationship>
+            <isDirector>1</isDirector>
+            <isOfficer>0</isOfficer>
+            <isTenPercentOwner>0</isTenPercentOwner>
+            <isOther>0</isOther>
+        </reportingOwnerRelationship>
+    </reportingOwner>
+    <nonDerivativeTable></nonDerivativeTable>
+    <remarks>No securities are beneficially owned.</remarks>
+    <ownerSignature>
+        <signatureName>/s/ Morgan Vale</signatureName>
+        <signatureDate>2026-09-21</signatureDate>
+    </ownerSignature>
+</ownershipDocument>
+</XML>
+</TEXT>
+</DOCUMENT>
+</SEC-DOCUMENT>
