@@ -65,7 +65,7 @@ describe("docket CLI", () => {
   });
 
   it("sync on a scaffolded source reports not-implemented and exits 0", () => {
-    const out = docket(["sync", "--source", "senate-efd", "--json", "--db", "cli-test.db"]);
+    const out = docket(["sync", "--source", "house-clerk", "--json", "--db", "cli-test.db"]);
     const summary = JSON.parse(out);
     expect(summary.ok).toBe(true);
     expect(summary.results[0].implemented).toBe(false);

@@ -38,6 +38,13 @@ export interface PoliteRequestInit {
   method?: "GET" | "POST" | "HEAD";
   headers?: Record<string, string>;
   body?: string;
+  /**
+   * Default "follow". Cookie-jar clients (e.g. Senate eFD) need "manual":
+   * session cookies ride on 3xx hops, and followed redirects hide both the
+   * hop's Set-Cookie headers and the chance to attach the jar to the next
+   * request.
+   */
+  redirect?: "follow" | "manual" | "error";
 }
 
 export type PoliteFetch = (url: string, init?: PoliteRequestInit) => Promise<Response>;
@@ -78,7 +85,7 @@ export function createPoliteFetch(options: PoliteFetchOptions): PoliteFetch {
             ...init?.headers,
           },
           body: init?.body,
-          redirect: "follow",
+          redirect: init?.redirect ?? "follow",
         });
         if (retryStatuses.includes(response.status)) {
           lastError = new HttpError(url, response.status);

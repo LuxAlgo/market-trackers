@@ -1,0 +1,111 @@
+{
+  "rows": [
+    {
+      "id": "senate:5a4b3c2d-1e0f-4a8b-9c6d-5e4f3a2b1c0d:0",
+      "chamber": "senate",
+      "docId": "5a4b3c2d-1e0f-4a8b-9c6d-5e4f3a2b1c0d",
+      "rowIndex": 0,
+      "member": {
+        "name": "Whitehouse, Sheldon",
+        "bioguideId": null,
+        "party": null,
+        "state": null
+      },
+      "filedAt": "2026-08-14",
+      "transactedAt": "2026-08-08",
+      "ticker": null,
+      "assetDescription": "UNKNOWN ASSET (SEE ATTACHED STATEMENT) ####",
+      "assetType": "other",
+      "side": "buy",
+      "amountRange": {
+        "min": 0,
+        "max": null,
+        "text": "See attached statement"
+      },
+      "owner": null,
+      "provenance": {
+        "source": "senate-efd",
+        "sourceUrl": "https://efdsearch.senate.gov/search/view/ptr/5a4b3c2d-1e0f-4a8b-9c6d-5e4f3a2b1c0d/",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "efd-ptr-html@1",
+        "confidence": 0.9,
+        "needsReview": true
+      }
+    },
+    {
+      "id": "senate:5a4b3c2d-1e0f-4a8b-9c6d-5e4f3a2b1c0d:1",
+      "chamber": "senate",
+      "docId": "5a4b3c2d-1e0f-4a8b-9c6d-5e4f3a2b1c0d",
+      "rowIndex": 1,
+      "member": {
+        "name": "Whitehouse, Sheldon",
+        "bioguideId": null,
+        "party": null,
+        "state": null
+      },
+      "filedAt": "2026-08-14",
+      "transactedAt": "2026-08-09",
+      "ticker": "EXCO",
+      "assetDescription": "ExampleCorp Inc — Common Stock",
+      "assetType": "stock",
+      "side": "sell",
+      "amountRange": {
+        "min": 0,
+        "max": null,
+        "text": "$15,000 - $1,001"
+      },
+      "owner": "self",
+      "provenance": {
+        "source": "senate-efd",
+        "sourceUrl": "https://efdsearch.senate.gov/search/view/ptr/5a4b3c2d-1e0f-4a8b-9c6d-5e4f3a2b1c0d/",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "efd-ptr-html@1",
+        "confidence": 0.9,
+        "needsReview": true
+      }
+    },
+    {
+      "id": "senate:5a4b3c2d-1e0f-4a8b-9c6d-5e4f3a2b1c0d:2",
+      "chamber": "senate",
+      "docId": "5a4b3c2d-1e0f-4a8b-9c6d-5e4f3a2b1c0d",
+      "rowIndex": 2,
+      "member": {
+        "name": "Whitehouse, Sheldon",
+        "bioguideId": null,
+        "party": null,
+        "state": null
+      },
+      "filedAt": "2026-08-14",
+      "transactedAt": "2026-08-10",
+      "ticker": null,
+      "assetDescription": "Example Growth Mutual Fund Class A",
+      "assetType": "fund",
+      "side": "buy",
+      "amountRange": {
+        "min": 1001,
+        "max": 15000,
+        "text": "$1,001 - $15,000"
+      },
+      "owner": "self",
+      "provenance": {
+        "source": "senate-efd",
+        "sourceUrl": "https://efdsearch.senate.gov/search/view/ptr/5a4b3c2d-1e0f-4a8b-9c6d-5e4f3a2b1c0d/",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "efd-ptr-html@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    }
+  ],
+  "headerRow": [
+    "#",
+    "Transaction Date",
+    "Owner",
+    "Ticker",
+    "Asset Name",
+    "Asset Type",
+    "Type",
+    "Amount",
+    "Comment"
+  ]
+}

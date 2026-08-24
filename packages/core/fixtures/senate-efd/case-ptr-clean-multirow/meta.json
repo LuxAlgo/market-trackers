@@ -1,0 +1,14 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic web-table PTR: three clean rows covering purchase/full sale/partial sale, self/spouse/joint owners, a linked ticker cell, and a '--' ticker on a municipal bond. Replace/augment with a real filing via its view URL.",
+  "sourceUrl": null,
+  "parser": "efd-ptr-html@1",
+  "parseInput": {
+    "docId": "3f9b1c2e-8a4d-4e5f-9b6a-7c8d9e0f1a2b",
+    "memberName": "Sheldon Whitehouse",
+    "filedAt": "2026-08-12",
+    "sourceUrl": "https://efdsearch.senate.gov/search/view/ptr/3f9b1c2e-8a4d-4e5f-9b6a-7c8d9e0f1a2b/",
+    "retrievedAt": "2026-08-24T00:00:00.000Z"
+  }
+}

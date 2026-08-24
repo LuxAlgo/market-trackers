@@ -29,7 +29,7 @@ describe("selectSources", () => {
   });
 
   it("includes explicitly named scaffolded sources", () => {
-    expect(selectSources(["senate-efd"]).map((s) => s.id)).toEqual(["senate-efd"]);
+    expect(selectSources(["house-clerk"]).map((s) => s.id)).toEqual(["house-clerk"]);
   });
 
   it("registry covers all six sources and rejects unknowns", () => {
@@ -61,7 +61,7 @@ describe("runSync", () => {
 
   it("scaffolded sources sync as an explicit no-op", async () => {
     const { ctx, store } = await makeCtx();
-    const summary = await runSync(ctx, { sources: ["senate-efd"] });
+    const summary = await runSync(ctx, { sources: ["house-clerk"] });
     expect(summary.ok).toBe(true);
     expect(summary.results[0]?.implemented).toBe(false);
     expect(summary.results[0]?.notes[0]).toMatch(/not implemented/);

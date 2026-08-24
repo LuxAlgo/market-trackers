@@ -1,0 +1,175 @@
+{
+  "rows": [
+    {
+      "id": "senate:9d8c7b6a-5f4e-4d2c-8b0a-998877665544:0",
+      "chamber": "senate",
+      "docId": "9d8c7b6a-5f4e-4d2c-8b0a-998877665544",
+      "rowIndex": 0,
+      "member": {
+        "name": "Alexandra Doe",
+        "bioguideId": null,
+        "party": null,
+        "state": null
+      },
+      "filedAt": "2026-08-13",
+      "transactedAt": "2026-07-28",
+      "ticker": null,
+      "assetDescription": "U.S. Treasury Note 4.5% due 12/2031",
+      "assetType": "bond",
+      "side": "buy",
+      "amountRange": {
+        "min": 0,
+        "max": 1000,
+        "text": "None (or less than $1,001)"
+      },
+      "owner": "self",
+      "provenance": {
+        "source": "senate-efd",
+        "sourceUrl": "https://efdsearch.senate.gov/search/view/ptr/9d8c7b6a-5f4e-4d2c-8b0a-998877665544/",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "efd-ptr-html@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    },
+    {
+      "id": "senate:9d8c7b6a-5f4e-4d2c-8b0a-998877665544:1",
+      "chamber": "senate",
+      "docId": "9d8c7b6a-5f4e-4d2c-8b0a-998877665544",
+      "rowIndex": 1,
+      "member": {
+        "name": "Alexandra Doe",
+        "bioguideId": null,
+        "party": null,
+        "state": null
+      },
+      "filedAt": "2026-08-13",
+      "transactedAt": "2026-07-30",
+      "ticker": "EXCO",
+      "assetDescription": "ExampleCorp Inc — Common Stock",
+      "assetType": "stock",
+      "side": "sell",
+      "amountRange": {
+        "min": 50000000,
+        "max": null,
+        "text": "Over $50,000,000"
+      },
+      "owner": "joint",
+      "provenance": {
+        "source": "senate-efd",
+        "sourceUrl": "https://efdsearch.senate.gov/search/view/ptr/9d8c7b6a-5f4e-4d2c-8b0a-998877665544/",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "efd-ptr-html@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    },
+    {
+      "id": "senate:9d8c7b6a-5f4e-4d2c-8b0a-998877665544:2",
+      "chamber": "senate",
+      "docId": "9d8c7b6a-5f4e-4d2c-8b0a-998877665544",
+      "rowIndex": 2,
+      "member": {
+        "name": "Alexandra Doe",
+        "bioguideId": null,
+        "party": null,
+        "state": null
+      },
+      "filedAt": "2026-08-13",
+      "transactedAt": "2026-08-01",
+      "ticker": null,
+      "assetDescription": "GlobalMega Total Market ETF",
+      "assetType": "fund",
+      "side": "exchange",
+      "amountRange": {
+        "min": 100001,
+        "max": 250000,
+        "text": "$100,001 - $250,000"
+      },
+      "owner": "dependent",
+      "provenance": {
+        "source": "senate-efd",
+        "sourceUrl": "https://efdsearch.senate.gov/search/view/ptr/9d8c7b6a-5f4e-4d2c-8b0a-998877665544/",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "efd-ptr-html@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    },
+    {
+      "id": "senate:9d8c7b6a-5f4e-4d2c-8b0a-998877665544:3",
+      "chamber": "senate",
+      "docId": "9d8c7b6a-5f4e-4d2c-8b0a-998877665544",
+      "rowIndex": 3,
+      "member": {
+        "name": "Alexandra Doe",
+        "bioguideId": null,
+        "party": null,
+        "state": null
+      },
+      "filedAt": "2026-08-13",
+      "transactedAt": "2026-08-02",
+      "ticker": null,
+      "assetDescription": "Bitcoin",
+      "assetType": "crypto",
+      "side": "buy",
+      "amountRange": {
+        "min": 1001,
+        "max": 15000,
+        "text": "$1,001 - $15,000"
+      },
+      "owner": "self",
+      "provenance": {
+        "source": "senate-efd",
+        "sourceUrl": "https://efdsearch.senate.gov/search/view/ptr/9d8c7b6a-5f4e-4d2c-8b0a-998877665544/",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "efd-ptr-html@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    },
+    {
+      "id": "senate:9d8c7b6a-5f4e-4d2c-8b0a-998877665544:4",
+      "chamber": "senate",
+      "docId": "9d8c7b6a-5f4e-4d2c-8b0a-998877665544",
+      "rowIndex": 4,
+      "member": {
+        "name": "Alexandra Doe",
+        "bioguideId": null,
+        "party": null,
+        "state": null
+      },
+      "filedAt": "2026-08-13",
+      "transactedAt": "2026-08-03",
+      "ticker": "EXCO",
+      "assetDescription": "ExampleCorp Inc Call Options, strike $45, exp 01/2028",
+      "assetType": "option",
+      "side": "buy",
+      "amountRange": {
+        "min": 1001,
+        "max": 15000,
+        "text": "$1,001 - $15,000"
+      },
+      "owner": "self",
+      "provenance": {
+        "source": "senate-efd",
+        "sourceUrl": "https://efdsearch.senate.gov/search/view/ptr/9d8c7b6a-5f4e-4d2c-8b0a-998877665544/",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "efd-ptr-html@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    }
+  ],
+  "headerRow": [
+    "#",
+    "Transaction Date",
+    "Owner",
+    "Ticker",
+    "Asset Name",
+    "Asset Type",
+    "Type",
+    "Amount",
+    "Comment"
+  ]
+}

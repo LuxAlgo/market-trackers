@@ -1,0 +1,28 @@
+{
+  "result": "ok",
+  "data": [
+    [
+      "Sheldon",
+      "Whitehouse",
+      "Whitehouse, Sheldon (Senator)",
+      "<a href=\"/search/view/ptr/3f9b1c2e-8a4d-4e5f-9b6a-7c8d9e0f1a2b/\" target=\"_blank\">Periodic Transaction Report for 08/12/2026</a>",
+      "08/12/2026"
+    ],
+    [
+      "Alexandra",
+      "Doe",
+      "Doe, Alexandra (Senator)",
+      "<a href=\"/search/view/ptr/9d8c7b6a-5f4e-4d2c-8b0a-998877665544/\" target=\"_blank\">Periodic Transaction Report for 08/13/2026</a>",
+      "08/13/2026"
+    ],
+    [
+      "Pat",
+      "Example",
+      "Example, Pat (Senator)",
+      "<a href=\"/search/view/paper/77aa88bb-99cc-4dde-8eff-001122334455/\" target=\"_blank\">Periodic Transaction Report (paper) for 08/14/2026</a>",
+      "08/14/2026"
+    ]
+  ],
+  "recordsTotal": 3,
+  "recordsFiltered": 3
+}

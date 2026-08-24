@@ -1,0 +1,14 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic web-table PTR with junk cells: blank ticker + '--' owner, free-text amount ('See attached statement') and an inverted range ('$15,000 - $1,001') — both must keep verbatim text with unknown bounds {min 0, max null} and needsReview true, next to one clean mutual-fund row.",
+  "sourceUrl": null,
+  "parser": "efd-ptr-html@1",
+  "parseInput": {
+    "docId": "5a4b3c2d-1e0f-4a8b-9c6d-5e4f3a2b1c0d",
+    "memberName": "Whitehouse, Sheldon",
+    "filedAt": "2026-08-14",
+    "sourceUrl": "https://efdsearch.senate.gov/search/view/ptr/5a4b3c2d-1e0f-4a8b-9c6d-5e4f3a2b1c0d/",
+    "retrievedAt": "2026-08-24T00:00:00.000Z"
+  }
+}

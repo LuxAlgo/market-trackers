@@ -33,11 +33,11 @@ describe("runCanaries", () => {
       fetchImpl: (async () => new Response("nope", { status: 404 })) as typeof fetch,
     };
 
-    const report = await runCanaries(ctx, { sources: ["senate-efd", "finra"] });
+    const report = await runCanaries(ctx, { sources: ["house-clerk", "finra"] });
     expect(report.sources).toHaveLength(2);
 
-    const efd = report.sources.find((r) => r.source === "senate-efd");
-    expect(efd?.status).toBe("skip");
+    const scaffolded = report.sources.find((r) => r.source === "house-clerk");
+    expect(scaffolded?.status).toBe("skip");
 
     const finra = report.sources.find((r) => r.source === "finra");
     expect(finra?.status).toBe("red");
