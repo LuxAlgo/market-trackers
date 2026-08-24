@@ -128,8 +128,5 @@ export function awardPageUrl(generatedInternalId: string): string {
 
 /** Structural fingerprint: sha256 of a result row's sorted field names. */
 export function awardRowFingerprint(row: Record<string, unknown>): string {
-  return createHash("sha256")
-    .update(Object.keys(row).sort().join("|"))
-    .digest("hex")
-    .slice(0, 16);
+  return createHash("sha256").update(Object.keys(row).sort().join("|")).digest("hex").slice(0, 16);
 }

@@ -108,9 +108,7 @@ export const usaspendingSource: DocketSource = {
     const today = toDateString(now);
     const retrievedAt = now.toISOString();
 
-    const watermark = opts.full
-      ? null
-      : await ctx.store.getWatermark("usaspending", WATERMARK_KEY);
+    const watermark = opts.full ? null : await ctx.store.getWatermark("usaspending", WATERMARK_KEY);
     const start =
       opts.since ??
       (watermark ? addDays(watermark, -REWALK_DAYS) : addDays(today, -ctx.config.backfillDays));

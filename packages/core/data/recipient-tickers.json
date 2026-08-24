@@ -1,7 +1,11 @@
 {
   "version": 1,
   "entries": [
-    { "tickers": ["LMT"], "names": ["LOCKHEED MARTIN", "SIKORSKY", "SIKORSKY AIRCRAFT"], "uei": [] },
+    {
+      "tickers": ["LMT"],
+      "names": ["LOCKHEED MARTIN", "SIKORSKY", "SIKORSKY AIRCRAFT"],
+      "uei": []
+    },
     {
       "tickers": ["RTX"],
       "names": [
