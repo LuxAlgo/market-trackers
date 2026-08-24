@@ -29,7 +29,9 @@ function mockEdgarFetch(options: { companyTickersStatus?: number } = {}): {
     [`https://www.sec.gov/Archives/edgar/daily-index/2026/QTR3/master.20260820.idx`]: () =>
       new Response(readFixture("edgar-daily-index", "master-sample.idx"), { status: 200 }),
     [`https://www.sec.gov/Archives/edgar/data/123456/0001127602-26-019876.txt`]: () =>
-      new Response(readFixture("edgar-form-ownership", "case-form4-sale-and-exercise", "input.txt")),
+      new Response(
+        readFixture("edgar-form-ownership", "case-form4-sale-and-exercise", "input.txt"),
+      ),
     [`https://www.sec.gov/Archives/edgar/data/123456/0000123456-26-000031.txt`]: () =>
       new Response(readFixture("edgar-form-ownership", "case-form3-initial-holdings", "input.txt")),
     [`https://www.sec.gov/Archives/edgar/data/9876543/0009876543-26-000002.txt`]: () =>
@@ -59,10 +61,7 @@ async function makeCtx(
   const store = await DocketStore.open(":memory:");
   const ctx: SourceContext = {
     store,
-    config: resolveConfig(
-      { logLevel: "silent", ...overrides },
-      { cwd: "/nonexistent", env: {} },
-    ),
+    config: resolveConfig({ logLevel: "silent", ...overrides }, { cwd: "/nonexistent", env: {} }),
     logger: silentLogger,
     fetchImpl,
     // The day after the fixture day: today's index is probed but 404s.
@@ -117,9 +116,7 @@ describe("edgarSource.canary", () => {
     expect(byName["fingerprint"]?.ok).toBe(true);
     expect(byName["fetch-company-tickers"]?.ok).toBe(true);
     expect(byName["fetch-company-tickers"]?.severity).toBe("hard");
-    expect(
-      requests.some((r) => r.url === COMPANY_TICKERS_URL && r.method === "HEAD"),
-    ).toBe(true);
+    expect(requests.some((r) => r.url === COMPANY_TICKERS_URL && r.method === "HEAD")).toBe(true);
     await store.close();
   });
 

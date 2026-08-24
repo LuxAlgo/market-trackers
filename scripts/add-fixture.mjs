@@ -96,7 +96,8 @@ if (args.url) {
 
 // Accession + filing date come from the SEC header, not from guesses.
 const header = core.parseSecHeader(text);
-if (!header.accessionNumber) fail("no ACCESSION NUMBER in the SEC header — is this a full-submission .txt?");
+if (!header.accessionNumber)
+  fail("no ACCESSION NUMBER in the SEC header — is this a full-submission .txt?");
 if (!header.filedAsOfDate) fail("no FILED AS OF DATE in the SEC header");
 
 // Provenance deep link: the filing index page. Derived from the .txt URL when
@@ -106,7 +107,8 @@ let sourceUrl;
 if (txtUrl) {
   sourceUrl = txtUrl.replace(/\.txt$/, "-index.htm");
 } else {
-  if (!header.centralIndexKey) fail("no CENTRAL INDEX KEY in the SEC header to build the index URL");
+  if (!header.centralIndexKey)
+    fail("no CENTRAL INDEX KEY in the SEC header to build the index URL");
   sourceUrl = `https://www.sec.gov/Archives/edgar/data/${Number(header.centralIndexKey)}/${header.accessionNumber}-index.htm`;
 }
 
@@ -127,7 +129,14 @@ try {
 
 const caseDir = resolve(
   args.out ??
-    join(ROOT, "packages", "core", "fixtures", `edgar-${args.parser}`, `case-${header.accessionNumber}`),
+    join(
+      ROOT,
+      "packages",
+      "core",
+      "fixtures",
+      `edgar-${args.parser}`,
+      `case-${header.accessionNumber}`,
+    ),
 );
 if (existsSync(join(caseDir, "meta.json"))) {
   fail(`case already exists: ${caseDir} — pick another --out or remove it first`);

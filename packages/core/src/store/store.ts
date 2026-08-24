@@ -482,10 +482,7 @@ export class DocketStore {
     const sql =
       `SELECT DISTINCT "cusip" FROM "thirteenf_holdings" WHERE "ticker" IS NULL ORDER BY "cusip"` +
       (limit !== undefined ? ` LIMIT ?` : ``);
-    const rows = await this.driver.all<{ cusip: string }>(
-      sql,
-      limit !== undefined ? [limit] : [],
-    );
+    const rows = await this.driver.all<{ cusip: string }>(sql, limit !== undefined ? [limit] : []);
     return rows.map((r) => r.cusip);
   }
 

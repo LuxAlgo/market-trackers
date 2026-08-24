@@ -66,9 +66,7 @@ describe("refreshCikTickersIfStale", () => {
     const result = await refreshCikTickersIfStale(store, makeClient(fetchImpl), silentLogger);
     expect(result).toEqual({ refreshed: true, entries: 2 });
     expect(await store.tickersForCik("0000123456")).toEqual(["EXCO", "EXCO.B"]);
-    expect(seen).toEqual([
-      { url: COMPANY_TICKERS_URL, ifNoneMatch: null, ifModifiedSince: null },
-    ]);
+    expect(seen).toEqual([{ url: COMPANY_TICKERS_URL, ifNoneMatch: null, ifModifiedSince: null }]);
     expect(await store.getFetchCache(COMPANY_TICKERS_URL)).toEqual({
       etag: ETAG,
       lastModified: LAST_MODIFIED,

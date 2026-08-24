@@ -52,9 +52,7 @@ export async function resolveCommand(what: string, flags: ResolveFlags): Promise
           `${summary.stillUnresolved} still unresolved; ${summary.rowsUpdated} holding rows updated\n`,
       );
       if (summary.stillUnresolved > 0) {
-        process.stdout.write(
-          `hint: misses are cached; re-query them later with --retry-misses\n`,
-        );
+        process.stdout.write(`hint: misses are cached; re-query them later with --retry-misses\n`);
       }
     }
     return 0;
