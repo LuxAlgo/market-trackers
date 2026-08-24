@@ -6,9 +6,10 @@ name: Publish dumps
 # writes to docket-data.
 #
 # No-ops until configured:
-#   vars.DOCKET_CONTACT      — contact email for the SEC EDGAR User-Agent
-#   vars.DOCKET_DATA_REPO    — e.g. "LuxAlgo/docket-data"
+#   vars.DOCKET_CONTACT       — contact email for the SEC EDGAR User-Agent
+#   vars.DOCKET_DATA_REPO     — e.g. "LuxAlgo/docket-data" (job skipped without it)
 #   secrets.DOCKET_DATA_TOKEN — token with push access to the data repo
+#                               (without it, dumps build but nothing is pushed)
 on:
   schedule:
     - cron: "41 12 * * 1-6"
@@ -16,6 +17,12 @@ on:
 
 permissions:
   contents: write
+
+# Never let two publishes race each other (or the shared store cache); a run
+# that fires while another is in flight queues instead of overlapping.
+concurrency:
+  group: publish-dumps
+  cancel-in-progress: false
 
 jobs:
   publish:
@@ -37,9 +44,25 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # Secrets are not allowed in job-level `if`, so the data-repo steps key
+      # off this output instead. The token itself is never printed.
+      - name: Check data-repo credentials
+        id: creds
+        env:
+          DOCKET_DATA_TOKEN: ${{ secrets.DOCKET_DATA_TOKEN }}
+        run: |
+          if [ -n "$DOCKET_DATA_TOKEN" ]; then
+            echo "push=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "push=false" >> "$GITHUB_OUTPUT"
+            echo "DOCKET_DATA_TOKEN not configured; dumps will be built but not published."
+          fi
+
       # The store accumulates across runs so exports carry full history.
+      # Restore and save are split so the store is saved even when a later
+      # step fails — see the "Save store" step at the end of the job.
       - name: Restore store
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: publish.db
           key: docket-store-v1-${{ github.run_id }}
@@ -55,13 +78,28 @@ jobs:
         run: node packages/cli/dist/index.js export --db publish.db --out dumps --json
 
       - name: Checkout data repo
+        if: steps.creds.outputs.push == 'true'
         uses: actions/checkout@v4
         with:
           repository: ${{ vars.DOCKET_DATA_REPO }}
           token: ${{ secrets.DOCKET_DATA_TOKEN }}
           path: data-repo
 
+      # First-publish bootstrap: install the data repo's landing README and
+      # CC0 LICENSE from templates/docket-data/ — only when missing, so a
+      # maintainer's later edits in the data repo are never overwritten.
+      - name: Install data-repo README/LICENSE when missing
+        if: steps.creds.outputs.push == 'true'
+        run: |
+          for f in README.md LICENSE; do
+            if [ ! -f "data-repo/$f" ]; then
+              cp "templates/docket-data/$f" "data-repo/$f"
+              echo "Installed $f into the data repo (first publish)."
+            fi
+          done
+
       - name: Commit & push dumps
+        if: steps.creds.outputs.push == 'true'
         run: |
           rsync -a --delete --exclude ".git" --exclude "README.md" --exclude "LICENSE" dumps/ data-repo/
           cd data-repo
@@ -88,3 +126,13 @@ jobs:
             git commit -m "docs: refresh health board [skip ci]"
             git push
           fi
+
+      # Saved last (and even on failure) so canary runs and fingerprint
+      # baselines recorded above persist too. The run-id key is unique, so
+      # every run saves a fresh entry; restore falls back on the prefix.
+      - name: Save store
+        if: ${{ always() && hashFiles('publish.db') != '' }}
+        uses: actions/cache/save@v4
+        with:
+          path: publish.db
+          key: docket-store-v1-${{ github.run_id }}
