@@ -65,6 +65,13 @@ fail until all three agree — that's them doing their job. A changed published 
 - Comments explain constraints ("values are in thousands before 2023"), not narration.
 - Keep changes scoped; prefer small local edits over sweeping rewrites.
 
+## Operations
+
+CI, the daily canaries, dump publishing, and releases are documented in
+[`docs/operations.md`](docs/operations.md) — including every repository variable/secret and
+what stays off without it. The contract of the published dumps (layout, delta semantics,
+manifest, `SCHEMA_VERSION` policy) is in [`docs/docket-data.md`](docs/docket-data.md).
+
 ## Security
 
 See [SECURITY.md](SECURITY.md) for how to report vulnerabilities.
