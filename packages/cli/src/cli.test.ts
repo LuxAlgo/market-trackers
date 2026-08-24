@@ -108,7 +108,7 @@ describe("docket CLI", () => {
   });
 
   it("rejects unknown sources and datasets by name", () => {
-    expect(() => docket(["sync", "--source", "quiverquant", "--db", "cli-test.db"])).toThrow();
+    expect(() => docket(["sync", "--source", "not-a-source", "--db", "cli-test.db"])).toThrow();
     expect(() => docket(["export", "--dataset", "nope", "--db", "cli-test.db"])).toThrow();
   });
 

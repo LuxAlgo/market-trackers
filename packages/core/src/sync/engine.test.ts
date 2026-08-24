@@ -40,7 +40,7 @@ describe("selectSources", () => {
 
   it("registry covers all six sources and rejects unknowns", () => {
     expect(ALL_SOURCES).toHaveLength(6);
-    expect(() => sourceById("quiverquant")).toThrow(/Unknown source/);
+    expect(() => sourceById("not-a-source")).toThrow(/Unknown source/);
   });
 });
 
