@@ -5,10 +5,16 @@
  * publish workflow; safe to run locally.
  *
  *   node scripts/update-health-board.mjs canary-report.json README.md
+ *
+ * An optional third argument writes the result elsewhere instead of
+ * in-place — used by the CI smoke test so the real README is never touched:
+ *
+ *   node scripts/update-health-board.mjs canary-report.json README.md out.md
  */
 import { readFileSync, writeFileSync } from "node:fs";
 
-const [reportPath = "canary-report.json", readmePath = "README.md"] = process.argv.slice(2);
+const [reportPath = "canary-report.json", readmePath = "README.md", outPath = readmePath] =
+  process.argv.slice(2);
 
 const TITLES = {
   edgar: "SEC EDGAR (Forms 3/4/5, 13F-HR)",
@@ -56,5 +62,5 @@ if (startIdx === -1 || endIdx === -1) {
 
 const updated =
   readme.slice(0, startIdx + START.length) + "\n" + board + "\n" + readme.slice(endIdx);
-writeFileSync(readmePath, updated);
-console.log(`Health board updated from ${reportPath} (overall: ${report.overall}).`);
+writeFileSync(outPath, updated);
+console.log(`Health board written to ${outPath} from ${reportPath} (overall: ${report.overall}).`);

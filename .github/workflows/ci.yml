@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -41,3 +44,29 @@ jobs:
       # The suite is fully offline: fixtures + mocked fetch, no keys, no network.
       - name: Test
         run: pnpm test
+
+      # Smoke the health-board rewriter against a fabricated canary report
+      # and a COPY of the README — the real README is never modified in CI.
+      - name: Health-board script smoke
+        run: |
+          cat > "$RUNNER_TEMP/canary-smoke.json" <<'EOF'
+          {
+            "generatedAt": "2026-01-01T00:00:00.000Z",
+            "overall": "red",
+            "sources": [
+              { "source": "edgar", "status": "green", "ranAt": "2026-01-01T00:00:00.000Z", "checks": [] },
+              { "source": "finra", "status": "red", "ranAt": "2026-01-01T00:00:00.000Z", "checks": [] },
+              { "source": "lda", "status": "amber", "ranAt": "2026-01-01T00:00:00.000Z", "checks": [] },
+              { "source": "senate-efd", "status": "skip", "checks": [] }
+            ]
+          }
+          EOF
+          cp README.md "$RUNNER_TEMP/readme-smoke.md"
+          node scripts/update-health-board.mjs \
+            "$RUNNER_TEMP/canary-smoke.json" \
+            "$RUNNER_TEMP/readme-smoke.md" \
+            "$RUNNER_TEMP/readme-smoke.out.md"
+          grep -q "🟢 healthy" "$RUNNER_TEMP/readme-smoke.out.md"
+          grep -q "🔴 broken" "$RUNNER_TEMP/readme-smoke.out.md"
+          grep -q "🟡 stale" "$RUNNER_TEMP/readme-smoke.out.md"
+          git diff --exit-code README.md
