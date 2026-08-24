@@ -13,6 +13,12 @@ permissions:
   contents: read
   issues: write
 
+# One canary run at a time — overlapping probes double-hit the sources and
+# race the shared canary issue.
+concurrency:
+  group: canaries
+  cancel-in-progress: false
+
 jobs:
   canaries:
     runs-on: ubuntu-latest
@@ -59,6 +65,7 @@ jobs:
         with:
           name: canary-report
           path: canary-report.json
+          retention-days: 30
 
       - name: Open or update the canary issue on red
         if: steps.canary.outputs.exit_code != '0'
@@ -68,8 +75,9 @@ jobs:
             const fs = require("fs");
             const report = JSON.parse(fs.readFileSync("canary-report.json", "utf8"));
             const red = report.sources.filter((s) => s.status === "red");
+            const amber = report.sources.filter((s) => s.status === "amber");
             const title = `Canary red: ${red.map((s) => s.source).join(", ")}`;
-            const body = [
+            const lines = [
               `Daily canaries went **red** on ${report.generatedAt}.`,
               "",
               ...red.map((s) =>
@@ -84,7 +92,21 @@ jobs:
               "",
               "A failing fingerprint check means the source changed its format — fix the parser",
               "and refresh the stored fingerprint; do not silence the canary.",
-            ].join("\n");
+            ];
+            if (amber.length > 0) {
+              lines.push(
+                "",
+                "---",
+                "Stale but not failing (amber) at the same time:",
+                ...amber.map((s) => {
+                  const failing = s.checks
+                    .filter((c) => !c.ok)
+                    .map((c) => `\`${c.name}\`${c.note ? ` — ${c.note}` : ""}`);
+                  return `- 🟡 **${s.source}**${failing.length > 0 ? `: ${failing.join("; ")}` : ""}`;
+                }),
+              );
+            }
+            const body = lines.join("\n");
 
             const { data: issues } = await github.rest.issues.listForRepo({
               ...context.repo,
