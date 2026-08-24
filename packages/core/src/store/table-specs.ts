@@ -1,0 +1,334 @@
+/**
+ * Dialect-neutral table specifications — the single source that DDL
+ * generation (SQLite + Postgres), upsert statements, and the parity tests
+ * all derive from. Record shapes themselves are owned by the zod schemas in
+ * `../schema`; these specs describe how those records flatten into rows.
+ */
+
+export type ColumnType = "text" | "real" | "integer" | "boolean" | "json";
+
+export interface ColumnSpec {
+  name: string;
+  type: ColumnType;
+  nullable?: boolean;
+}
+
+export interface IndexSpec {
+  name: string;
+  columns: string[];
+  unique?: boolean;
+}
+
+export interface TableSpec {
+  name: string;
+  columns: ColumnSpec[];
+  primaryKey: string[];
+  indexes: IndexSpec[];
+}
+
+/** Provenance columns shared by every dataset table. */
+export const PROVENANCE_COLUMNS: ColumnSpec[] = [
+  { name: "source", type: "text" },
+  { name: "source_url", type: "text" },
+  { name: "retrieved_at", type: "text" },
+  { name: "parser", type: "text" },
+  { name: "confidence", type: "real" },
+  { name: "needs_review", type: "boolean" },
+];
+
+function datasetTable(name: string, columns: ColumnSpec[], indexes: IndexSpec[]): TableSpec {
+  return {
+    name,
+    columns: [{ name: "id", type: "text" }, ...columns, ...PROVENANCE_COLUMNS],
+    primaryKey: ["id"],
+    indexes: [
+      ...indexes,
+      { name: `idx_${name}_retrieved_at`, columns: ["retrieved_at"] },
+      { name: `idx_${name}_needs_review`, columns: ["needs_review"] },
+    ],
+  };
+}
+
+export const CONGRESS_TRADES_TABLE = datasetTable(
+  "congress_trades",
+  [
+    { name: "chamber", type: "text" },
+    { name: "doc_id", type: "text" },
+    { name: "row_index", type: "integer" },
+    { name: "member_name", type: "text" },
+    { name: "bioguide_id", type: "text", nullable: true },
+    { name: "party", type: "text", nullable: true },
+    { name: "state", type: "text", nullable: true },
+    { name: "filed_at", type: "text" },
+    { name: "transacted_at", type: "text" },
+    { name: "ticker", type: "text", nullable: true },
+    { name: "asset_description", type: "text" },
+    { name: "asset_type", type: "text" },
+    { name: "side", type: "text" },
+    { name: "amount_min", type: "real" },
+    { name: "amount_max", type: "real", nullable: true },
+    { name: "amount_text", type: "text" },
+    { name: "owner", type: "text", nullable: true },
+  ],
+  [
+    { name: "idx_congress_trades_ticker", columns: ["ticker"] },
+    { name: "idx_congress_trades_transacted_at", columns: ["transacted_at"] },
+    { name: "idx_congress_trades_member_name", columns: ["member_name"] },
+    { name: "idx_congress_trades_bioguide_id", columns: ["bioguide_id"] },
+  ],
+);
+
+export const INSIDER_TRANSACTIONS_TABLE = datasetTable(
+  "insider_transactions",
+  [
+    { name: "accession_number", type: "text" },
+    { name: "form_type", type: "text" },
+    { name: "ticker", type: "text", nullable: true },
+    { name: "issuer_cik", type: "text" },
+    { name: "issuer_name", type: "text" },
+    { name: "insider_name", type: "text" },
+    { name: "insider_cik", type: "text" },
+    { name: "insider_title", type: "text", nullable: true },
+    { name: "is_director", type: "boolean" },
+    { name: "is_officer", type: "boolean" },
+    { name: "is_ten_pct_owner", type: "boolean" },
+    { name: "transacted_at", type: "text", nullable: true },
+    { name: "filed_at", type: "text" },
+    { name: "code", type: "text", nullable: true },
+    { name: "acquired_disposed", type: "text", nullable: true },
+    { name: "security_title", type: "text" },
+    { name: "shares", type: "real", nullable: true },
+    { name: "price_per_share", type: "real", nullable: true },
+    { name: "shares_owned_after", type: "real", nullable: true },
+    { name: "ownership", type: "text" },
+    { name: "is_derivative", type: "boolean" },
+  ],
+  [
+    { name: "idx_insider_transactions_ticker", columns: ["ticker"] },
+    { name: "idx_insider_transactions_transacted_at", columns: ["transacted_at"] },
+    { name: "idx_insider_transactions_insider_name", columns: ["insider_name"] },
+    { name: "idx_insider_transactions_issuer_cik", columns: ["issuer_cik"] },
+    { name: "idx_insider_transactions_filed_at", columns: ["filed_at"] },
+  ],
+);
+
+export const THIRTEENF_HOLDINGS_TABLE = datasetTable(
+  "thirteenf_holdings",
+  [
+    { name: "accession_number", type: "text" },
+    { name: "manager_cik", type: "text" },
+    { name: "manager_name", type: "text" },
+    { name: "period_end", type: "text" },
+    { name: "filed_at", type: "text" },
+    { name: "cusip", type: "text" },
+    { name: "ticker", type: "text", nullable: true },
+    { name: "issuer_name", type: "text" },
+    { name: "share_type", type: "text", nullable: true },
+    { name: "shares", type: "real" },
+    { name: "value_usd", type: "real" },
+    { name: "put_call", type: "text", nullable: true },
+  ],
+  [
+    { name: "idx_thirteenf_holdings_ticker", columns: ["ticker"] },
+    { name: "idx_thirteenf_holdings_cusip", columns: ["cusip"] },
+    { name: "idx_thirteenf_holdings_manager_cik", columns: ["manager_cik"] },
+    { name: "idx_thirteenf_holdings_period_end", columns: ["period_end"] },
+  ],
+);
+
+export const GOV_CONTRACT_AWARDS_TABLE = datasetTable(
+  "gov_contract_awards",
+  [
+    { name: "award_id", type: "text", nullable: true },
+    { name: "award_type", type: "text", nullable: true },
+    { name: "agency", type: "text" },
+    { name: "sub_agency", type: "text", nullable: true },
+    { name: "recipient_name", type: "text" },
+    { name: "recipient_uei", type: "text", nullable: true },
+    { name: "recipient_tickers", type: "json" },
+    { name: "amount_usd", type: "real", nullable: true },
+    { name: "action_date", type: "text" },
+    { name: "description", type: "text", nullable: true },
+    { name: "naics_code", type: "text", nullable: true },
+    { name: "naics_description", type: "text", nullable: true },
+  ],
+  [
+    { name: "idx_gov_contract_awards_action_date", columns: ["action_date"] },
+    { name: "idx_gov_contract_awards_recipient_name", columns: ["recipient_name"] },
+  ],
+);
+
+export const LOBBYING_FILINGS_TABLE = datasetTable(
+  "lobbying_filings",
+  [
+    { name: "filing_uuid", type: "text" },
+    { name: "registrant_name", type: "text" },
+    { name: "client_name", type: "text" },
+    { name: "client_tickers", type: "json" },
+    { name: "amount_usd", type: "real", nullable: true },
+    { name: "filing_year", type: "integer" },
+    { name: "filing_period", type: "text" },
+    { name: "filing_type", type: "text", nullable: true },
+    { name: "issues", type: "json" },
+  ],
+  [
+    { name: "idx_lobbying_filings_client_name", columns: ["client_name"] },
+    { name: "idx_lobbying_filings_filing_year", columns: ["filing_year"] },
+  ],
+);
+
+export const SHORT_VOLUME_DAYS_TABLE = datasetTable(
+  "short_volume_days",
+  [
+    { name: "date", type: "text" },
+    { name: "ticker", type: "text" },
+    { name: "market", type: "text" },
+    { name: "short_volume", type: "real" },
+    { name: "short_exempt_volume", type: "real" },
+    { name: "total_volume", type: "real" },
+    { name: "short_ratio", type: "real", nullable: true },
+  ],
+  [
+    { name: "idx_short_volume_days_ticker", columns: ["ticker"] },
+    { name: "idx_short_volume_days_date", columns: ["date"] },
+  ],
+);
+
+/** Meta tables: sync bookkeeping, canaries, entity-resolution caches. */
+
+export const WATERMARKS_TABLE: TableSpec = {
+  name: "watermarks",
+  columns: [
+    { name: "source", type: "text" },
+    { name: "key", type: "text" },
+    { name: "value", type: "text" },
+    { name: "updated_at", type: "text" },
+  ],
+  primaryKey: ["source", "key"],
+  indexes: [],
+};
+
+export const SYNC_RUNS_TABLE: TableSpec = {
+  name: "sync_runs",
+  columns: [
+    { name: "id", type: "text" },
+    { name: "source", type: "text" },
+    { name: "started_at", type: "text" },
+    { name: "finished_at", type: "text", nullable: true },
+    { name: "ok", type: "boolean", nullable: true },
+    { name: "rows_upserted", type: "integer" },
+    { name: "parse_attempted", type: "integer" },
+    { name: "parse_succeeded", type: "integer" },
+    { name: "error", type: "text", nullable: true },
+    { name: "details", type: "json", nullable: true },
+  ],
+  primaryKey: ["id"],
+  indexes: [{ name: "idx_sync_runs_source_started_at", columns: ["source", "started_at"] }],
+};
+
+export const CANARY_RUNS_TABLE: TableSpec = {
+  name: "canary_runs",
+  columns: [
+    { name: "id", type: "text" },
+    { name: "source", type: "text" },
+    { name: "ran_at", type: "text" },
+    { name: "status", type: "text" },
+    { name: "checks", type: "json" },
+  ],
+  primaryKey: ["id"],
+  indexes: [{ name: "idx_canary_runs_source_ran_at", columns: ["source", "ran_at"] }],
+};
+
+export const FINGERPRINTS_TABLE: TableSpec = {
+  name: "fingerprints",
+  columns: [
+    { name: "source", type: "text" },
+    { name: "key", type: "text" },
+    { name: "hash", type: "text" },
+    { name: "updated_at", type: "text" },
+  ],
+  primaryKey: ["source", "key"],
+  indexes: [],
+};
+
+export const FETCH_CACHE_TABLE: TableSpec = {
+  name: "fetch_cache",
+  columns: [
+    { name: "url", type: "text" },
+    { name: "etag", type: "text", nullable: true },
+    { name: "last_modified", type: "text", nullable: true },
+    { name: "fetched_at", type: "text" },
+  ],
+  primaryKey: ["url"],
+  indexes: [],
+};
+
+export const CIK_TICKERS_TABLE: TableSpec = {
+  name: "cik_tickers",
+  columns: [
+    { name: "cik", type: "text" },
+    { name: "ticker", type: "text" },
+    { name: "name", type: "text" },
+    { name: "refreshed_at", type: "text" },
+  ],
+  primaryKey: ["cik", "ticker"],
+  indexes: [{ name: "idx_cik_tickers_ticker", columns: ["ticker"] }],
+};
+
+export const CUSIP_MAP_TABLE: TableSpec = {
+  name: "cusip_map",
+  columns: [
+    { name: "cusip", type: "text" },
+    { name: "ticker", type: "text", nullable: true },
+    { name: "figi", type: "text", nullable: true },
+    { name: "name", type: "text", nullable: true },
+    { name: "map_source", type: "text" },
+    { name: "resolved_at", type: "text" },
+  ],
+  primaryKey: ["cusip"],
+  indexes: [],
+};
+
+export const MEMBER_MAP_TABLE: TableSpec = {
+  name: "member_map",
+  columns: [
+    { name: "bioguide_id", type: "text" },
+    { name: "full_name", type: "text" },
+    { name: "first_name", type: "text" },
+    { name: "last_name", type: "text" },
+    { name: "chamber", type: "text" },
+    { name: "party", type: "text", nullable: true },
+    { name: "state", type: "text", nullable: true },
+    { name: "refreshed_at", type: "text" },
+  ],
+  primaryKey: ["bioguide_id"],
+  indexes: [{ name: "idx_member_map_last_name", columns: ["last_name"] }],
+};
+
+export const DATASET_TABLES: TableSpec[] = [
+  CONGRESS_TRADES_TABLE,
+  INSIDER_TRANSACTIONS_TABLE,
+  THIRTEENF_HOLDINGS_TABLE,
+  GOV_CONTRACT_AWARDS_TABLE,
+  LOBBYING_FILINGS_TABLE,
+  SHORT_VOLUME_DAYS_TABLE,
+];
+
+export const META_TABLES: TableSpec[] = [
+  WATERMARKS_TABLE,
+  SYNC_RUNS_TABLE,
+  CANARY_RUNS_TABLE,
+  FINGERPRINTS_TABLE,
+  FETCH_CACHE_TABLE,
+  CIK_TICKERS_TABLE,
+  CUSIP_MAP_TABLE,
+  MEMBER_MAP_TABLE,
+];
+
+export const ALL_TABLES: TableSpec[] = [...DATASET_TABLES, ...META_TABLES];
+
+export function tableSpecByName(name: string): TableSpec {
+  const spec = ALL_TABLES.find((t) => t.name === name);
+  if (!spec) throw new Error(`Unknown table '${name}'`);
+  return spec;
+}
