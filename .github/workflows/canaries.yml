@@ -1,0 +1,111 @@
+name: Canaries
+
+# Daily pipeline-health probes against the primary sources: fetch checks,
+# parse-success assertions, format fingerprints, freshness. Red opens (or
+# updates) a "canary" issue with the report attached — rot stays visible.
+on:
+  schedule:
+    # After US-evening data postings (FINRA files, EDGAR day close). UTC.
+    - cron: "17 11 * * 1-6"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  canaries:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      # A shallow sync gives the canaries real parse-rate stats to judge.
+      # DOCKET_CONTACT is a repo variable (Settings → Variables); without it
+      # the EDGAR sync is skipped and its canary reports the gap honestly.
+      - name: Sync (shallow)
+        env:
+          DOCKET_CONTACT: ${{ vars.DOCKET_CONTACT }}
+        run: |
+          node packages/cli/dist/index.js sync --source finra --db canary.db --json || true
+          if [ -n "$DOCKET_CONTACT" ]; then
+            node packages/cli/dist/index.js sync --source edgar --db canary.db --limit 300 --json || true
+          fi
+
+      - name: Run canaries
+        id: canary
+        env:
+          DOCKET_CONTACT: ${{ vars.DOCKET_CONTACT }}
+        run: |
+          set +e
+          node packages/cli/dist/index.js canary --db canary.db --out canary-report.json --json
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: canary-report
+          path: canary-report.json
+
+      - name: Open or update the canary issue on red
+        if: steps.canary.outputs.exit_code != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const report = JSON.parse(fs.readFileSync("canary-report.json", "utf8"));
+            const red = report.sources.filter((s) => s.status === "red");
+            const title = `Canary red: ${red.map((s) => s.source).join(", ")}`;
+            const body = [
+              `Daily canaries went **red** on ${report.generatedAt}.`,
+              "",
+              ...red.map((s) =>
+                [
+                  `### ${s.source}`,
+                  ...s.checks.map((c) => `- ${c.ok ? "✅" : "❌"} \`${c.name}\`${c.note ? ` — ${c.note}` : ""}`),
+                ].join("\n"),
+              ),
+              "",
+              "Full report: see the `canary-report` artifact on this run.",
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              "",
+              "A failing fingerprint check means the source changed its format — fix the parser",
+              "and refresh the stored fingerprint; do not silence the canary.",
+            ].join("\n");
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              ...context.repo,
+              state: "open",
+              labels: "canary",
+            });
+            if (issues.length > 0) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: issues[0].number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                ...context.repo,
+                title,
+                body,
+                labels: ["canary"],
+              });
+            }
+
+      - name: Fail the run on red
+        if: steps.canary.outputs.exit_code != '0'
+        run: exit 1

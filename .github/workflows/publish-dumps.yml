@@ -1,0 +1,90 @@
+name: Publish dumps
+
+# Daily: sync all implemented sources into a cached store, export the
+# docket-data layout (daily deltas + snapshots + manifest), and push it to
+# the data repository. Humans never hand-edit data — only this workflow
+# writes to docket-data.
+#
+# No-ops until configured:
+#   vars.DOCKET_CONTACT      — contact email for the SEC EDGAR User-Agent
+#   vars.DOCKET_DATA_REPO    — e.g. "LuxAlgo/docket-data"
+#   secrets.DOCKET_DATA_TOKEN — token with push access to the data repo
+on:
+  schedule:
+    - cron: "41 12 * * 1-6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: vars.DOCKET_DATA_REPO != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      # The store accumulates across runs so exports carry full history.
+      - name: Restore store
+        uses: actions/cache@v4
+        with:
+          path: publish.db
+          key: docket-store-v1-${{ github.run_id }}
+          restore-keys: |
+            docket-store-v1-
+
+      - name: Sync
+        env:
+          DOCKET_CONTACT: ${{ vars.DOCKET_CONTACT }}
+        run: node packages/cli/dist/index.js sync --db publish.db --json
+
+      - name: Export
+        run: node packages/cli/dist/index.js export --db publish.db --out dumps --json
+
+      - name: Checkout data repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.DOCKET_DATA_REPO }}
+          token: ${{ secrets.DOCKET_DATA_TOKEN }}
+          path: data-repo
+
+      - name: Commit & push dumps
+        run: |
+          rsync -a --delete --exclude ".git" --exclude "README.md" --exclude "LICENSE" dumps/ data-repo/
+          cd data-repo
+          git config user.name "docket-publish[bot]"
+          git config user.email "docket-publish@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No data changes today."
+          else
+            git commit -m "data: $(date -u +%F) daily publish"
+            git push
+          fi
+
+      - name: Update README health board
+        env:
+          DOCKET_CONTACT: ${{ vars.DOCKET_CONTACT }}
+        run: |
+          node packages/cli/dist/index.js canary --db publish.db --out canary-report.json --json || true
+          node scripts/update-health-board.mjs canary-report.json README.md
+          if ! git diff --quiet README.md; then
+            git config user.name "docket-publish[bot]"
+            git config user.email "docket-publish@users.noreply.github.com"
+            git add README.md
+            git commit -m "docs: refresh health board [skip ci]"
+            git push
+          fi
