@@ -1,0 +1,13 @@
+Description:           Master Index of EDGAR Dissemination Feed
+Last Data Received:    August 20, 2026
+Comments:              webmaster@sec.gov
+Anonymous FTP:         ftp://ftp.sec.gov/edgar/
+
+
+CIK|Company Name|Form Type|Date Filed|Filename
+--------------------------------------------------------------------------------
+1000045|SAMPLE FINANCIAL INC|10-Q|2026-08-20|edgar/data/1000045/0001193125-26-208010.txt
+123456|EXAMPLECORP INC|4|2026-08-20|edgar/data/123456/0001127602-26-019876.txt
+123456|EXAMPLECORP INC|3|2026-08-20|edgar/data/123456/0000123456-26-000031.txt
+9876543|EXAMPLE CAPITAL MANAGEMENT LP|13F-HR|2026-08-20|edgar/data/9876543/0009876543-26-000002.txt
+555001|SAMPLE BIOTECH CO|8-K|2026-08-20|edgar/data/555001/0000555001-26-000101.txt

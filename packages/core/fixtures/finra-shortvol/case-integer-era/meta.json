@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Integer-era (pre-2026-02-23) daily file. Includes a zero-total-volume symbol (null shortRatio) and one deliberately malformed row to pin parse-stat accounting.",
+  "sourceUrl": null,
+  "parser": "finra-shortvol@1",
+  "parseInput": {
+    "market": "CNMS",
+    "sourceUrl": "https://cdn.finra.org/equity/regsho/daily/CNMSshvol20220601.txt",
+    "retrievedAt": "2026-08-24T00:00:00.000Z"
+  },
+  "expectedStats": { "attempted": 4, "succeeded": 3 }
+}

@@ -1,0 +1,52 @@
+/**
+ * @luxalgo/docket-core — the public record of US markets, as a library.
+ *
+ * Ingestors (primary sources only), zod schemas, storage (SQLite default /
+ * Postgres optional), entity resolution, dump export, and the canary
+ * machinery. Every stored row carries provenance with a working
+ * primary-source URL.
+ */
+
+export * from "./schema/index.js";
+export * from "./store/index.js";
+export * from "./config.js";
+
+export * from "./lib/logger.js";
+export * from "./lib/dates.js";
+export * from "./lib/rate-limiter.js";
+export * from "./lib/http.js";
+export * from "./lib/amount-ranges.js";
+
+export * from "./sources/types.js";
+export * from "./sources/registry.js";
+export * from "./sources/scaffold.js";
+export {
+  EdgarClient,
+  dailyIndexUrl,
+  filingTxtUrl,
+  filingIndexUrl,
+  accessionFromPath,
+  COMPANY_TICKERS_URL,
+  EDGAR_BASE,
+  EDGAR_DATA_BASE,
+} from "./sources/edgar/client.js";
+export * from "./sources/edgar/daily-index.js";
+export * from "./sources/edgar/full-submission.js";
+export * from "./sources/edgar/form-ownership.js";
+export * from "./sources/edgar/thirteenf.js";
+export { edgarSource } from "./sources/edgar/source.js";
+export * from "./sources/finra-shortvol/parser.js";
+export { finraSource, shortVolumeFileUrl } from "./sources/finra-shortvol/source.js";
+export * from "./sources/senate-efd/source.js";
+export * from "./sources/house-clerk/source.js";
+export * from "./sources/usaspending/source.js";
+export * from "./sources/lda/source.js";
+
+export * from "./resolve/normalize.js";
+export * from "./resolve/cik-ticker.js";
+export * from "./resolve/cusip.js";
+export * from "./resolve/members.js";
+
+export * from "./sync/engine.js";
+export * from "./canary/runner.js";
+export * from "./export/writer.js";

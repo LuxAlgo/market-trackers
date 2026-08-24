@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic 13F-HR (2026 era: values in whole dollars). Exercises namespaced XML, a repeated CUSIP across a long position and a put, and DFND discretion.",
+  "sourceUrl": null,
+  "parser": "thirteenf-xml@1",
+  "parseInput": {
+    "accessionNumber": "0009876543-26-000002",
+    "filedAt": "2026-08-14",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/9876543/0009876543-26-000002-index.htm",
+    "retrievedAt": "2026-08-24T00:00:00.000Z"
+  }
+}
