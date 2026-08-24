@@ -15,6 +15,7 @@ import {
 } from "../../lib/dates.js";
 import {
   accessionFromPath,
+  COMPANY_TICKERS_URL,
   dailyIndexUrl,
   EdgarClient,
   filingIndexUrl,
@@ -245,6 +246,27 @@ export const edgarSource: DocketSource = {
           ok: false,
           severity: "hard",
           note: "no daily index found in the last 6 days",
+        });
+      }
+
+      // The company↔ticker map is load-bearing for ticker recovery on
+      // ownership filings — probe it directly (hard: resolution breaks
+      // silently without it).
+      try {
+        const response = await client.politeFetch(COMPANY_TICKERS_URL, { method: "HEAD" });
+        await response.arrayBuffer().catch(() => undefined);
+        checks.push({
+          name: "fetch-company-tickers",
+          ok: response.ok,
+          severity: "hard",
+          note: response.ok ? undefined : `HTTP ${response.status}`,
+        });
+      } catch (error) {
+        checks.push({
+          name: "fetch-company-tickers",
+          ok: false,
+          severity: "hard",
+          note: error instanceof Error ? error.message : String(error),
         });
       }
     }
