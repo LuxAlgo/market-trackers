@@ -39,6 +39,18 @@ export * from "./sources/finra-shortvol/parser.js";
 export { finraSource, shortVolumeFileUrl } from "./sources/finra-shortvol/source.js";
 export * from "./sources/senate-efd/source.js";
 export * from "./sources/house-clerk/source.js";
+export {
+  fetchYearIndex,
+  extractYearIndexXml,
+  parseYearIndexXml,
+  normalizeIndexDate,
+  HouseClerkIndexError,
+  type HouseIndexFiling,
+  type YearIndexFetchResult,
+  type YearIndexParseResult,
+} from "./sources/house-clerk/client.js";
+export * from "./sources/house-clerk/parse-ptr-items.js";
+export * from "./sources/house-clerk/pdf-text.js";
 export * from "./sources/usaspending/source.js";
 export * from "./sources/lda/source.js";
 

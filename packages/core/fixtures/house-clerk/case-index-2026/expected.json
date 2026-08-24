@@ -1,0 +1,50 @@
+{
+  "fieldSignature": "DocID|FilingDate|FilingType|First|Last|Prefix|StateDst|Suffix|Year",
+  "skipped": 1,
+  "filings": [
+    {
+      "prefix": "Hon.",
+      "first": "Robert",
+      "last": "Kestrel",
+      "suffix": null,
+      "filingType": "P",
+      "stateDst": "OH04",
+      "year": 2026,
+      "filingDate": "2026-08-18",
+      "docId": "20031234"
+    },
+    {
+      "prefix": "Hon.",
+      "first": "Lucia",
+      "last": "Ramirez-Ortega",
+      "suffix": null,
+      "filingType": "P",
+      "stateDst": "TX07",
+      "year": 2026,
+      "filingDate": "2026-08-17",
+      "docId": "8221100"
+    },
+    {
+      "prefix": "Hon.",
+      "first": "Robert",
+      "last": "Kestrel",
+      "suffix": null,
+      "filingType": "O",
+      "stateDst": "OH04",
+      "year": 2025,
+      "filingDate": "2026-05-15",
+      "docId": "10061234"
+    },
+    {
+      "prefix": null,
+      "first": "Priya",
+      "last": "Vann",
+      "suffix": "Jr.",
+      "filingType": "X",
+      "stateDst": "WA09",
+      "year": 2025,
+      "filingDate": "2026-04-30",
+      "docId": "40031111"
+    }
+  ]
+}
