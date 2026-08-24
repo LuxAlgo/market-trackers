@@ -1,0 +1,111 @@
+{
+  "rows": [
+    {
+      "id": "senate:3f9b1c2e-8a4d-4e5f-9b6a-7c8d9e0f1a2b:0",
+      "chamber": "senate",
+      "docId": "3f9b1c2e-8a4d-4e5f-9b6a-7c8d9e0f1a2b",
+      "rowIndex": 0,
+      "member": {
+        "name": "Sheldon Whitehouse",
+        "bioguideId": null,
+        "party": null,
+        "state": null
+      },
+      "filedAt": "2026-08-12",
+      "transactedAt": "2026-08-05",
+      "ticker": "EXCO",
+      "assetDescription": "ExampleCorp Inc — Common Stock",
+      "assetType": "stock",
+      "side": "buy",
+      "amountRange": {
+        "min": 1001,
+        "max": 15000,
+        "text": "$1,001 - $15,000"
+      },
+      "owner": "self",
+      "provenance": {
+        "source": "senate-efd",
+        "sourceUrl": "https://efdsearch.senate.gov/search/view/ptr/3f9b1c2e-8a4d-4e5f-9b6a-7c8d9e0f1a2b/",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "efd-ptr-html@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    },
+    {
+      "id": "senate:3f9b1c2e-8a4d-4e5f-9b6a-7c8d9e0f1a2b:1",
+      "chamber": "senate",
+      "docId": "3f9b1c2e-8a4d-4e5f-9b6a-7c8d9e0f1a2b",
+      "rowIndex": 1,
+      "member": {
+        "name": "Sheldon Whitehouse",
+        "bioguideId": null,
+        "party": null,
+        "state": null
+      },
+      "filedAt": "2026-08-12",
+      "transactedAt": "2026-08-06",
+      "ticker": "EXCO",
+      "assetDescription": "ExampleCorp Inc — Common Stock",
+      "assetType": "stock",
+      "side": "sell",
+      "amountRange": {
+        "min": 15001,
+        "max": 50000,
+        "text": "$15,001 - $50,000"
+      },
+      "owner": "spouse",
+      "provenance": {
+        "source": "senate-efd",
+        "sourceUrl": "https://efdsearch.senate.gov/search/view/ptr/3f9b1c2e-8a4d-4e5f-9b6a-7c8d9e0f1a2b/",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "efd-ptr-html@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    },
+    {
+      "id": "senate:3f9b1c2e-8a4d-4e5f-9b6a-7c8d9e0f1a2b:2",
+      "chamber": "senate",
+      "docId": "3f9b1c2e-8a4d-4e5f-9b6a-7c8d9e0f1a2b",
+      "rowIndex": 2,
+      "member": {
+        "name": "Sheldon Whitehouse",
+        "bioguideId": null,
+        "party": null,
+        "state": null
+      },
+      "filedAt": "2026-08-12",
+      "transactedAt": "2026-08-07",
+      "ticker": null,
+      "assetDescription": "Example State Turnpike Authority Revenue Bond 4.25% 2041",
+      "assetType": "bond",
+      "side": "sell",
+      "amountRange": {
+        "min": 50001,
+        "max": 100000,
+        "text": "$50,001 - $100,000"
+      },
+      "owner": "joint",
+      "provenance": {
+        "source": "senate-efd",
+        "sourceUrl": "https://efdsearch.senate.gov/search/view/ptr/3f9b1c2e-8a4d-4e5f-9b6a-7c8d9e0f1a2b/",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "efd-ptr-html@1",
+        "confidence": 0.9,
+        "needsReview": false
+      }
+    }
+  ],
+  "headerRow": [
+    "#",
+    "Transaction Date",
+    "Owner",
+    "Ticker",
+    "Asset Name",
+    "Asset Type",
+    "Type",
+    "Amount",
+    "Comment"
+  ]
+}

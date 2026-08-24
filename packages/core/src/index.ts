@@ -38,6 +38,24 @@ export { edgarSource } from "./sources/edgar/source.js";
 export * from "./sources/finra-shortvol/parser.js";
 export { finraSource, shortVolumeFileUrl } from "./sources/finra-shortvol/source.js";
 export * from "./sources/senate-efd/source.js";
+export {
+  SenateEfdClient,
+  CookieJar,
+  EfdClientError,
+  EFD_PTR_REPORT_TYPES,
+  efdDateToIso,
+  toEfdDate,
+  parseSearchRow,
+  searchRowShape,
+  senatePtrViewUrl,
+  senatePaperViewUrl,
+  type EfdSearchRow,
+  type EfdSearchPage,
+  type EfdSearchParams,
+  type SenateEfdClientOptions,
+} from "./sources/senate-efd/client.js";
+export * from "./sources/senate-efd/ptr-html.js";
+export * from "./sources/senate-efd/scan-extract.js";
 export * from "./sources/house-clerk/source.js";
 export * from "./sources/usaspending/source.js";
 export * from "./sources/lda/source.js";
