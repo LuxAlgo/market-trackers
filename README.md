@@ -24,14 +24,14 @@ platforms charge $30–75/month for API access to this data; the sources are fre
 
 ## Datasets
 
-| Dataset                  | Primary source                                 | What you get                                                                | Status in this build  |
-| ------------------------ | ---------------------------------------------- | --------------------------------------------------------------------------- | --------------------- |
-| **Congress trades**      | Senate eFD + House Clerk financial disclosures | Every reported transaction, amounts as disclosed ranges, member identities  | ingestors in progress |
-| **Insider transactions** | SEC EDGAR Forms 3/4/5 (primary XML)            | Every insider transaction and holding row, raw SEC codes + legend           | ✅ ingesting          |
-| **13F holdings**         | SEC EDGAR 13F-HR information tables            | Quarterly institutional holdings, CUSIP-keyed, values normalized to dollars | ✅ ingesting          |
-| **Government contracts** | USAspending API                                | Federal awards with best-effort recipient→ticker mapping                    | ingestors in progress |
-| **Lobbying**             | Senate LDA API                                 | Lobbying filings with client→ticker mapping                                 | ingestors in progress |
-| **Short-sale volume**    | FINRA Reg SHO daily files                      | Symbol-day short volume + short ratio, both pre- and post-2026 file formats | ✅ ingesting          |
+| Dataset                  | Primary source                                 | What you get                                                                | Status in this build |
+| ------------------------ | ---------------------------------------------- | --------------------------------------------------------------------------- | -------------------- |
+| **Congress trades**      | Senate eFD + House Clerk financial disclosures | Every reported transaction, amounts as disclosed ranges, member identities  | ✅ ingesting         |
+| **Insider transactions** | SEC EDGAR Forms 3/4/5 (primary XML)            | Every insider transaction and holding row, raw SEC codes + legend           | ✅ ingesting         |
+| **13F holdings**         | SEC EDGAR 13F-HR information tables            | Quarterly institutional holdings, CUSIP-keyed, values normalized to dollars | ✅ ingesting         |
+| **Government contracts** | USAspending API                                | Federal awards with best-effort recipient→ticker mapping                    | ✅ ingesting         |
+| **Lobbying**             | Senate LDA API                                 | Lobbying filings with client→ticker mapping                                 | ✅ ingesting         |
+| **Short-sale volume**    | FINRA Reg SHO daily files                      | Symbol-day short volume + short ratio, both pre- and post-2026 file formats | ✅ ingesting         |
 
 `docket status` always tells you exactly what your build ingests — sources that aren't implemented
 yet say so out loud instead of pretending.
@@ -131,10 +131,10 @@ misparses. This board is generated from the latest canary run:
 | Source                          | Status                       | Last checked |
 | ------------------------------- | ---------------------------- | ------------ |
 | SEC EDGAR (Forms 3/4/5, 13F-HR) | ⏳ awaiting first canary run | —            |
-| Senate eFD (PTRs)               | 🚧 ingestor in progress      | —            |
-| House Clerk (PTRs)              | 🚧 ingestor in progress      | —            |
-| USAspending                     | 🚧 ingestor in progress      | —            |
-| Senate LDA                      | 🚧 ingestor in progress      | —            |
+| Senate eFD (PTRs)               | ⏳ awaiting first canary run | —            |
+| House Clerk (PTRs)              | ⏳ awaiting first canary run | —            |
+| USAspending                     | ⏳ awaiting first canary run | —            |
+| Senate LDA                      | ⏳ awaiting first canary run | —            |
 | FINRA Reg SHO                   | ⏳ awaiting first canary run | —            |
 
 <!-- HEALTH-BOARD:END -->

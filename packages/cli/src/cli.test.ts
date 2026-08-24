@@ -64,11 +64,23 @@ describe("docket CLI", () => {
     expect(existsSync(join(tmp, "cli-test.db"))).toBe(true);
   });
 
-  it("sync on a scaffolded source reports not-implemented and exits 0", () => {
-    const out = docket(["sync", "--source", "house-clerk", "--json", "--db", "cli-test.db"]);
+  it("sync with a dataset filter a source doesn't produce is an offline no-op", () => {
+    // finra only produces short-volume; the filter short-circuits before any
+    // network access, so this exercises the CLI sync path fully offline.
+    const out = docket([
+      "sync",
+      "--source",
+      "finra",
+      "--dataset",
+      "congress-trades",
+      "--json",
+      "--db",
+      "cli-test.db",
+    ]);
     const summary = JSON.parse(out);
     expect(summary.ok).toBe(true);
-    expect(summary.results[0].implemented).toBe(false);
+    expect(summary.results[0].implemented).toBe(true);
+    expect(summary.results[0].rowsUpserted).toBe(0);
   });
 
   it("sync --source edgar without a contact email fails with the fair-access explanation", () => {

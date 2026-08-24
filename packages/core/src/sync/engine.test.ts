@@ -21,14 +21,20 @@ async function makeCtx(): Promise<{ ctx: SourceContext; store: DocketStore }> {
 }
 
 describe("selectSources", () => {
-  it("defaults to implemented sources only", () => {
+  it("defaults to implemented sources only — currently all six", () => {
     const selected = selectSources();
     expect(selected.every((s) => s.implemented)).toBe(true);
-    expect(selected.map((s) => s.id)).toContain("finra");
-    expect(selected.map((s) => s.id)).toContain("edgar");
+    expect(selected.map((s) => s.id).sort()).toEqual([
+      "edgar",
+      "finra",
+      "house-clerk",
+      "lda",
+      "senate-efd",
+      "usaspending",
+    ]);
   });
 
-  it("includes explicitly named scaffolded sources", () => {
+  it("restricts to explicitly named sources", () => {
     expect(selectSources(["house-clerk"]).map((s) => s.id)).toEqual(["house-clerk"]);
   });
 
@@ -59,12 +65,15 @@ describe("runSync", () => {
     await store.close();
   });
 
-  it("scaffolded sources sync as an explicit no-op", async () => {
+  it("a dataset filter no source produces makes the run an explicit no-op", async () => {
     const { ctx, store } = await makeCtx();
-    const summary = await runSync(ctx, { sources: ["house-clerk"] });
+    // finra only produces short-volume; the filter short-circuits before any
+    // network access, so this exercises the engine path fully offline.
+    const summary = await runSync(ctx, { sources: ["finra"], datasets: ["congress-trades"] });
     expect(summary.ok).toBe(true);
-    expect(summary.results[0]?.implemented).toBe(false);
-    expect(summary.results[0]?.notes[0]).toMatch(/not implemented/);
+    expect(summary.results[0]?.implemented).toBe(true);
+    expect(summary.results[0]?.rowsUpserted).toBe(0);
+    expect((await store.latestSyncRun("finra"))?.ok).toBe(true);
     await store.close();
   });
 });

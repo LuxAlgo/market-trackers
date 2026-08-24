@@ -23,7 +23,7 @@ describe("deriveCanaryStatus", () => {
 });
 
 describe("runCanaries", () => {
-  it("records skip for scaffolded sources and derives status for implemented ones", async () => {
+  it("derives per-source statuses, records them, and rolls up the worst overall", async () => {
     const store = await DocketStore.open(":memory:");
     const ctx: SourceContext = {
       store,
@@ -33,11 +33,8 @@ describe("runCanaries", () => {
       fetchImpl: (async () => new Response("nope", { status: 404 })) as typeof fetch,
     };
 
-    const report = await runCanaries(ctx, { sources: ["house-clerk", "finra"] });
-    expect(report.sources).toHaveLength(2);
-
-    const scaffolded = report.sources.find((r) => r.source === "house-clerk");
-    expect(scaffolded?.status).toBe("skip");
+    const report = await runCanaries(ctx, { sources: ["finra"] });
+    expect(report.sources).toHaveLength(1);
 
     const finra = report.sources.find((r) => r.source === "finra");
     expect(finra?.status).toBe("red");
