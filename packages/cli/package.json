@@ -1,0 +1,48 @@
+{
+  "name": "@luxalgo/docket-cli",
+  "version": "0.1.0",
+  "description": "The Docket CLI — sync the public record of US markets to a local database, serve it over MCP, and export it as JSON dumps. `docket sync | serve | export | status | canary`.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "docket": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "!dist/**/*.test.*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LuxAlgo/docket.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/LuxAlgo/docket#readme",
+  "bugs": "https://github.com/LuxAlgo/docket/issues",
+  "keywords": [
+    "cli",
+    "congress-trades",
+    "insider-trading",
+    "sec",
+    "edgar",
+    "open-data"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@luxalgo/docket-core": "workspace:^",
+    "@luxalgo/docket-mcp": "workspace:^",
+    "commander": "^13.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  },
+  "engines": {
+    "node": ">=20.9"
+  }
+}
