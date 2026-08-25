@@ -30,6 +30,7 @@ describe("selectSources", () => {
       "congress-legislators",
       "edgar",
       "finra",
+      "govinfo",
       "house-clerk",
       "lda",
       "openfda",

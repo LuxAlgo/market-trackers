@@ -1,0 +1,68 @@
+[
+  {
+    "id": "119-hr-1234",
+    "congress": 119,
+    "billType": "hr",
+    "billNumber": 1234,
+    "title": "Example Data Transparency & Modernization Act",
+    "introducedDate": "2025-02-10",
+    "latestActionDate": "2026-08-12",
+    "latestActionText": "Referred to the Subcommittee on Example Matters.",
+    "sponsorBioguideId": "E000001",
+    "sponsorName": "Rep. Example, Jane [D-VT-1]",
+    "policyArea": "Science, Technology, Communications",
+    "cosponsorCount": 2,
+    "provenance": {
+      "source": "govinfo",
+      "sourceUrl": "https://www.congress.gov/bill/119th-congress/house-bill/1234",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "govinfo-billstatus@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "119-hr-5678",
+    "congress": 119,
+    "billType": "hr",
+    "billNumber": 5678,
+    "title": "Example Minimal Reporting Act",
+    "introducedDate": "2026-07-01",
+    "latestActionDate": null,
+    "latestActionText": null,
+    "sponsorBioguideId": "E000004",
+    "sponsorName": "Rep. Fourth, Sponsor [I-ME-0]",
+    "policyArea": null,
+    "cosponsorCount": 0,
+    "provenance": {
+      "source": "govinfo",
+      "sourceUrl": "https://www.congress.gov/bill/119th-congress/house-bill/5678",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "govinfo-billstatus@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "119-s-200",
+    "congress": 119,
+    "billType": "s",
+    "billNumber": 200,
+    "title": "Example Public Health Data Sharing Act",
+    "introducedDate": "2025-03-05",
+    "latestActionDate": "2026-08-01",
+    "latestActionText": "Placed on Senate Legislative Calendar under General Orders.",
+    "sponsorBioguideId": "E000005",
+    "sponsorName": "Sen. Fifth, Example [D-NY]",
+    "policyArea": "Health",
+    "cosponsorCount": 0,
+    "provenance": {
+      "source": "govinfo",
+      "sourceUrl": "https://www.congress.gov/bill/119th-congress/senate-bill/200",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "govinfo-billstatus@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  }
+]

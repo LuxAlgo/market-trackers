@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<billStatus>
+  <bill>
+    <congress>119</congress>
+    <type>HR</type>
+    <originChamber>House</originChamber>
+    <number>9999</number>
+    <introducedDate>2026-06-01</introducedDate>
+    <sponsors>
+      <item>
+        <bioguideId>E000006</bioguideId>
+        <fullName>Rep. Sixth, Example [R-OH-3]</fullName>
+      </item>
+    </sponsors>
+  </bill>
+</billStatus>
