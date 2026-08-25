@@ -38,6 +38,10 @@ manifest.json                 # row counts, watermarks, per-source health, schem
 | `clinical-trials`       | `clinical-trials/studies` |
 | `fda-approvals`         | `fda/approvals`           |
 | `cot-reports`           | `cot/legacy-futures`      |
+| `wiki-pageviews`        | `wiki/pageviews`          |
+| `bills`                 | `congress/bills`          |
+| `fec-candidates`        | `fec/candidates`          |
+| `fec-contributions`     | `fec/contributions`       |
 
 Files are single-line JSON arrays with a trailing newline. Rows are emitted in id order and one
 JSON shape, so re-exports are byte-stable and the data repo's diffs stay reviewable. Every row

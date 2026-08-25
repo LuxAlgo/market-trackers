@@ -219,6 +219,9 @@ misparses. This board is generated from the latest canary run:
 | ClinicalTrials.gov               | ⏳ awaiting first canary run | —            |
 | openFDA (Drugs@FDA)              | ⏳ awaiting first canary run | —            |
 | CFTC COT                         | ⏳ awaiting first canary run | —            |
+| Wikimedia pageviews              | ⏳ awaiting first canary run | —            |
+| GovInfo (bill status)            | ⏳ awaiting first canary run | —            |
+| FEC campaign finance             | ⏳ awaiting first canary run | —            |
 
 <!-- HEALTH-BOARD:END -->
 
