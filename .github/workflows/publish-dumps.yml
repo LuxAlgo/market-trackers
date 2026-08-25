@@ -109,10 +109,13 @@ jobs:
             fi
           done
 
+      # "/explorer" is excluded because the exporter never produces it — it is
+      # installed by the next step, and without the exclusion this --delete
+      # would wipe it on every run just to have it re-committed minutes later.
       - name: Commit & push dumps
         if: steps.creds.outputs.push == 'true'
         run: |
-          rsync -a --delete --exclude ".git" --exclude "README.md" --exclude "LICENSE" dumps/ data-repo/
+          rsync -a --delete --exclude ".git" --exclude "README.md" --exclude "LICENSE" --exclude "/explorer" dumps/ data-repo/
           cd data-repo
           git config user.name "docket-publish[bot]"
           git config user.email "docket-publish@users.noreply.github.com"
@@ -124,20 +127,19 @@ jobs:
             git push
           fi
 
-      # Copies the static data-explorer bundle into the data repo once a
-      # separate sprint lands it at templates/docket-data/explorer/ — an
-      # `[ -d ... ]` check keeps this a safe no-op until then. Runs as its
-      # own commit, after (never before) the dumps rsync above: that rsync
-      # uses --delete and would otherwise wipe these files right back out,
-      # since the exporter itself never produces them.
+      # Installs/refreshes the static data explorer at explorer/index.html in
+      # the data repo (a self-contained page that reads ../manifest.json and
+      # the dataset files next to it — see docs/docket-data.md). Its own
+      # commit, separate from the dumps push; the dumps rsync above excludes
+      # "/explorer" so its --delete can never wipe this between refreshes.
       - name: Install data-repo explorer when present
         if: steps.creds.outputs.push == 'true'
         run: |
           if [ ! -d "templates/docket-data/explorer" ]; then
-            echo "No explorer template yet (templates/docket-data/explorer/ not present); skipping."
+            echo "No explorer template (templates/docket-data/explorer/ not present); skipping."
             exit 0
           fi
-          rsync -a templates/docket-data/explorer/ data-repo/
+          rsync -a templates/docket-data/explorer/ data-repo/explorer/
           cd data-repo
           git config user.name "docket-publish[bot]"
           git config user.email "docket-publish@users.noreply.github.com"

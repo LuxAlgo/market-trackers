@@ -15,6 +15,7 @@ configured yet: every workflow is a safe no-op until its variables and secrets e
 | `sync-fast.yml`     | ~2-hourly cron (weekdays), manual | same as `publish-dumps.yml`                                            | job skipped without `DOCKET_DATA_REPO`; syncs but does not push without the token                               |
 | `mirror-hf.yml`     | weekly cron, manual               | `DOCKET_DATA_REPO`, `DOCKET_DATA_TOKEN`, `HF_DATASET_REPO`, `HF_TOKEN` | job skipped without `DOCKET_DATA_REPO`/`HF_DATASET_REPO`; skips the push (with a log line) without either token |
 | `release.yml`       | manual (`workflow_dispatch`)      | `NPM_TOKEN`                                                            | ends successfully after logging "NPM_TOKEN not configured; skipping publish."                                   |
+| `backfill.yml`      | manual (`workflow_dispatch`)      | `DOCKET_CONTACT` (EDGAR only), `DOCKET_DATA_REPO` + `DOCKET_DATA_TOKEN` | backfills and uploads the dumps as a run artifact either way; the archive-release publish step onto the data repo is skipped without the var/token |
 
 All workflows keep `permissions:` minimal, never print secrets, and pass secrets only through
 env vars (`DOCKET_DATA_TOKEN` to checkout/push, `HF_TOKEN` to authenticate the Hugging Face
@@ -56,8 +57,11 @@ repo starts empty.
    - exports the dump layout (daily deltas, `latest.json`, `snapshot.json.gz`, `manifest.json`),
    - installs `README.md` and `LICENSE` into the data repo from `templates/docket-data/` —
      **only when missing**, so later hand-edits in the data repo are never overwritten,
-   - rsyncs the dumps (`--delete`, excluding `.git`, `README.md`, `LICENSE`) and pushes as
-     `docket-publish[bot]`,
+   - rsyncs the dumps (`--delete`, excluding `.git`, `README.md`, `LICENSE`, and `/explorer`)
+     and pushes as `docket-publish[bot]`,
+   - installs/refreshes the static data explorer (`templates/docket-data/explorer/` →
+     `explorer/` in the data repo) as its own commit — the exclusion above is what keeps the
+     daily `--delete` from wiping it between refreshes,
    - refreshes the health board in this repo's README (committed with `[skip ci]`).
 
 Day-to-day, the only writer to the data repo is this workflow. Human PRs to data files there

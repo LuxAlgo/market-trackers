@@ -122,4 +122,24 @@ describe("the shipped recipient-tickers map", () => {
     expect(resolveEntityTickers({ name: "HARRIS COUNTY TOLL ROAD AUTHORITY" })).toEqual([]);
     expect(resolveEntityTickers({ name: "GE HEALTHCARE TECHNOLOGIES INC" })).toEqual([]);
   });
+
+  it("resolves pharma/tech names only through their scoped forms (collision guards)", () => {
+    expect(resolveEntityTickers({ name: "Eli Lilly and Company" })).toEqual(["LLY"]);
+    expect(resolveEntityTickers({ name: "NOVARTIS PHARMACEUTICALS CORPORATION" })).toEqual([
+      "NVS",
+    ]);
+    expect(resolveEntityTickers({ name: "MERCK SHARP & DOHME LLC" })).toEqual(["MRK"]);
+    expect(resolveEntityTickers({ name: "Merck & Co., Inc." })).toEqual(["MRK"]);
+    expect(resolveEntityTickers({ name: "QUALCOMM Incorporated" })).toEqual(["QCOM"]);
+    expect(resolveEntityTickers({ name: "REGENERON PHARMACEUTICALS, INC." })).toEqual(["REGN"]);
+    expect(resolveEntityTickers({ name: "HEWLETT PACKARD ENTERPRISE COMPANY" })).toEqual(["HPE"]);
+    // Deliberate misses: lookalikes that must never leak onto the US ticker.
+    // The German Merck KGaA is unrelated to NYSE:MRK; the map ships only the
+    // scoped "MERCK SHARP AND DOHME" / "MERCK AND" forms, never bare "MERCK".
+    expect(resolveEntityTickers({ name: "MERCK KGAA" })).toEqual([]);
+    // No bare "HP"/"HEWLETT PACKARD" either — it would prefix-collide with
+    // Hewlett Packard Enterprise, a different listed company since the split.
+    expect(resolveEntityTickers({ name: "HP INC" })).toEqual([]);
+    expect(resolveEntityTickers({ name: "HEWLETT PACKARD" })).toEqual([]);
+  });
 });

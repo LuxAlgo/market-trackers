@@ -7,6 +7,7 @@ export interface BackfillFlags extends GlobalFlags {
   to?: string;
   chunkDays?: string;
   limit?: string;
+  full?: boolean;
 }
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -57,7 +58,14 @@ export async function backfillCommand(flags: BackfillFlags): Promise<number> {
 
   const ctx = await openContext(flags);
   try {
-    const summary = await runBackfill(ctx, { sources, from, to, chunkDays, limit });
+    const summary = await runBackfill(ctx, {
+      sources,
+      from,
+      to,
+      chunkDays,
+      limit,
+      full: flags.full,
+    });
 
     if (flags.json) {
       printJson(summary);

@@ -139,7 +139,8 @@ globalOptions(
     .option("--from <date>", "start of the backfill window (YYYY-MM-DD)")
     .option("--to <date>", "end of the backfill window (default: today)")
     .option("--chunk-days <n>", "days per resumable chunk")
-    .option("--limit <n>", "soft cap on documents fetched this run"),
+    .option("--limit <n>", "soft cap on documents fetched this run")
+    .option("--full", "ignore the backfill resume watermark and re-walk the whole window"),
 ).action(async (flags) => {
   try {
     process.exit(await backfillCommand(flags));
