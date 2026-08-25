@@ -29,6 +29,7 @@ describe("selectSources", () => {
       "clinicaltrials",
       "congress-legislators",
       "edgar",
+      "fec",
       "finra",
       "govinfo",
       "house-clerk",

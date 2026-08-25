@@ -1,0 +1,10 @@
+[
+  {
+    "name": "stored.txt",
+    "text": "stored entry content, byte-for-byte, no compression\n"
+  },
+  {
+    "name": "nested/deflated.TXT",
+    "text": "deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. deflate me please. \n"
+  }
+]

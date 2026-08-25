@@ -1,0 +1,154 @@
+[
+  {
+    "id": "4082220261234567890",
+    "committeeId": "C00123456",
+    "committeeName": "EXAMPLE INDUSTRY PAC",
+    "candidateId": "H6VT01234",
+    "candidateName": "EXAMPLE, JANE",
+    "amountUsd": 5000,
+    "date": "2026-05-14",
+    "transactionType": "24K",
+    "cycle": 2026,
+    "provenance": {
+      "source": "fec",
+      "sourceUrl": "https://www.fec.gov/data/committee/C00123456/?cycle=2026",
+      "retrievedAt": "2026-08-25T12:00:00.000Z",
+      "parser": "fec-bulk@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "4082220261234567891",
+    "committeeId": "C00987654",
+    "committeeName": "EXAMPLE LEADERSHIP PAC",
+    "candidateId": "S6CA00123",
+    "candidateName": "EXAMPLE, BOB",
+    "amountUsd": 2500.75,
+    "date": "2026-06-20",
+    "transactionType": "24E",
+    "cycle": 2026,
+    "provenance": {
+      "source": "fec",
+      "sourceUrl": "https://www.fec.gov/data/committee/C00987654/?cycle=2026",
+      "retrievedAt": "2026-08-25T12:00:00.000Z",
+      "parser": "fec-bulk@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "4082220261234567892",
+    "committeeId": "C00123456",
+    "committeeName": "EXAMPLE INDUSTRY PAC",
+    "candidateId": "H6VT01234",
+    "candidateName": "EXAMPLE, JANE",
+    "amountUsd": -500,
+    "date": "2026-05-20",
+    "transactionType": "24R",
+    "cycle": 2026,
+    "provenance": {
+      "source": "fec",
+      "sourceUrl": "https://www.fec.gov/data/committee/C00123456/?cycle=2026",
+      "retrievedAt": "2026-08-25T12:00:00.000Z",
+      "parser": "fec-bulk@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "4082220261234567893",
+    "committeeId": "C00987654",
+    "committeeName": "EXAMPLE LEADERSHIP PAC",
+    "candidateId": "P60003456",
+    "candidateName": "EXAMPLE, CAROL",
+    "amountUsd": 10000,
+    "date": null,
+    "transactionType": "24E",
+    "cycle": 2026,
+    "provenance": {
+      "source": "fec",
+      "sourceUrl": "https://www.fec.gov/data/committee/C00987654/?cycle=2026",
+      "retrievedAt": "2026-08-25T12:00:00.000Z",
+      "parser": "fec-bulk@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "4082220261234567894",
+    "committeeId": "C00555555",
+    "committeeName": null,
+    "candidateId": "H2NY00111",
+    "candidateName": "EXAMPLE, DAN",
+    "amountUsd": 750,
+    "date": "2026-07-01",
+    "transactionType": "24K",
+    "cycle": 2026,
+    "provenance": {
+      "source": "fec",
+      "sourceUrl": "https://www.fec.gov/data/committee/C00555555/?cycle=2026",
+      "retrievedAt": "2026-08-25T12:00:00.000Z",
+      "parser": "fec-bulk@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "4082220261234567895",
+    "committeeId": "C00123456",
+    "committeeName": "EXAMPLE INDUSTRY PAC",
+    "candidateId": "S4TX00222",
+    "candidateName": "EXAMPLE, ERIN",
+    "amountUsd": 1200.5,
+    "date": "2026-07-05",
+    "transactionType": "24N",
+    "cycle": 2026,
+    "provenance": {
+      "source": "fec",
+      "sourceUrl": "https://www.fec.gov/data/committee/C00123456/?cycle=2026",
+      "retrievedAt": "2026-08-25T12:00:00.000Z",
+      "parser": "fec-bulk@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "4082220261234567896",
+    "committeeId": "C00987654",
+    "committeeName": "EXAMPLE LEADERSHIP PAC",
+    "candidateId": "H6VT01234",
+    "candidateName": "EXAMPLE, JANE",
+    "amountUsd": 300,
+    "date": "2026-07-10",
+    "transactionType": "24K",
+    "cycle": 2026,
+    "provenance": {
+      "source": "fec",
+      "sourceUrl": "https://www.fec.gov/data/committee/C00987654/?cycle=2026",
+      "retrievedAt": "2026-08-25T12:00:00.000Z",
+      "parser": "fec-bulk@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "4082220261234567897",
+    "committeeId": "C00123456",
+    "committeeName": "EXAMPLE INDUSTRY PAC",
+    "candidateId": "H9WA00777",
+    "candidateName": null,
+    "amountUsd": 400,
+    "date": "2026-07-11",
+    "transactionType": "24K",
+    "cycle": 2026,
+    "provenance": {
+      "source": "fec",
+      "sourceUrl": "https://www.fec.gov/data/committee/C00123456/?cycle=2026",
+      "retrievedAt": "2026-08-25T12:00:00.000Z",
+      "parser": "fec-bulk@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  }
+]
