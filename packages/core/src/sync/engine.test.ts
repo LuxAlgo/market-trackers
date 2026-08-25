@@ -25,12 +25,14 @@ describe("selectSources", () => {
     const selected = selectSources();
     expect(selected.every((s) => s.implemented)).toBe(true);
     expect(selected.map((s) => s.id).sort()).toEqual([
+      "cftc",
       "clinicaltrials",
       "congress-legislators",
       "edgar",
       "finra",
       "house-clerk",
       "lda",
+      "openfda",
       "patentsview",
       "senate-efd",
       "usaspending",

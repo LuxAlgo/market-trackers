@@ -1,0 +1,65 @@
+[
+  {
+    "id": "2026-08-05:023651",
+    "reportDate": "2026-08-05",
+    "contractCode": "023651",
+    "marketName": "NATURAL GAS - NEW YORK MERCANTILE EXCHANGE",
+    "openInterest": 1234567,
+    "commercialLong": 410000,
+    "commercialShort": 455250,
+    "nonCommercialLong": 300100,
+    "nonCommercialShort": 250900,
+    "nonReportableLong": 60000,
+    "nonReportableShort": 58317,
+    "provenance": {
+      "source": "cftc",
+      "sourceUrl": "https://publicreporting.cftc.gov/resource/6dca-aqww.json?%24where=report_date_as_yyyy_mm_dd+%3D+%272026-08-05T00%3A00%3A00%27",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "cftc-cot-legacy@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "2026-08-05:067651",
+    "reportDate": "2026-08-05",
+    "contractCode": "067651",
+    "marketName": "CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",
+    "openInterest": 1850000,
+    "commercialLong": 620000,
+    "commercialShort": 710000,
+    "nonCommercialLong": 540000,
+    "nonCommercialShort": 410000,
+    "nonReportableLong": 95000,
+    "nonReportableShort": 88000,
+    "provenance": {
+      "source": "cftc",
+      "sourceUrl": "https://publicreporting.cftc.gov/resource/6dca-aqww.json?%24where=report_date_as_yyyy_mm_dd+%3D+%272026-08-05T00%3A00%3A00%27",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "cftc-cot-legacy@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "2026-08-12:088691",
+    "reportDate": "2026-08-12",
+    "contractCode": "088691",
+    "marketName": "GOLD - COMMODITY EXCHANGE INC.",
+    "openInterest": 512000,
+    "commercialLong": 180000,
+    "commercialShort": 205000,
+    "nonCommercialLong": 220000,
+    "nonCommercialShort": 175000,
+    "nonReportableLong": 42000,
+    "nonReportableShort": 39500,
+    "provenance": {
+      "source": "cftc",
+      "sourceUrl": "https://publicreporting.cftc.gov/resource/6dca-aqww.json?%24where=report_date_as_yyyy_mm_dd+%3D+%272026-08-12T00%3A00%3A00%27",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "cftc-cot-legacy@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  }
+]
