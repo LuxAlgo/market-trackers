@@ -5,7 +5,8 @@ import type { ClinicalTrial } from "../../schema/clinical-trial.js";
 import { ALT_DATA_VERSION } from "../../config.js";
 import { addDays, hoursSince, toDateString } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
-import { resolveEntityTickers } from "../../resolve/recipients.js";
+import type { AltDataStore } from "../../store/store.js";
+import { resolveEntityTickersTiered } from "../../resolve/sec-names.js";
 import {
   createClinicalTrialsFetch,
   extractFullDate,
@@ -34,8 +35,9 @@ export {
  * `nctId`: a study's row is overwritten as its registration updates
  * (upsert), so the dataset always reflects each study's latest registry
  * state, while daily dump deltas preserve the change history. Sponsors
- * resolve to tickers through the curated map; unmatched sponsors are stored
- * with `tickers: []`.
+ * resolve to tickers through the two-tier resolver (curated map, then the
+ * SEC issuer-name fallback — see `resolve/sec-names.ts`); still-unmatched
+ * sponsors are stored with `tickers: []`.
  *
  * Non-goal guard: `primaryCompletionDate` ships verbatim as the sponsor's
  * declared plan. Nothing here turns it into a decision/catalyst calendar —
@@ -65,7 +67,11 @@ function normalizePhase(phases: string[] | undefined): string | null {
 }
 
 /** Normalizes one raw study; throws when a required field is missing or unusable. */
-export function normalizeStudy(raw: Record<string, unknown>, retrievedAt: string): ClinicalTrial {
+export async function normalizeStudy(
+  raw: Record<string, unknown>,
+  retrievedAt: string,
+  store: AltDataStore,
+): Promise<ClinicalTrial> {
   const study = studySchema.parse(raw);
   const ps = study.protocolSection;
 
@@ -88,7 +94,10 @@ export function normalizeStudy(raw: Record<string, unknown>, retrievedAt: string
     id: nctId,
     nctId,
     title,
-    sponsor: { name: sponsorName, tickers: resolveEntityTickers({ name: sponsorName }) },
+    sponsor: {
+      name: sponsorName,
+      tickers: await resolveEntityTickersTiered(store, { name: sponsorName }),
+    },
     phase: normalizePhase(ps.designModule?.phases),
     overallStatus,
     studyType: ps.designModule?.studyType ?? null,
@@ -170,7 +179,7 @@ export const clinicaltrialsSource: AltDataSource = {
         processed += 1;
         result.parse.attempted += 1;
         try {
-          const trial = normalizeStudy(raw, retrievedAt);
+          const trial = await normalizeStudy(raw, retrievedAt, ctx.store);
           trials.push(trial);
           result.parse.succeeded += 1;
           if (maxLastUpdated === null || trial.lastUpdated > maxLastUpdated) {
@@ -259,7 +268,7 @@ export const clinicaltrialsSource: AltDataSource = {
         let succeeded = 0;
         for (const raw of response.studies) {
           try {
-            normalizeStudy(raw, now.toISOString());
+            await normalizeStudy(raw, now.toISOString(), ctx.store);
             succeeded += 1;
           } catch {
             // Counted below.

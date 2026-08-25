@@ -92,3 +92,24 @@ The test suite's mock dispatches on the request body's `award_type_codes` to rou
 case applies, so both universes are exercised end-to-end (paging, normalization, ticker
 resolution, watermark/fingerprint independence, the dataset filter, and `--until`) without any
 network access.
+
+## Ticker resolution
+
+Recipient names resolve through a two-tier resolver
+(`resolveEntityTickersTiered`, `resolve/sec-names.ts`), tried in this order:
+
+1. **Curated map** (`resolveEntityTickers`, see "Recipient→ticker mapping" above) — exact UEI,
+   then exact normalized name, then an unambiguous word-boundary prefix. Authoritative: it wins
+   whenever it hits, even if the SEC tier below would also match the same name.
+2. **SEC issuer-name fallback** (`resolveEntityTickersSec`) — the store's `cik_tickers` table
+   (the SEC's own `company_tickers.json`, refreshed by `refreshCikTickersIfStale` during EDGAR
+   syncs; on the order of 10k listed issuers) matched by **exact normalized name only**. No
+   prefix, no fuzzy: SEC titles are issuer names, and USAspending recipients are frequently
+   subsidiaries or DBAs ("APPLE OPERATIONS INTERNATIONAL"), which must never inherit a parent
+   issuer's ticker just because a prefix lines up. A normalized name shared by more than one CIK
+   is excluded from the SEC index as ambiguous; one issuer's several share classes (e.g.
+   GOOGL/GOOG) all come through.
+
+A miss at both tiers still stores the row, with `tickers: []` — a wrong ticker is worse than no
+ticker, and resolution is meant to improve over time (curated-map growth, the SEC's own ticker
+file refreshing) without re-ingesting anything.

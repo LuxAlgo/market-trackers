@@ -7,7 +7,7 @@ import { addDays, expandCompactDate, hoursSince, toDateString } from "../../lib/
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
 import type { Logger } from "../../lib/logger.js";
 import type { AltDataStore } from "../../store/store.js";
-import { resolveEntityTickers } from "../../resolve/recipients.js";
+import { resolveEntityTickersTiered } from "../../resolve/sec-names.js";
 import {
   OPENFDA_PAGE_LIMIT,
   OPENFDA_SKIP_CEILING,
@@ -79,11 +79,12 @@ export function parseSubmissionStatusDate(rawSubmission: Record<string, unknown>
  * application's sponsor name is missing or unusable — the caller counts
  * that as a parse failure, never a guess.
  */
-export function normalizeSubmission(
+export async function normalizeSubmission(
   application: DrugsfdaApplication,
   rawSubmission: Record<string, unknown>,
   retrievedAt: string,
-): FdaApproval {
+  store: AltDataStore,
+): Promise<FdaApproval> {
   const applicationNumber = application.application_number;
   const sponsorName = application.sponsor_name?.trim();
   if (!sponsorName) {
@@ -124,7 +125,10 @@ export function normalizeSubmission(
   return {
     id: fdaApprovalId(applicationNumber, submissionType, submissionNumber),
     applicationNumber,
-    sponsor: { name: sponsorName, tickers: resolveEntityTickers({ name: sponsorName }) },
+    sponsor: {
+      name: sponsorName,
+      tickers: await resolveEntityTickersTiered(store, { name: sponsorName }),
+    },
     brandName,
     submissionType,
     submissionNumber,
@@ -255,7 +259,12 @@ async function walkWindow(
 
         result.parse.attempted += 1;
         try {
-          const approval = normalizeSubmission(application, rawSubmission, retrievedAt);
+          const approval = await normalizeSubmission(
+            application,
+            rawSubmission,
+            retrievedAt,
+            store,
+          );
           approvals.push(approval);
           result.parse.succeeded += 1;
           if (state.maxStatusDate === null || statusDate > state.maxStatusDate) {
@@ -397,10 +406,11 @@ export const openfdaSource: AltDataSource = {
         for (const rawSubmission of application?.submissions ?? []) {
           attempted += 1;
           try {
-            normalizeSubmission(
+            await normalizeSubmission(
               application as DrugsfdaApplication,
               rawSubmission,
               now.toISOString(),
+              ctx.store,
             );
             succeeded += 1;
           } catch {

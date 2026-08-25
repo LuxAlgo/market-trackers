@@ -85,6 +85,7 @@ export * from "./resolve/recipients.js";
 export * from "./resolve/cik-ticker.js";
 export * from "./resolve/cusip.js";
 export * from "./resolve/members.js";
+export * from "./resolve/sec-names.js";
 
 export * from "./sync/engine.js";
 export * from "./backfill/engine.js";

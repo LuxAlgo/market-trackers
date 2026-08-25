@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   patentsviewSource,
   normalizePatentRow,
@@ -173,6 +173,40 @@ describe("patentsviewSource.sync", () => {
     expect(captured).toHaveLength(0); // fails fast, before any fetch
     await store.close();
   });
+
+  it("resolves an assignee through the SEC-name fallback, seeded in cik_tickers before the sync runs", async () => {
+    const { ctx, store } = await makeCtx();
+    // A name the curated map has no entry for at all — only the SEC tier,
+    // seeded directly into this store, can resolve it.
+    await store.replaceCikTickers([
+      { cik: "0000000321", ticker: "TRFC", name: "Torchlight Robotics Corp" },
+    ]);
+    ctx.fetchImpl = (async () =>
+      new Response(
+        JSON.stringify({
+          error: false,
+          count: 1,
+          total_hits: 1,
+          patents: [
+            {
+              patent_id: "99000001",
+              patent_title: "SEC-fallback probe patent",
+              patent_date: "2026-08-11",
+              wipo_kind: "B2",
+              assignees: [{ assignee_organization: "TORCHLIGHT ROBOTICS CORP" }],
+            },
+          ],
+        }),
+        { status: 200 },
+      )) as typeof fetch;
+
+    const result = await patentsviewSource.sync(ctx);
+    expect(result.rowsUpserted).toBe(1);
+    const rows: Patent[] = [];
+    for await (const row of store.iterate(DATASETS.patents)) rows.push(row);
+    expect(rows[0]?.assignee).toEqual({ name: "TORCHLIGHT ROBOTICS CORP", tickers: ["TRFC"] });
+    await store.close();
+  });
 });
 
 describe("patentsviewSource.canary", () => {
@@ -228,9 +262,18 @@ describe("patentsviewSource.canary", () => {
 
 describe("normalizePatentRow", () => {
   const RETRIEVED_AT = "2026-08-18T12:00:00.000Z";
+  let store: AltDataStore;
 
-  it("resolves the first-listed organization, skipping individual (org-less) assignees", () => {
-    const patent = normalizePatentRow(
+  beforeAll(async () => {
+    store = await AltDataStore.open(":memory:");
+  });
+
+  afterAll(async () => {
+    await store.close();
+  });
+
+  it("resolves the first-listed organization, skipping individual (org-less) assignees", async () => {
+    const patent = await normalizePatentRow(
       {
         patent_id: "1",
         patent_title: "Example",
@@ -238,24 +281,27 @@ describe("normalizePatentRow", () => {
         assignees: [{ assignee_organization: null }, { assignee_organization: "Boeing" }],
       },
       RETRIEVED_AT,
+      store,
     );
     expect(patent.assignee).toEqual({ name: "Boeing", tickers: ["BA"] });
     expect(patent.assigneeCount).toBe(2);
   });
 
-  it("keeps assignee.name null and assigneeCount 0 for a fully unassigned patent", () => {
-    const patent = normalizePatentRow(
+  it("keeps assignee.name null and assigneeCount 0 for a fully unassigned patent", async () => {
+    const patent = await normalizePatentRow(
       { patent_id: "2", patent_title: "Example", patent_date: "2026-08-11", assignees: [] },
       RETRIEVED_AT,
+      store,
     );
     expect(patent.assignee).toEqual({ name: null, tickers: [] });
     expect(patent.assigneeCount).toBe(0);
   });
 
-  it("tolerates assignees/cpc_current being entirely absent, not just empty", () => {
-    const patent = normalizePatentRow(
+  it("tolerates assignees/cpc_current being entirely absent, not just empty", async () => {
+    const patent = await normalizePatentRow(
       { patent_id: "3", patent_title: "Example", patent_date: "2026-08-11" },
       RETRIEVED_AT,
+      store,
     );
     expect(patent.assignee).toEqual({ name: null, tickers: [] });
     expect(patent.assigneeCount).toBe(0);
@@ -263,8 +309,8 @@ describe("normalizePatentRow", () => {
     expect(patent.kind).toBeNull();
   });
 
-  it("takes the first present CPC class id and uppercases it", () => {
-    const patent = normalizePatentRow(
+  it("takes the first present CPC class id and uppercases it", async () => {
+    const patent = await normalizePatentRow(
       {
         patent_id: "4",
         patent_title: "Example",
@@ -272,14 +318,16 @@ describe("normalizePatentRow", () => {
         cpc_current: [{ cpc_class_id: null }, { cpc_class_id: "g06" }],
       },
       RETRIEVED_AT,
+      store,
     );
     expect(patent.cpcClass).toBe("G06");
   });
 
-  it("builds provenance from the USPTO document URL, with confidence 1", () => {
-    const patent = normalizePatentRow(
+  it("builds provenance from the USPTO document URL, with confidence 1", async () => {
+    const patent = await normalizePatentRow(
       { patent_id: "11800001", patent_title: "Example", patent_date: "2026-08-11" },
       RETRIEVED_AT,
+      store,
     );
     expect(patent.provenance).toEqual({
       source: "patentsview",
@@ -291,19 +339,40 @@ describe("normalizePatentRow", () => {
     });
   });
 
-  it("throws on a missing title or an unparseable grant date", () => {
-    expect(() =>
+  it("throws on a missing title or an unparseable grant date", async () => {
+    await expect(
       normalizePatentRow(
         { patent_id: "5", patent_title: "", patent_date: "2026-08-11" },
         RETRIEVED_AT,
+        store,
       ),
-    ).toThrow();
-    expect(() =>
+    ).rejects.toThrow();
+    await expect(
       normalizePatentRow(
         { patent_id: "6", patent_title: "Example", patent_date: "not-a-date" },
         RETRIEVED_AT,
+        store,
       ),
-    ).toThrow();
+    ).rejects.toThrow();
+  });
+
+  it("resolves an assignee through the SEC-name fallback when only cik_tickers has it", async () => {
+    const seeded = await AltDataStore.open(":memory:");
+    await seeded.replaceCikTickers([
+      { cik: "0000000321", ticker: "TRFC", name: "Torchlight Robotics Corp" },
+    ]);
+    const patent = await normalizePatentRow(
+      {
+        patent_id: "7",
+        patent_title: "Example",
+        patent_date: "2026-08-11",
+        assignees: [{ assignee_organization: "TORCHLIGHT ROBOTICS CORP" }],
+      },
+      RETRIEVED_AT,
+      seeded,
+    );
+    expect(patent.assignee).toEqual({ name: "TORCHLIGHT ROBOTICS CORP", tickers: ["TRFC"] });
+    await seeded.close();
   });
 });
 
