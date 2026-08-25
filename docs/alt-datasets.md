@@ -137,13 +137,24 @@ not bump it.
 ## The bundled explorer
 
 [`templates/alt-datasets/explorer/index.html`](../templates/alt-datasets/explorer/index.html) is
-a single, self-contained static page (no build step, no external assets) that browses the
-published dumps client-side: it fetches `manifest.json`, renders a table of every dataset with
-links to its `latest.json`/`feed.xml`/snapshots, and lets a visitor pick a dataset and filter
-its `latest.json` rows, each linking its `provenance.sourceUrl`. It resolves `manifest.json`
-path-relatively (`../manifest.json`, with a same-directory fallback) so it works wherever the
-data repo is served — a raw checkout, `python3 -m http.server`, or GitHub Pages — and reads
-`prefers-color-scheme` for dark/light.
+a single, self-contained static page (no build step, no external assets, no CDN) that browses the
+published dumps client-side, with hash-routed views — `#/`, `#/dataset/{id}`, `#/ticker/{TICKER}`,
+back/forward working via `hashchange` — so any view is a shareable link. The overview fetches
+`manifest.json` and renders a table of every dataset (freshness badge, links to its
+`latest.json`/`feed.xml`/snapshots) alongside an inline-SVG bar chart of row counts. A dataset view
+lets a visitor filter its `latest.json` rows (each linking its `provenance.sourceUrl`) and charts a
+rows-per-day sparkline grouped by the dataset's natural event date. A ticker view (e.g.
+`#/ticker/NVDA`) fetches `latest.json` from every dataset whose rows carry tickers, filters
+client-side, and shows per-dataset hit counts and matching rows — plus a short-sale-ratio or
+Wikipedia-pageviews sparkline where those hit — with a note that it searches only the newest delta
+of each dataset and links to that dataset's snapshots (and `.parquet` siblings) for full history;
+a dataset with no data yet 404s on `latest.json`, which the page treats as an empty result, not an
+error. All charts are inline SVG built from the same fetched JSON — no canvas, no chart library —
+and degrade sanely with zero, one, or many points. It resolves `manifest.json` path-relatively
+(`../manifest.json`, with a same-directory fallback) so it works wherever the data repo is served —
+a raw checkout, `python3 -m http.server`, or GitHub Pages — reads `prefers-color-scheme` for
+dark/light, and never fetches snapshots itself: only `manifest.json` and each dataset's
+`latest.json`, lazily per view and cached so switching views doesn't refetch.
 
 `publish-dumps.yml` installs it into the data repo at `explorer/index.html` and refreshes it
 whenever the template here changes, as its own commit after the day's data commit. Unlike
