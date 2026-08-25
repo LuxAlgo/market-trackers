@@ -95,10 +95,19 @@ export interface FeedRow {
   provenance: { sourceUrl: string; retrievedAt: string };
 }
 
+/**
+ * `titleSuffix`, when given, scopes the feed to one entity within the
+ * dataset (a ticker, or — for congress-trades — a member): the channel
+ * title gains a trailing "— {titleSuffix}" and everything else (item shape,
+ * titler, link, guid, pubDate, description) renders exactly as it does for
+ * the whole-dataset feed. See `export/entity-feeds.ts`, the only caller that
+ * passes it today.
+ */
 export function buildRssFeed<T extends FeedRow>(
   dataset: DatasetDefinition<T>,
   rows: T[],
   generatedAt: string,
+  titleSuffix?: string,
 ): string {
   const titler = TITLERS[dataset.id] as unknown as (record: T) => string;
   const items = [...rows]
@@ -116,11 +125,14 @@ export function buildRssFeed<T extends FeedRow>(
     )
     .join("\n");
 
+  const titleParts = [`LuxAlgo Alt Data — ${esc(dataset.title)}`];
+  if (titleSuffix) titleParts.push(esc(titleSuffix));
+
   return [
     `<?xml version="1.0" encoding="UTF-8"?>`,
     `<rss version="2.0">`,
     `  <channel>`,
-    `    <title>LuxAlgo Alt Data — ${esc(dataset.title)}</title>`,
+    `    <title>${titleParts.join(" — ")}</title>`,
     `    <link>https://github.com/LuxAlgo/alt-data</link>`,
     `    <description>${esc(dataset.description)} Every item links its primary-source document.</description>`,
     `    <lastBuildDate>${rfc822(generatedAt)}</lastBuildDate>`,

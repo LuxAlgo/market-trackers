@@ -43,7 +43,13 @@ afterAll(async () => {
 
 describe("exportDumps", () => {
   it("writes daily deltas, latest.json, snapshots, and a manifest", async () => {
-    const summary = await exportDumps(store, { outDir: tmp.dir });
+    // A fixed `now` (matching the fixtures' 2026-08-2x retrievedAt dates)
+    // keeps the entity-feed window — and everything downstream that reads
+    // this export's output — deterministic regardless of when the suite runs.
+    const summary = await exportDumps(store, {
+      outDir: tmp.dir,
+      now: new Date("2026-08-24T12:30:00Z"),
+    });
 
     const shortVolDir = join(tmp.dir, "short-volume", "daily");
     expect(existsSync(join(shortVolDir, "2026", "2026-08-20.json"))).toBe(true);
@@ -63,6 +69,32 @@ describe("exportDumps", () => {
     expect(manifest.schemaVersion).toBe(SCHEMA_VERSION);
     expect(manifest.datasets["short-volume"].rows).toBe(2);
     expect(manifest.sources.finra.watermarks["shortvol.CNMS.lastDay"]).toBe("2026-08-21");
+  });
+
+  it("writes per-entity feeds alongside feed.xml, and records their counts on the manifest", async () => {
+    // short-volume: one ticker (EXCO), no member concept.
+    const shortVolDir = join(tmp.dir, "short-volume", "daily");
+    expect(existsSync(join(shortVolDir, "feeds", "by-ticker", "EXCO.xml"))).toBe(true);
+    expect(existsSync(join(shortVolDir, "feeds", "by-member"))).toBe(false);
+
+    // congress-trades: one ticker (EXCO) and one member (E000001, the
+    // fixture's default bioguideId), from the single seeded trade.
+    const congressDir = join(tmp.dir, "congress", "trades");
+    expect(existsSync(join(congressDir, "feeds", "by-ticker", "EXCO.xml"))).toBe(true);
+    expect(existsSync(join(congressDir, "feeds", "by-member", "E000001.xml"))).toBe(true);
+
+    const manifest = JSON.parse(readFileSync(join(tmp.dir, "manifest.json"), "utf8"));
+    expect(manifest.datasets["short-volume"].entityFeeds).toEqual({ byTicker: 1, byMember: 0 });
+    expect(manifest.datasets["congress-trades"].entityFeeds).toEqual({
+      byTicker: 1,
+      byMember: 1,
+    });
+    // A dataset with no ticker or member concept always reports zeros, never
+    // an omitted field.
+    expect(manifest.datasets["committee-assignments"].entityFeeds).toEqual({
+      byTicker: 0,
+      byMember: 0,
+    });
   });
 
   it("round-trips: snapshot → fresh store → identical records", async () => {

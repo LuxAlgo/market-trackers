@@ -91,6 +91,7 @@ export * from "./backfill/engine.js";
 export * from "./canary/runner.js";
 export * from "./export/writer.js";
 export * from "./export/feeds.js";
+export * from "./export/entity-feeds.js";
 export * from "./export/import.js";
 
 export * from "./analytics/prices.js";
