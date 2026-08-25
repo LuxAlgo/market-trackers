@@ -1,0 +1,23 @@
+[
+  {
+    "id": "NCT05512345",
+    "nctId": "NCT05512345",
+    "title": "A Study of Elzafenib in Adults With Type 2 Diabetes Mellitus",
+    "sponsor": { "name": "Pfizer", "tickers": ["PFE"] },
+    "phase": "PHASE3",
+    "overallStatus": "COMPLETED",
+    "studyType": "INTERVENTIONAL",
+    "conditions": ["Type 2 Diabetes Mellitus"],
+    "startDate": "2025-11-03",
+    "primaryCompletionDate": "2026-08-15",
+    "lastUpdated": "2026-08-22",
+    "provenance": {
+      "source": "clinicaltrials",
+      "sourceUrl": "https://clinicaltrials.gov/study/NCT05512345",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "clinicaltrials-v2@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  }
+]
