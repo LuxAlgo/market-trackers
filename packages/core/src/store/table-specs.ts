@@ -170,6 +170,9 @@ export const LOBBYING_FILINGS_TABLE = datasetTable(
     { name: "filing_period", type: "text" },
     { name: "filing_type", type: "text", nullable: true },
     { name: "issues", type: "json" },
+    // Added by migration 0003 on stores that predate it (fresh stores get it
+    // from 0001, which always generates from the current spec).
+    { name: "bill_references", type: "json" },
   ],
   [
     { name: "idx_lobbying_filings_client_name", columns: ["client_name"] },
@@ -313,6 +316,85 @@ export const COT_REPORTS_TABLE = datasetTable(
     { name: "idx_cot_reports_report_date", columns: ["report_date"] },
     { name: "idx_cot_reports_contract_code", columns: ["contract_code"] },
     { name: "idx_cot_reports_market_name", columns: ["market_name"] },
+  ],
+);
+
+export const WIKI_PAGEVIEWS_TABLE = datasetTable(
+  "wiki_pageviews",
+  [
+    { name: "project", type: "text" },
+    { name: "article", type: "text" },
+    { name: "day", type: "text" },
+    { name: "views", type: "integer" },
+    { name: "tickers", type: "json" },
+  ],
+  [
+    { name: "idx_wiki_pageviews_article", columns: ["article"] },
+    { name: "idx_wiki_pageviews_day", columns: ["day"] },
+  ],
+);
+
+export const BILLS_TABLE = datasetTable(
+  "bills",
+  [
+    { name: "congress", type: "integer" },
+    { name: "bill_type", type: "text" },
+    { name: "bill_number", type: "integer" },
+    { name: "title", type: "text" },
+    { name: "introduced_date", type: "text" },
+    { name: "latest_action_date", type: "text", nullable: true },
+    { name: "latest_action_text", type: "text", nullable: true },
+    { name: "sponsor_bioguide_id", type: "text", nullable: true },
+    { name: "sponsor_name", type: "text", nullable: true },
+    { name: "policy_area", type: "text", nullable: true },
+    { name: "cosponsor_count", type: "integer" },
+  ],
+  [
+    { name: "idx_bills_congress_type", columns: ["congress", "bill_type"] },
+    { name: "idx_bills_latest_action_date", columns: ["latest_action_date"] },
+    { name: "idx_bills_sponsor_bioguide_id", columns: ["sponsor_bioguide_id"] },
+  ],
+);
+
+export const FEC_CANDIDATES_TABLE = datasetTable(
+  "fec_candidates",
+  [
+    { name: "candidate_id", type: "text" },
+    { name: "cycle", type: "integer" },
+    { name: "name", type: "text" },
+    { name: "party", type: "text", nullable: true },
+    { name: "office", type: "text" },
+    { name: "state", type: "text", nullable: true },
+    { name: "district", type: "text", nullable: true },
+    { name: "incumbent_challenger", type: "text", nullable: true },
+    { name: "total_receipts", type: "real", nullable: true },
+    { name: "total_disbursements", type: "real", nullable: true },
+    { name: "cash_on_hand", type: "real", nullable: true },
+    { name: "coverage_end_date", type: "text", nullable: true },
+  ],
+  [
+    { name: "idx_fec_candidates_candidate_id", columns: ["candidate_id"] },
+    { name: "idx_fec_candidates_cycle", columns: ["cycle"] },
+    { name: "idx_fec_candidates_name", columns: ["name"] },
+  ],
+);
+
+export const FEC_CONTRIBUTIONS_TABLE = datasetTable(
+  "fec_contributions",
+  [
+    { name: "committee_id", type: "text" },
+    { name: "committee_name", type: "text", nullable: true },
+    { name: "candidate_id", type: "text" },
+    { name: "candidate_name", type: "text", nullable: true },
+    { name: "amount_usd", type: "real" },
+    { name: "date", type: "text", nullable: true },
+    { name: "transaction_type", type: "text" },
+    { name: "cycle", type: "integer" },
+  ],
+  [
+    { name: "idx_fec_contributions_candidate_id", columns: ["candidate_id"] },
+    { name: "idx_fec_contributions_committee_id", columns: ["committee_id"] },
+    { name: "idx_fec_contributions_date", columns: ["date"] },
   ],
 );
 
@@ -462,6 +544,13 @@ export const V2_TABLES: TableSpec[] = [
   COT_REPORTS_TABLE,
 ];
 
+export const V3_TABLES: TableSpec[] = [
+  WIKI_PAGEVIEWS_TABLE,
+  BILLS_TABLE,
+  FEC_CANDIDATES_TABLE,
+  FEC_CONTRIBUTIONS_TABLE,
+];
+
 export const DATASET_TABLES: TableSpec[] = [
   CONGRESS_TRADES_TABLE,
   INSIDER_TRANSACTIONS_TABLE,
@@ -475,9 +564,13 @@ export const DATASET_TABLES: TableSpec[] = [
   CLINICAL_TRIALS_TABLE,
   FDA_APPROVALS_TABLE,
   COT_REPORTS_TABLE,
+  WIKI_PAGEVIEWS_TABLE,
+  BILLS_TABLE,
+  FEC_CANDIDATES_TABLE,
+  FEC_CONTRIBUTIONS_TABLE,
 ];
 
-export const ALL_TABLES: TableSpec[] = [...V1_TABLES, ...V2_TABLES];
+export const ALL_TABLES: TableSpec[] = [...V1_TABLES, ...V2_TABLES, ...V3_TABLES];
 
 export function tableSpecByName(name: string): TableSpec {
   const spec = ALL_TABLES.find((t) => t.name === name);

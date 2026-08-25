@@ -21,6 +21,9 @@ export const SOURCE_IDS = [
   "clinicaltrials",
   "openfda",
   "cftc",
+  "wikimedia",
+  "govinfo",
+  "fec",
 ] as const;
 
 export type SourceId = (typeof SOURCE_IDS)[number];

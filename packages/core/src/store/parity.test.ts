@@ -4,17 +4,21 @@ import { tableSpecByName } from "./table-specs.js";
 import { createIndexSql, createTableSql } from "./migrate.js";
 import { mapperFor } from "./rows.js";
 import {
+  makeBill,
   makeClinicalTrial,
   makeCommitteeAssignment,
   makeCongressTrade,
   makeCotReport,
   makeFdaApproval,
+  makeFecCandidate,
+  makeFecContribution,
   makeGovContractAward,
   makeInsiderTransaction,
   makeLobbyingFiling,
   makePatent,
   makeShortVolumeDay,
   makeThirteenfHolding,
+  makeWikiPageview,
 } from "../test-helpers.js";
 import type { DatasetId } from "../schema/datasets.js";
 
@@ -37,6 +41,10 @@ const SAMPLES: Record<DatasetId, () => unknown> = {
   "clinical-trials": makeClinicalTrial,
   "fda-approvals": makeFdaApproval,
   "cot-reports": makeCotReport,
+  "wiki-pageviews": makeWikiPageview,
+  bills: makeBill,
+  "fec-candidates": makeFecCandidate,
+  "fec-contributions": makeFecContribution,
 };
 
 describe("schema ↔ mapper ↔ table-spec parity", () => {

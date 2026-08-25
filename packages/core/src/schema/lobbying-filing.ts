@@ -26,6 +26,13 @@ export const lobbyingFilingSchema = z.object({
   filingType: z.string().nullable(),
   /** General issue codes lobbied on (e.g. "TAX", "HCR"). */
   issues: z.array(z.string()),
+  /**
+   * Normalized bill tokens referenced in the filing's specific-issues text
+   * (e.g. "hr1234", "s567" — see `billReferenceToken`); empty when the text
+   * names no bills. Extraction is conservative: explicit "H.R. 1234"-style
+   * references only, never inferred.
+   */
+  billReferences: z.array(z.string()),
   provenance: provenanceSchema,
 });
 

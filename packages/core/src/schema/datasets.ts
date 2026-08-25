@@ -11,6 +11,10 @@ import { patentSchema, type Patent } from "./patent.js";
 import { clinicalTrialSchema, type ClinicalTrial } from "./clinical-trial.js";
 import { fdaApprovalSchema, type FdaApproval } from "./fda-approval.js";
 import { cotReportSchema, type CotReport } from "./cot-report.js";
+import { wikiPageviewSchema, type WikiPageview } from "./wiki-pageview.js";
+import { billSchema, type Bill } from "./bill.js";
+import { fecCandidateSchema, type FecCandidate } from "./fec-candidate.js";
+import { fecContributionSchema, type FecContribution } from "./fec-contribution.js";
 
 /**
  * The dataset registry: one definition per dataset LuxAlgo Alt Data ingests, stores,
@@ -31,6 +35,10 @@ export const DATASET_IDS = [
   "clinical-trials",
   "fda-approvals",
   "cot-reports",
+  "wiki-pageviews",
+  "bills",
+  "fec-candidates",
+  "fec-contributions",
 ] as const;
 
 export type DatasetId = (typeof DATASET_IDS)[number];
@@ -39,8 +47,11 @@ export type DatasetId = (typeof DATASET_IDS)[number];
  * Bump when a PUBLISHED record shape changes. Adding whole new datasets is
  * additive and does not bump (existing consumers keep parsing untouched
  * shapes) — see docs/alt-datasets.md.
+ *
+ * v2: lobbying-filings gained `billReferences` (normalized bill tokens
+ * extracted from the filing's specific-issues text).
  */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export interface DatasetDefinition<T = unknown> {
   id: DatasetId;
@@ -83,6 +94,10 @@ export const DATASETS: {
   "clinical-trials": DatasetDefinition<ClinicalTrial>;
   "fda-approvals": DatasetDefinition<FdaApproval>;
   "cot-reports": DatasetDefinition<CotReport>;
+  "wiki-pageviews": DatasetDefinition<WikiPageview>;
+  bills: DatasetDefinition<Bill>;
+  "fec-candidates": DatasetDefinition<FecCandidate>;
+  "fec-contributions": DatasetDefinition<FecContribution>;
 } = {
   "congress-trades": {
     id: "congress-trades",
@@ -233,6 +248,57 @@ export const DATASETS: {
     // Published weekly (Fridays, for Tuesday data).
     freshnessWindowHours: 24 * 10,
     eventDate: (r) => r.reportDate,
+  },
+  "wiki-pageviews": {
+    id: "wiki-pageviews",
+    title: "Wikipedia pageviews",
+    description:
+      "Daily per-article Wikipedia pageview counts for a curated map of public-company articles, from the Wikimedia REST pageviews API (keyless, CC0 counts).",
+    schema: wikiPageviewSchema,
+    table: "wiki_pageviews",
+    sources: ["wikimedia"],
+    exportDir: "wiki/pageviews",
+    // Daily counts finalize with roughly a one-day lag.
+    freshnessWindowHours: 96,
+    eventDate: (r) => r.day,
+  },
+  bills: {
+    id: "bills",
+    title: "Federal legislation",
+    description:
+      "Bill status records from GPO GovInfo's bulk BILLSTATUS data (keyless): titles, sponsors, latest actions, and policy areas, verbatim from the record.",
+    schema: billSchema,
+    table: "bills",
+    sources: ["govinfo"],
+    exportDir: "congress/bills",
+    // Bulk BILLSTATUS refreshes daily; sync walks it in chunks.
+    freshnessWindowHours: 24 * 10,
+    eventDate: (r) => r.latestActionDate ?? r.introducedDate,
+  },
+  "fec-candidates": {
+    id: "fec-candidates",
+    title: "FEC candidate totals",
+    description:
+      "Candidate-cycle campaign-finance summaries (receipts, disbursements, cash on hand) from the FEC's keyless bulk downloads, joined to congress members via FEC candidate ids.",
+    schema: fecCandidateSchema,
+    table: "fec_candidates",
+    sources: ["fec"],
+    exportDir: "fec/candidates",
+    // Bulk summary files refresh on a weekly-to-monthly cadence.
+    freshnessWindowHours: 24 * 45,
+    eventDate: (r) => r.coverageEndDate ?? `${r.cycle}-01-01`,
+  },
+  "fec-contributions": {
+    id: "fec-contributions",
+    title: "FEC committee→candidate contributions",
+    description:
+      "Committee-to-candidate contributions from the FEC's keyless bulk downloads, amounts verbatim as filed (refunds negative).",
+    schema: fecContributionSchema,
+    table: "fec_contributions",
+    sources: ["fec"],
+    exportDir: "fec/contributions",
+    freshnessWindowHours: 24 * 45,
+    eventDate: (r) => r.date ?? `${r.cycle}-01-01`,
   },
 };
 

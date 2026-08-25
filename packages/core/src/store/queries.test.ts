@@ -240,7 +240,7 @@ describe("freshnessReport", () => {
     expect(shortVolume?.rowCount).toBe(2);
     expect(shortVolume?.lastIngestedAt).toBe("2026-08-24T12:00:00.000Z");
     expect(shortVolume?.stale).toBe(false);
-    expect(report.sources).toHaveLength(11);
-    expect(report.datasets).toHaveLength(12);
+    expect(report.sources).toHaveLength(14);
+    expect(report.datasets).toHaveLength(16);
   });
 });

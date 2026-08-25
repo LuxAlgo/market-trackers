@@ -11,6 +11,9 @@ import { patentsviewSource } from "./patentsview/source.js";
 import { clinicaltrialsSource } from "./clinicaltrials/source.js";
 import { openfdaSource } from "./openfda/source.js";
 import { cftcSource } from "./cftc/source.js";
+import { wikimediaSource } from "./wikimedia/source.js";
+import { govinfoSource } from "./govinfo/source.js";
+import { fecSource } from "./fec/source.js";
 
 /**
  * Every source, implemented or scaffolded, in one place. Sync, canaries,
@@ -30,6 +33,9 @@ export const ALL_SOURCES: AltDataSource[] = [
   clinicaltrialsSource,
   openfdaSource,
   cftcSource,
+  wikimediaSource,
+  govinfoSource,
+  fecSource,
 ];
 
 export function sourceById(id: string): AltDataSource {

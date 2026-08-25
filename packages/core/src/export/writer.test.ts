@@ -102,8 +102,8 @@ describe("exportDumps", () => {
 
   it("builds a manifest with per-source health fields", async () => {
     const manifest = await buildManifest(store);
-    expect(Object.keys(manifest.sources)).toHaveLength(11);
-    expect(Object.keys(manifest.datasets)).toHaveLength(12);
+    expect(Object.keys(manifest.sources)).toHaveLength(14);
+    expect(Object.keys(manifest.datasets)).toHaveLength(16);
     expect(manifest.sources.finra?.implementedDatasets).toContain("short-volume");
   });
 });

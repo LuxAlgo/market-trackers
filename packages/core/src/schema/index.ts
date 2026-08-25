@@ -10,4 +10,8 @@ export * from "./patent.js";
 export * from "./clinical-trial.js";
 export * from "./fda-approval.js";
 export * from "./cot-report.js";
+export * from "./wiki-pageview.js";
+export * from "./bill.js";
+export * from "./fec-candidate.js";
+export * from "./fec-contribution.js";
 export * from "./datasets.js";

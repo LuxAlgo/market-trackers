@@ -43,8 +43,8 @@ describe("selectSources", () => {
     expect(selectSources(["house-clerk"]).map((s) => s.id)).toEqual(["house-clerk"]);
   });
 
-  it("registry covers all eleven sources and rejects unknowns", () => {
-    expect(ALL_SOURCES).toHaveLength(11);
+  it("registry covers all fourteen sources and rejects unknowns", () => {
+    expect(ALL_SOURCES).toHaveLength(14);
     expect(() => sourceById("not-a-source")).toThrow(/Unknown source/);
   });
 });

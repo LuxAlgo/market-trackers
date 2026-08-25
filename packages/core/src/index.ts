@@ -76,6 +76,9 @@ export * from "./sources/patentsview/source.js";
 export * from "./sources/clinicaltrials/source.js";
 export * from "./sources/openfda/source.js";
 export * from "./sources/cftc/source.js";
+export * from "./sources/wikimedia/source.js";
+export * from "./sources/govinfo/source.js";
+export * from "./sources/fec/source.js";
 
 export * from "./resolve/normalize.js";
 export * from "./resolve/recipients.js";

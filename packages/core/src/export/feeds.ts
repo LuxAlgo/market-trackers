@@ -10,6 +10,10 @@ import type { Patent } from "../schema/patent.js";
 import type { ClinicalTrial } from "../schema/clinical-trial.js";
 import type { FdaApproval } from "../schema/fda-approval.js";
 import type { CotReport } from "../schema/cot-report.js";
+import type { WikiPageview } from "../schema/wiki-pageview.js";
+import type { Bill } from "../schema/bill.js";
+import type { FecCandidate } from "../schema/fec-candidate.js";
+import type { FecContribution } from "../schema/fec-contribution.js";
 
 /**
  * RSS 2.0 feeds over the newest rows of each dataset — the zero-server
@@ -70,6 +74,20 @@ const TITLERS: Record<DatasetId, Titler> = {
       r.submissionStatus ? `: ${r.submissionStatus}` : ""
     } (${r.statusDate})`) as Titler,
   "cot-reports": ((r: CotReport) => `${r.marketName} — COT ${r.reportDate}`) as Titler,
+  "wiki-pageviews": ((r: WikiPageview) =>
+    `${r.article} (${r.tickers.join(", ") || r.project}): ${r.views} views on ${r.day}`) as Titler,
+  bills: ((r: Bill) =>
+    `${r.billType.toUpperCase()} ${r.billNumber} (${r.congress}th)${
+      r.latestActionDate ? ` — action ${r.latestActionDate}` : ""
+    }: ${r.title.length > 140 ? `${r.title.slice(0, 137)}...` : r.title}`) as Titler,
+  "fec-candidates": ((r: FecCandidate) =>
+    `${r.name} (${r.party ?? "?"}, ${r.office}${r.state ? `-${r.state}` : ""}) ${r.cycle}${
+      r.totalReceipts !== null ? `: $${r.totalReceipts} receipts` : ""
+    }`) as Titler,
+  "fec-contributions": ((r: FecContribution) =>
+    `${r.committeeName ?? r.committeeId} → ${r.candidateName ?? r.candidateId}: $${r.amountUsd}${
+      r.date ? ` (${r.date})` : ""
+    }`) as Titler,
 };
 
 export interface FeedRow {

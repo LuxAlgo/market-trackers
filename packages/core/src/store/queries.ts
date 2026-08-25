@@ -11,6 +11,10 @@ import type { Patent } from "../schema/patent.js";
 import type { ClinicalTrial } from "../schema/clinical-trial.js";
 import type { FdaApproval } from "../schema/fda-approval.js";
 import type { CotReport } from "../schema/cot-report.js";
+import type { WikiPageview } from "../schema/wiki-pageview.js";
+import type { Bill } from "../schema/bill.js";
+import type { FecCandidate } from "../schema/fec-candidate.js";
+import type { FecContribution } from "../schema/fec-contribution.js";
 import { hoursSince } from "../lib/dates.js";
 import type { CanaryRunRecord, AltDataStore, SyncRunRecord } from "./store.js";
 import { mapperFor } from "./rows.js";
@@ -499,8 +503,13 @@ function tickerMatchClause(
     case "clinical-trials":
     case "fda-approvals":
       return jsonArray("sponsor_tickers");
+    case "wiki-pageviews":
+      return jsonArray("tickers");
     case "committee-assignments":
     case "cot-reports":
+    case "bills":
+    case "fec-candidates":
+    case "fec-contributions":
       return null;
   }
 }
@@ -882,6 +891,186 @@ export async function queryCotReports(
   if (f.from) add(b, `"report_date" >= ?`, f.from);
   if (f.to) add(b, `"report_date" <= ?`, f.to);
   return run(store, "cot-reports", b, `"report_date" DESC, "contract_code"`, f.limit);
+}
+
+// ── Wikipedia pageviews ───────────────────────────────────────────────────
+
+export interface WikiPageviewFilters {
+  ticker?: string;
+  /** Article title, exact (URL form) or substring. */
+  article?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+}
+
+export async function queryWikiPageviews(
+  store: AltDataStore,
+  f: WikiPageviewFilters = {},
+): Promise<WikiPageview[]> {
+  const b = where();
+  if (f.ticker) add(b, `"tickers" LIKE ?`, `%"${f.ticker.toUpperCase()}"%`);
+  if (f.article) contains(b, `"article"`, f.article);
+  if (f.from) add(b, `"day" >= ?`, f.from);
+  if (f.to) add(b, `"day" <= ?`, f.to);
+  return run(store, "wiki-pageviews", b, `"day" DESC, "article"`, f.limit);
+}
+
+// ── Bills ─────────────────────────────────────────────────────────────────
+
+export interface BillFilters {
+  /** Substring match on the official title. */
+  q?: string;
+  congress?: number;
+  billType?: string;
+  billNumber?: number;
+  sponsorBioguideId?: string;
+  policyArea?: string;
+  /** Earliest latest-action date. */
+  since?: string;
+  limit?: number;
+}
+
+export async function queryBills(store: AltDataStore, f: BillFilters = {}): Promise<Bill[]> {
+  const b = where();
+  if (f.q) contains(b, `"title"`, f.q);
+  if (f.congress !== undefined) add(b, `"congress" = ?`, f.congress);
+  if (f.billType) add(b, `"bill_type" = ?`, f.billType.toLowerCase());
+  if (f.billNumber !== undefined) add(b, `"bill_number" = ?`, f.billNumber);
+  if (f.sponsorBioguideId) add(b, `"sponsor_bioguide_id" = ?`, f.sponsorBioguideId);
+  if (f.policyArea) contains(b, `"policy_area"`, f.policyArea);
+  if (f.since) add(b, `"latest_action_date" >= ?`, f.since);
+  return run(store, "bills", b, `"latest_action_date" DESC, "id"`, f.limit);
+}
+
+/**
+ * Lobbying filings whose specific-issues text references a bill, matched by
+ * normalized token (see `billReferenceToken`) — the receipts for "who is
+ * lobbying on this legislation".
+ */
+export async function queryLobbyingOnBill(
+  store: AltDataStore,
+  billType: string,
+  billNumber: number,
+  limit?: number,
+): Promise<LobbyingFiling[]> {
+  const b = where();
+  add(b, `"bill_references" LIKE ?`, `%"${billType.toLowerCase()}${billNumber}"%`);
+  return run(store, "lobbying-filings", b, `"filing_year" DESC, "id"`, limit);
+}
+
+// ── FEC campaign finance ──────────────────────────────────────────────────
+
+export interface FecCandidateFilters {
+  candidateId?: string;
+  /** Candidate name substring. */
+  q?: string;
+  cycle?: number;
+  office?: "H" | "S" | "P";
+  state?: string;
+  limit?: number;
+}
+
+export async function queryFecCandidates(
+  store: AltDataStore,
+  f: FecCandidateFilters = {},
+): Promise<FecCandidate[]> {
+  const b = where();
+  if (f.candidateId) add(b, `"candidate_id" = ?`, f.candidateId.toUpperCase());
+  if (f.q) contains(b, `"name"`, f.q);
+  if (f.cycle !== undefined) add(b, `"cycle" = ?`, f.cycle);
+  if (f.office) add(b, `"office" = ?`, f.office);
+  if (f.state) add(b, `"state" = ?`, f.state.toUpperCase());
+  return run(store, "fec-candidates", b, `"cycle" DESC, "total_receipts" DESC, "id"`, f.limit);
+}
+
+export interface FecContributionFilters {
+  candidateId?: string;
+  committeeId?: string;
+  /** Committee name substring. */
+  committee?: string;
+  cycle?: number;
+  since?: string;
+  limit?: number;
+}
+
+export async function queryFecContributions(
+  store: AltDataStore,
+  f: FecContributionFilters = {},
+): Promise<FecContribution[]> {
+  const b = where();
+  if (f.candidateId) add(b, `"candidate_id" = ?`, f.candidateId.toUpperCase());
+  if (f.committeeId) add(b, `"committee_id" = ?`, f.committeeId.toUpperCase());
+  if (f.committee) contains(b, `"committee_name"`, f.committee);
+  if (f.cycle !== undefined) add(b, `"cycle" = ?`, f.cycle);
+  if (f.since) add(b, `"date" >= ?`, f.since);
+  return run(store, "fec-contributions", b, `"date" DESC, "id"`, f.limit);
+}
+
+// ── Federal-award aggregates ──────────────────────────────────────────────
+
+export interface AwardTotalsBucket {
+  /** "YYYY" or "YYYY-Qn" depending on the requested granularity. */
+  period: string;
+  awards: number;
+  /** Sum of disclosed award amounts; awards with no amount are counted but sum as 0. */
+  totalAmountUsd: number;
+}
+
+export interface AwardTotals {
+  dataset: "gov-contracts" | "gov-grants";
+  ticker: string | null;
+  recipient: string | null;
+  buckets: AwardTotalsBucket[];
+}
+
+/**
+ * Award counts and amount sums per year or quarter for one ticker or
+ * recipient — the "government revenue over time" table, computed from stored
+ * award rows at query time (arithmetic over the record, not a new dataset).
+ */
+export async function awardTotals(
+  store: AltDataStore,
+  f: {
+    dataset?: "gov-contracts" | "gov-grants";
+    ticker?: string;
+    recipient?: string;
+    granularity?: "year" | "quarter";
+    since?: string;
+    limit?: number;
+  } = {},
+): Promise<AwardTotals> {
+  const datasetId = f.dataset ?? "gov-contracts";
+  if (!f.ticker && !f.recipient) {
+    throw new Error("awardTotals requires a ticker or a recipient");
+  }
+  const b = where();
+  if (f.ticker) add(b, `"recipient_tickers" LIKE ?`, `%"${f.ticker.toUpperCase()}"%`);
+  if (f.recipient) contains(b, `"recipient_name"`, f.recipient);
+  if (f.since) add(b, `"action_date" >= ?`, f.since);
+
+  // action_date is validated YYYY-MM-DD, so substr() is portable and safe.
+  const period =
+    (f.granularity ?? "quarter") === "year"
+      ? `substr("action_date", 1, 4)`
+      : `substr("action_date", 1, 4) || '-Q' || ((cast(substr("action_date", 6, 2) AS INTEGER) + 2) / 3)`;
+  const rows = await store.driver.all<Record<string, unknown>>(
+    `SELECT ${period} AS period, COUNT(*) AS awards, SUM(COALESCE("amount_usd", 0)) AS total ` +
+      `FROM "${DATASETS[datasetId].table}" ${sql(b)} ` +
+      `GROUP BY period ORDER BY period DESC LIMIT ?`,
+    [...b.params, clampLimit(f.limit ?? 40)],
+  );
+
+  return {
+    dataset: datasetId,
+    ticker: f.ticker ? f.ticker.toUpperCase() : null,
+    recipient: f.recipient ?? null,
+    buckets: rows.map((r) => ({
+      period: String(r.period),
+      awards: Number(r.awards),
+      totalAmountUsd: Number(r.total ?? 0),
+    })),
+  };
 }
 
 // ── Freshness ─────────────────────────────────────────────────────────────

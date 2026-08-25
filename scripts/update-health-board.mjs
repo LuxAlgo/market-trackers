@@ -28,6 +28,9 @@ const TITLES = {
   clinicaltrials: "ClinicalTrials.gov",
   openfda: "openFDA (Drugs@FDA)",
   cftc: "CFTC COT",
+  wikimedia: "Wikimedia pageviews",
+  govinfo: "GovInfo (bill status)",
+  fec: "FEC campaign finance",
 };
 
 const BADGES = {

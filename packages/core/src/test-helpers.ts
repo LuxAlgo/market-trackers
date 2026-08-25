@@ -13,6 +13,10 @@ import type { Patent } from "./schema/patent.js";
 import type { ClinicalTrial } from "./schema/clinical-trial.js";
 import type { FdaApproval } from "./schema/fda-approval.js";
 import type { CotReport } from "./schema/cot-report.js";
+import type { WikiPageview } from "./schema/wiki-pageview.js";
+import type { Bill } from "./schema/bill.js";
+import type { FecCandidate } from "./schema/fec-candidate.js";
+import type { FecContribution } from "./schema/fec-contribution.js";
 
 /** Shared factories and fixture plumbing for the test suite (not shipped: tests only). */
 
@@ -152,6 +156,7 @@ export function makeLobbyingFiling(overrides: Partial<LobbyingFiling> = {}): Lob
     filingPeriod: "second_quarter",
     filingType: "Q2",
     issues: ["TAX", "TEC"],
+    billReferences: ["hr1234"],
     provenance: makeProvenance("lda"),
     ...overrides,
   };
@@ -251,6 +256,74 @@ export function makeShortVolumeDay(overrides: Partial<ShortVolumeDay> = {}): Sho
     totalVolume: 1_500_000,
     shortRatio: 0.5,
     provenance: makeProvenance("finra"),
+    ...overrides,
+  };
+}
+
+export function makeWikiPageview(overrides: Partial<WikiPageview> = {}): WikiPageview {
+  return {
+    id: "en.wikipedia:ExampleCorp:2026-08-20",
+    project: "en.wikipedia",
+    article: "ExampleCorp",
+    day: "2026-08-20",
+    views: 15_432,
+    tickers: ["EXCO"],
+    provenance: makeProvenance("wikimedia"),
+    ...overrides,
+  };
+}
+
+export function makeBill(overrides: Partial<Bill> = {}): Bill {
+  return {
+    id: "119-hr-1234",
+    congress: 119,
+    billType: "hr",
+    billNumber: 1234,
+    title: "Example Data Transparency and Modernization Act",
+    introducedDate: "2026-02-10",
+    latestActionDate: "2026-08-12",
+    latestActionText: "Referred to the Subcommittee on Example Matters.",
+    sponsorBioguideId: "E000001",
+    sponsorName: "Jane Example",
+    policyArea: "Science, Technology, Communications",
+    cosponsorCount: 12,
+    provenance: makeProvenance("govinfo"),
+    ...overrides,
+  };
+}
+
+export function makeFecCandidate(overrides: Partial<FecCandidate> = {}): FecCandidate {
+  return {
+    id: "H6VT01234:2026",
+    candidateId: "H6VT01234",
+    cycle: 2026,
+    name: "EXAMPLE, JANE",
+    party: "IND",
+    office: "H",
+    state: "VT",
+    district: "00",
+    incumbentChallenger: "I",
+    totalReceipts: 1_250_000.5,
+    totalDisbursements: 900_000.25,
+    cashOnHand: 350_000.25,
+    coverageEndDate: "2026-06-30",
+    provenance: makeProvenance("fec"),
+    ...overrides,
+  };
+}
+
+export function makeFecContribution(overrides: Partial<FecContribution> = {}): FecContribution {
+  return {
+    id: "4082220261234567890",
+    committeeId: "C00123456",
+    committeeName: "EXAMPLE INDUSTRY PAC",
+    candidateId: "H6VT01234",
+    candidateName: "EXAMPLE, JANE",
+    amountUsd: 5_000,
+    date: "2026-05-14",
+    transactionType: "24K",
+    cycle: 2026,
+    provenance: makeProvenance("fec"),
     ...overrides,
   };
 }

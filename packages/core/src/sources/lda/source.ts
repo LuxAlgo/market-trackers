@@ -90,6 +90,9 @@ export function normalizeFilingRow(
       filingPeriod: row.filing_period,
       filingType: row.filing_type ?? null,
       issues,
+      // Bill-reference extraction from the specific-issues text lands with
+      // the bills dataset; until then filings carry an empty list.
+      billReferences: [],
       provenance: {
         source: "lda",
         sourceUrl: documentUrl || ldaFilingDetailUrl(row.filing_uuid),

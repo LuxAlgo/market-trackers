@@ -8,23 +8,29 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
   INSIDER_TRANSACTION_CODES,
+  awardTotals,
   committeeRoster,
   freshnessReport,
   insiderSummary,
   memberProfile,
+  queryBills,
   queryClinicalTrials,
   queryCongressMembers,
   queryCongressTrades,
   queryCotReports,
   queryFdaApprovals,
+  queryFecCandidates,
+  queryFecContributions,
   queryGovContracts,
   queryGovGrants,
   queryInsiderTransactions,
   queryLobbying,
+  queryLobbyingOnBill,
   queryPatents,
   queryShortVolume,
   queryThirteenfHolders,
   queryThirteenfManager,
+  queryWikiPageviews,
   searchEntities,
   type AltDataStore,
 } from "@luxalgo/alt-data-core";
@@ -498,6 +504,163 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
         limit,
       });
       return json({ count: rows.length, rows: withCitation(rows) });
+    },
+  );
+
+  server.registerTool(
+    "alt_data_wiki_pageviews",
+    {
+      title: "Wikipedia pageviews",
+      description:
+        "Daily Wikipedia pageview counts for public-company articles (Wikimedia REST API data, CC0), filterable by ticker or article title over a date range — a public, measurable attention series. Counts are facts about reader attention, not sentiment or a signal; what a spike means is for you to interpret against the other datasets (a filing, an approval, a headline). Coverage is limited to the curated article↔ticker map; an empty result can mean 'article not mapped', not 'no attention' — say so.",
+      inputSchema: {
+        ticker: z.string().optional(),
+        article: z.string().optional().describe("Article title (substring match), e.g. 'Nvidia'"),
+        from: DATE.optional().describe("Earliest day"),
+        to: DATE.optional().describe("Latest day"),
+        limit: LIMIT,
+      },
+    },
+    async ({ ticker, article, from, to, limit }) => {
+      const rows = await queryWikiPageviews(store, { ticker, article, from, to, limit });
+      return json({ count: rows.length, rows: withCitation(rows) });
+    },
+  );
+
+  server.registerTool(
+    "alt_data_bills",
+    {
+      title: "Federal legislation (bill status)",
+      description:
+        "Bill status records from GPO GovInfo bulk data: titles, sponsors, latest actions, policy areas — verbatim from the record, no odds-of-passage. Search by title text, congress, sponsor, or policy area; or look up one bill by bill_type + bill_number (e.g. 'hr' 1234), which also returns the lobbying filings whose specific-issues text references that bill (the who-is-lobbying-on-this join, with citations).",
+      inputSchema: {
+        q: z.string().optional().describe("Title text (substring match)"),
+        congress: z.number().int().optional().describe("Congress number, e.g. 119"),
+        bill_type: z
+          .string()
+          .optional()
+          .describe("Bill type: hr, s, hjres, sjres, hconres, sconres, hres, sres"),
+        bill_number: z.number().int().optional(),
+        sponsor_bioguide_id: z.string().optional().describe("Sponsor's bioguide id"),
+        policy_area: z.string().optional().describe("CRS policy area (substring match)"),
+        since: DATE.optional().describe("Earliest latest-action date"),
+        limit: LIMIT,
+      },
+    },
+    async ({
+      q,
+      congress,
+      bill_type,
+      bill_number,
+      sponsor_bioguide_id,
+      policy_area,
+      since,
+      limit,
+    }) => {
+      const rows = await queryBills(store, {
+        q,
+        congress,
+        billType: bill_type,
+        billNumber: bill_number,
+        sponsorBioguideId: sponsor_bioguide_id,
+        policyArea: policy_area,
+        since,
+        limit,
+      });
+      if (bill_type && bill_number !== undefined) {
+        const lobbying = await queryLobbyingOnBill(store, bill_type, bill_number, 20);
+        return json({
+          count: rows.length,
+          rows: withCitation(rows),
+          lobbying: {
+            count: lobbying.length,
+            data_notes:
+              "Filings whose specific-issues text explicitly references this bill number (conservative extraction; congress-agnostic token match).",
+            filings: withCitation(lobbying),
+          },
+        });
+      }
+      return json({ count: rows.length, rows: withCitation(rows) });
+    },
+  );
+
+  server.registerTool(
+    "alt_data_campaign_finance",
+    {
+      title: "FEC campaign finance",
+      description:
+        "Campaign-finance facts from FEC bulk data: candidate-cycle totals (receipts, disbursements, cash on hand) and, when a single candidate is identified (by candidate_id, or a query matching exactly one), their committee→candidate contributions itemized. Numbers are the FEC's own, verbatim — refund transactions appear as negative amounts. Congress members join via their FEC candidate ids. No donor scoring, no influence inference — receipts only.",
+      inputSchema: {
+        q: z.string().optional().describe("Candidate name (substring match)"),
+        candidate_id: z.string().optional().describe("FEC candidate id, e.g. 'H8CA05035'"),
+        cycle: z.number().int().optional().describe("Two-year cycle (even year), e.g. 2026"),
+        office: z.enum(["H", "S", "P"]).optional(),
+        state: z.string().optional().describe("Two-letter state"),
+        limit: LIMIT,
+      },
+    },
+    async ({ q, candidate_id, cycle, office, state, limit }) => {
+      const candidates = await queryFecCandidates(store, {
+        q,
+        candidateId: candidate_id,
+        cycle,
+        office,
+        state,
+        limit,
+      });
+      const uniqueIds = [...new Set(candidates.map((c) => c.candidateId))];
+      if (uniqueIds.length === 1) {
+        const contributions = await queryFecContributions(store, {
+          candidateId: uniqueIds[0],
+          cycle,
+          limit: limit ?? 50,
+        });
+        return json({
+          count: candidates.length,
+          candidates: withCitation(candidates),
+          contributions: {
+            count: contributions.length,
+            rows: withCitation(contributions),
+          },
+        });
+      }
+      return json({
+        count: candidates.length,
+        data_notes:
+          uniqueIds.length > 1
+            ? "Multiple candidates matched; narrow with candidate_id to also get itemized contributions."
+            : undefined,
+        candidates: withCitation(candidates),
+      });
+    },
+  );
+
+  server.registerTool(
+    "alt_data_gov_contract_totals",
+    {
+      title: "Government award totals over time",
+      description:
+        "Award counts and amount sums per year or quarter for one recipient ticker or name — the 'government revenue over time' view, computed as plain arithmetic over stored USAspending award rows at query time. Choose contracts or grants via dataset. Buckets cover only awards this store has ingested (check alt_data_freshness); amounts sum disclosed obligations, and awards with no disclosed amount count toward `awards` but add 0 to the sum.",
+      inputSchema: {
+        ticker: z.string().optional(),
+        recipient: z.string().optional().describe("Recipient name (substring match)"),
+        dataset: z.enum(["gov-contracts", "gov-grants"]).optional(),
+        granularity: z.enum(["year", "quarter"]).optional().describe("Default: quarter"),
+        since: DATE.optional().describe("Earliest action date"),
+        limit: LIMIT.describe("Max buckets (default 40)"),
+      },
+    },
+    async ({ ticker, recipient, dataset, granularity, since, limit }) => {
+      if (!ticker && !recipient) return toolError("Provide ticker or recipient");
+      const totals = await awardTotals(store, {
+        ticker,
+        recipient,
+        dataset,
+        granularity,
+        since,
+        limit,
+      });
+      return json(totals);
     },
   );
 

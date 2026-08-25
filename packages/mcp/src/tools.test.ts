@@ -211,12 +211,14 @@ afterAll(async () => {
 });
 
 describe("alt-data-mcp tool surface", () => {
-  it("registers all 18 tools", async () => {
+  it("registers all 22 tools", async () => {
     const { tools } = await client.listTools();
     const names = tools.map((t) => t.name).sort();
     expect(names).toEqual([
       "alt_data_13f_holders",
       "alt_data_13f_manager",
+      "alt_data_bills",
+      "alt_data_campaign_finance",
       "alt_data_clinical_trials",
       "alt_data_committees",
       "alt_data_congress_members",
@@ -224,6 +226,7 @@ describe("alt-data-mcp tool surface", () => {
       "alt_data_cot",
       "alt_data_fda_approvals",
       "alt_data_freshness",
+      "alt_data_gov_contract_totals",
       "alt_data_gov_contracts",
       "alt_data_gov_grants",
       "alt_data_insider_summary",
@@ -233,6 +236,7 @@ describe("alt-data-mcp tool surface", () => {
       "alt_data_patents",
       "alt_data_search",
       "alt_data_short_volume",
+      "alt_data_wiki_pageviews",
     ]);
     // Agent-facing descriptions are substantial, not one-liners.
     for (const tool of tools) {
@@ -408,8 +412,8 @@ describe("alt-data-mcp tool surface", () => {
       datasets: { dataset: string; rowCount: number; stale: boolean }[];
       sources: { source: string }[];
     }>("alt_data_freshness");
-    expect(payload.datasets).toHaveLength(12);
-    expect(payload.sources).toHaveLength(11);
+    expect(payload.datasets).toHaveLength(16);
+    expect(payload.sources).toHaveLength(14);
     const congress = payload.datasets.find((d) => d.dataset === "congress-trades");
     expect(congress?.rowCount).toBe(1);
     const contracts = payload.datasets.find((d) => d.dataset === "gov-contracts");

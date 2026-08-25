@@ -11,6 +11,10 @@ import type { Patent } from "../schema/patent.js";
 import type { ClinicalTrial } from "../schema/clinical-trial.js";
 import type { FdaApproval } from "../schema/fda-approval.js";
 import type { CotReport } from "../schema/cot-report.js";
+import type { WikiPageview } from "../schema/wiki-pageview.js";
+import type { Bill } from "../schema/bill.js";
+import type { FecCandidate } from "../schema/fec-candidate.js";
+import type { FecContribution } from "../schema/fec-contribution.js";
 
 /**
  * Explicit record↔row mappers per dataset. Deliberately boring: flattening
@@ -276,6 +280,7 @@ export const lobbyingFilingMapper: RowMapper<LobbyingFiling> = {
       filing_period: r.filingPeriod,
       filing_type: r.filingType,
       issues: toJson(r.issues),
+      bill_references: toJson(r.billReferences),
       ...provToRow(r.provenance),
     };
   },
@@ -293,8 +298,141 @@ export const lobbyingFilingMapper: RowMapper<LobbyingFiling> = {
       filingPeriod: str(row.filing_period),
       filingType: nullableStr(row.filing_type),
       issues: fromJson<string[]>(row.issues),
+      billReferences: fromJson<string[]>(row.bill_references),
       provenance: provFromRow(row),
     } as LobbyingFiling;
+  },
+};
+
+export const wikiPageviewMapper: RowMapper<WikiPageview> = {
+  toRow(r) {
+    return {
+      id: r.id,
+      project: r.project,
+      article: r.article,
+      day: r.day,
+      views: r.views,
+      tickers: toJson(r.tickers),
+      ...provToRow(r.provenance),
+    };
+  },
+  fromRow(row) {
+    return {
+      id: str(row.id),
+      project: str(row.project),
+      article: str(row.article),
+      day: str(row.day),
+      views: Number(row.views),
+      tickers: fromJson<string[]>(row.tickers),
+      provenance: provFromRow(row),
+    } as WikiPageview;
+  },
+};
+
+export const billMapper: RowMapper<Bill> = {
+  toRow(r) {
+    return {
+      id: r.id,
+      congress: r.congress,
+      bill_type: r.billType,
+      bill_number: r.billNumber,
+      title: r.title,
+      introduced_date: r.introducedDate,
+      latest_action_date: r.latestActionDate,
+      latest_action_text: r.latestActionText,
+      sponsor_bioguide_id: r.sponsorBioguideId,
+      sponsor_name: r.sponsorName,
+      policy_area: r.policyArea,
+      cosponsor_count: r.cosponsorCount,
+      ...provToRow(r.provenance),
+    };
+  },
+  fromRow(row) {
+    return {
+      id: str(row.id),
+      congress: Number(row.congress),
+      billType: str(row.bill_type),
+      billNumber: Number(row.bill_number),
+      title: str(row.title),
+      introducedDate: str(row.introduced_date),
+      latestActionDate: nullableStr(row.latest_action_date),
+      latestActionText: nullableStr(row.latest_action_text),
+      sponsorBioguideId: nullableStr(row.sponsor_bioguide_id),
+      sponsorName: nullableStr(row.sponsor_name),
+      policyArea: nullableStr(row.policy_area),
+      cosponsorCount: Number(row.cosponsor_count),
+      provenance: provFromRow(row),
+    } as Bill;
+  },
+};
+
+export const fecCandidateMapper: RowMapper<FecCandidate> = {
+  toRow(r) {
+    return {
+      id: r.id,
+      candidate_id: r.candidateId,
+      cycle: r.cycle,
+      name: r.name,
+      party: r.party,
+      office: r.office,
+      state: r.state,
+      district: r.district,
+      incumbent_challenger: r.incumbentChallenger,
+      total_receipts: r.totalReceipts,
+      total_disbursements: r.totalDisbursements,
+      cash_on_hand: r.cashOnHand,
+      coverage_end_date: r.coverageEndDate,
+      ...provToRow(r.provenance),
+    };
+  },
+  fromRow(row) {
+    return {
+      id: str(row.id),
+      candidateId: str(row.candidate_id),
+      cycle: Number(row.cycle),
+      name: str(row.name),
+      party: nullableStr(row.party),
+      office: row.office,
+      state: nullableStr(row.state),
+      district: nullableStr(row.district),
+      incumbentChallenger: nullableStr(row.incumbent_challenger),
+      totalReceipts: toNullableNumber(row.total_receipts),
+      totalDisbursements: toNullableNumber(row.total_disbursements),
+      cashOnHand: toNullableNumber(row.cash_on_hand),
+      coverageEndDate: nullableStr(row.coverage_end_date),
+      provenance: provFromRow(row),
+    } as FecCandidate;
+  },
+};
+
+export const fecContributionMapper: RowMapper<FecContribution> = {
+  toRow(r) {
+    return {
+      id: r.id,
+      committee_id: r.committeeId,
+      committee_name: r.committeeName,
+      candidate_id: r.candidateId,
+      candidate_name: r.candidateName,
+      amount_usd: r.amountUsd,
+      date: r.date,
+      transaction_type: r.transactionType,
+      cycle: r.cycle,
+      ...provToRow(r.provenance),
+    };
+  },
+  fromRow(row) {
+    return {
+      id: str(row.id),
+      committeeId: str(row.committee_id),
+      committeeName: nullableStr(row.committee_name),
+      candidateId: str(row.candidate_id),
+      candidateName: nullableStr(row.candidate_name),
+      amountUsd: Number(row.amount_usd),
+      date: nullableStr(row.date),
+      transactionType: str(row.transaction_type),
+      cycle: Number(row.cycle),
+      provenance: provFromRow(row),
+    } as FecContribution;
   },
 };
 
@@ -520,6 +658,10 @@ export const ROW_MAPPERS: Record<DatasetId, RowMapper<never>> = {
   "clinical-trials": clinicalTrialMapper as RowMapper<never>,
   "fda-approvals": fdaApprovalMapper as RowMapper<never>,
   "cot-reports": cotReportMapper as RowMapper<never>,
+  "wiki-pageviews": wikiPageviewMapper as RowMapper<never>,
+  bills: billMapper as RowMapper<never>,
+  "fec-candidates": fecCandidateMapper as RowMapper<never>,
+  "fec-contributions": fecContributionMapper as RowMapper<never>,
 };
 
 export function mapperFor<T>(id: DatasetId): RowMapper<T> {
