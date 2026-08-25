@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
@@ -132,5 +132,130 @@ describe("docket CLI", () => {
 
   it("--help lists the resolve command", () => {
     expect(docket(["--help"])).toContain("resolve");
+  });
+});
+
+describe("docket analyze", () => {
+  it("rejects an unknown analyze target", () => {
+    expect(() => docket(["analyze", "not-a-target", "--db", "analyze-validation.db"])).toThrow();
+  });
+
+  it("requires --prices and names the expected CSV shape", () => {
+    let failed = false;
+    try {
+      docket(["analyze", "congress", "--db", "analyze-validation.db"]);
+    } catch (error) {
+      failed = true;
+      const err = error as { status: number; stderr: string };
+      expect(err.status).toBe(1);
+      expect(err.stderr).toContain("date,ticker,close");
+    }
+    expect(failed).toBe(true);
+  });
+
+  it("rejects a non-positive --window", () => {
+    writeFileSync(join(tmp, "any-prices.csv"), "date,ticker,close\n2026-08-18,ACME,10\n");
+    expect(() =>
+      docket([
+        "analyze",
+        "congress",
+        "--prices",
+        "any-prices.csv",
+        "--window",
+        "0",
+        "--db",
+        "analyze-validation.db",
+      ]),
+    ).toThrow();
+  });
+
+  it("end-to-end: import a hand-written delta, join a tiny prices.csv, and report a priced changePct with the disclaimer", () => {
+    // A minimal, hand-written congress-trades delta — one ticketed row.
+    const delta = [
+      {
+        id: "senate:cli-test-doc:0",
+        chamber: "senate",
+        docId: "cli-test-doc",
+        rowIndex: 0,
+        member: { name: "Test Member", bioguideId: "T000001", party: "I", state: "ZZ" },
+        filedAt: "2026-08-18",
+        transactedAt: "2026-08-01",
+        ticker: "ACME",
+        assetDescription: "Acme Corp — Common Stock",
+        assetType: "stock",
+        side: "buy",
+        amountRange: { min: 1_001, max: 15_000, text: "$1,001 - $15,000" },
+        owner: "self",
+        provenance: {
+          source: "senate-efd",
+          sourceUrl: "https://example.gov/primary/cli-test-doc",
+          retrievedAt: "2026-08-18T12:00:00.000Z",
+          parser: "test@1",
+          confidence: 1,
+          needsReview: false,
+        },
+      },
+    ];
+    const deltaPath = join(tmp, "congress-delta.json");
+    writeFileSync(deltaPath, JSON.stringify(delta));
+    docket(["import", deltaPath, "--dataset", "congress-trades", "--db", "analyze-e2e.db"]);
+
+    const pricesPath = join(tmp, "prices.csv");
+    writeFileSync(
+      pricesPath,
+      ["date,ticker,close", "2026-08-18,ACME,40.00", "2026-09-17,ACME,44.00", ""].join("\n"),
+    );
+
+    const out = docket([
+      "analyze",
+      "congress",
+      "--prices",
+      pricesPath,
+      "--window",
+      "30",
+      "--db",
+      "analyze-e2e.db",
+    ]);
+    expect(out).toContain("Descriptive arithmetic over public records");
+    expect(out).toContain("10.00%");
+
+    const jsonOut = docket([
+      "analyze",
+      "congress",
+      "--prices",
+      pricesPath,
+      "--window",
+      "30",
+      "--json",
+      "--db",
+      "analyze-e2e.db",
+    ]);
+    const result = JSON.parse(jsonOut);
+    expect(result.disclaimer).toContain("Not investment advice");
+    expect(result.aggregate.eventsOk).toBe(1);
+    expect(result.rows[0].changePct).toBeCloseTo(0.1, 10);
+    expect(result.rows[0].event.citation).toBe("https://example.gov/primary/cli-test-doc");
+
+    const outPath = join(tmp, "analyze-result.json");
+    docket([
+      "analyze",
+      "congress",
+      "--prices",
+      pricesPath,
+      "--window",
+      "30",
+      "--out",
+      outPath,
+      "--db",
+      "analyze-e2e.db",
+    ]);
+    expect(existsSync(outPath)).toBe(true);
+    const written = JSON.parse(readFileSync(outPath, "utf8"));
+    expect(written.disclaimer).toContain("Not investment advice");
+    expect(written.aggregate.eventsOk).toBe(1);
+  });
+
+  it("--help lists the analyze command", () => {
+    expect(docket(["--help"])).toContain("analyze");
   });
 });
