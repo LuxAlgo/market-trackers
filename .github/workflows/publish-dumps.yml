@@ -77,6 +77,17 @@ jobs:
       - name: Export
         run: node packages/cli/dist/index.js export --db publish.db --out dumps --json
 
+      # Parquet siblings for every snapshot*.json.gz, via DuckDB. DuckDB is
+      # never a project dependency (installed ephemerally right here,
+      # immediately before the one script that needs it) — and
+      # make-parquet.mjs degrades gracefully (logs + exits 0) whether this
+      # install is skipped, fails, or the runner's platform has no matching
+      # prebuilt binary, so a DuckDB hiccup can never break this publish.
+      - name: Parquet siblings
+        run: |
+          npm i --no-save duckdb || echo "duckdb install failed; make-parquet.mjs will degrade gracefully."
+          node scripts/make-parquet.mjs dumps
+
       - name: Checkout data repo
         if: steps.creds.outputs.push == 'true'
         uses: actions/checkout@v4
@@ -110,6 +121,31 @@ jobs:
             echo "No data changes today."
           else
             git commit -m "data: $(date -u +%F) daily publish"
+            git push
+          fi
+
+      # Copies the static data-explorer bundle into the data repo once a
+      # separate sprint lands it at templates/docket-data/explorer/ — an
+      # `[ -d ... ]` check keeps this a safe no-op until then. Runs as its
+      # own commit, after (never before) the dumps rsync above: that rsync
+      # uses --delete and would otherwise wipe these files right back out,
+      # since the exporter itself never produces them.
+      - name: Install data-repo explorer when present
+        if: steps.creds.outputs.push == 'true'
+        run: |
+          if [ ! -d "templates/docket-data/explorer" ]; then
+            echo "No explorer template yet (templates/docket-data/explorer/ not present); skipping."
+            exit 0
+          fi
+          rsync -a templates/docket-data/explorer/ data-repo/
+          cd data-repo
+          git config user.name "docket-publish[bot]"
+          git config user.email "docket-publish@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No explorer changes today."
+          else
+            git commit -m "data: $(date -u +%F) refresh data explorer"
             git push
           fi
 
