@@ -3,7 +3,7 @@
 One synthetic 2026 election cycle, small enough to hand-verify row by row, covering
 every code path `fec-bulk@1` needs to prove: both files' happy paths, both files'
 parse-failure paths, the master-file joins (both hit and miss), and the
-date/amount edge cases called out in the sprint (blank date → null, a garbage
+date/amount edge cases the parser must handle (blank date → null, a garbage
 non-blank number on a nullable field → null, a negative "refund" amount kept
 negative, a blank party, and a district-less Senate/President row).
 

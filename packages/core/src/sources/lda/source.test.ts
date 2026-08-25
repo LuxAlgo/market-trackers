@@ -68,6 +68,30 @@ async function makeCtx(
 }
 
 describe("ldaSource.sync", () => {
+  it("resolves a client through the SEC-name fallback, seeded in cik_tickers before the sync", async () => {
+    const { ctx, store } = await makeCtx();
+    // "Riverbend Water Utilities Association" has no curated-map entry; only
+    // the SEC tier, seeded directly into this store, can resolve it.
+    await store.replaceCikTickers([
+      { cik: "0000000456", ticker: "RWUA", name: "Riverbend Water Utilities Association" },
+    ]);
+
+    await ldaSource.sync(ctx);
+    const rows: LobbyingFiling[] = [];
+    for await (const row of store.iterate(DATASETS["lobbying-filings"])) rows.push(row);
+    expect(
+      rows.find((r) => r.client.name === "Riverbend Water Utilities Association")?.client.tickers,
+    ).toEqual(["RWUA"]);
+    // Curated-map hits are unaffected, and unmapped clients still store [].
+    expect(
+      rows.find((r) => r.client.name === "Lockheed Martin Corporation")?.client.tickers,
+    ).toEqual(["LMT"]);
+    expect(
+      rows.find((r) => r.client.name === "Prairie Community Health Alliance")?.client.tickers,
+    ).toEqual([]);
+    await store.close();
+  });
+
   it("pages the filing year newest-first, normalizes every filing, and re-runs idempotently", async () => {
     const { ctx, store, captured } = await makeCtx();
 

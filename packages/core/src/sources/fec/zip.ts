@@ -8,7 +8,7 @@ import { inflateRawSync } from "node:zlib";
  * This module is the opposite shape on purpose: it lists every entry in an
  * arbitrary ZIP (the FEC ships four differently-shaped bulk files, each its
  * own single-entry archive) without pulling `fflate` into this source, per
- * this sprint's zero-new-dependencies constraint.
+ * the project's zero-new-dependencies rule for sources.
  *
  * Entries are located via the End-Of-Central-Directory record and the
  * central directory it points to (never by scanning local file headers

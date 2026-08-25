@@ -30,7 +30,7 @@ The ZIP bytes themselves are read by a **self-contained, dependency-free reader*
 (`sources/fec/zip.ts`, `node:zlib.inflateRawSync` for deflate entries) rather than the `fflate`
 library `house-clerk/client.ts` already uses — that one is tightly coupled to finding a single
 expected filename, where this source needs to list arbitrary entries across four differently-
-shaped files, and this sprint's brief called for a minimal reader with zero new dependencies.
+shaped files, and this source keeps to a minimal reader with zero new dependencies.
 Both "stored" and "deflate" ZIP entries are supported (everything a standard `zip`/`zipfile`
 writer produces); ZIP64 is deliberately unsupported and throws a clear error rather than
 misreading its sentinel fields.

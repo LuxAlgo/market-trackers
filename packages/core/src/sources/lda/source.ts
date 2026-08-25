@@ -1,11 +1,12 @@
 import type { AltDataSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
+import type { AltDataStore } from "../../store/store.js";
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { LobbyingFiling } from "../../schema/lobbying-filing.js";
 import { ALT_DATA_VERSION } from "../../config.js";
 import { addDays, hoursSince } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
-import { resolveEntityTickers } from "../../resolve/recipients.js";
+import { resolveEntityTickersTiered } from "../../resolve/sec-names.js";
 import { extractBillReferences } from "./bill-refs.js";
 import {
   createLdaFetch,
@@ -56,10 +57,11 @@ export interface NormalizedFiling {
 }
 
 /** Normalizes one raw result row; throws when a required field is unusable. */
-export function normalizeFilingRow(
+export async function normalizeFilingRow(
   raw: Record<string, unknown>,
   retrievedAt: string,
-): NormalizedFiling {
+  store: AltDataStore,
+): Promise<NormalizedFiling> {
   const row = ldaFilingRowSchema.parse(raw);
 
   const registrantName = row.registrant.name.trim();
@@ -92,7 +94,10 @@ export function normalizeFilingRow(
       id: row.filing_uuid,
       filingUuid: row.filing_uuid,
       registrant: { name: registrantName },
-      client: { name: clientName, tickers: resolveEntityTickers({ name: clientName }) },
+      client: {
+        name: clientName,
+        tickers: await resolveEntityTickersTiered(store, { name: clientName }),
+      },
       amountUsd,
       filingYear: row.filing_year,
       filingPeriod: row.filing_period,
@@ -169,7 +174,7 @@ export const ldaSource: AltDataSource = {
           processed += 1;
           result.parse.attempted += 1;
           try {
-            const { filing, postedDate } = normalizeFilingRow(raw, retrievedAt);
+            const { filing, postedDate } = await normalizeFilingRow(raw, retrievedAt, ctx.store);
             filings.push(filing);
             result.parse.succeeded += 1;
             if (postedDate) {
@@ -260,7 +265,7 @@ export const ldaSource: AltDataSource = {
         let succeeded = 0;
         for (const raw of response.results) {
           try {
-            normalizeFilingRow(raw, now.toISOString());
+            await normalizeFilingRow(raw, now.toISOString(), ctx.store);
             succeeded += 1;
           } catch {
             // Counted below.
