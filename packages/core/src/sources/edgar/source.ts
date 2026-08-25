@@ -70,7 +70,10 @@ export const edgarSource: DocketSource = {
     const watermark = opts.full ? null : await ctx.store.getWatermark("edgar", WATERMARK_KEY);
     const start =
       opts.since ?? (watermark ? addDays(watermark, 1) : addDays(today, -ctx.config.backfillDays));
-    const days = eachDayInclusive(start, today).filter((d) => !isWeekend(d));
+    // A bounded (--until) run — e.g. one backfill chunk — never walks past
+    // its requested end date, even though "today" is always in its future.
+    const end = opts.until && opts.until < today ? opts.until : today;
+    const days = eachDayInclusive(start, end).filter((d) => !isWeekend(d));
     if (days.length === 0) {
       result.notes.push("nothing to do: watermark is current");
       return result;
@@ -78,6 +81,10 @@ export const edgarSource: DocketSource = {
 
     let fetched = 0;
     const limit = opts.limit ?? Number.POSITIVE_INFINITY;
+    // Tracks the highest day actually advanced so far, so a chunk walking
+    // OLD ground (a historical backfill run after the live watermark has
+    // already moved past it) can never regress it.
+    let advanced = watermark;
 
     for (const day of days) {
       if (fetched >= limit) {
@@ -86,8 +93,11 @@ export const edgarSource: DocketSource = {
       }
       const indexText = await client.text(dailyIndexUrl(day), { allow404: true });
       if (indexText === null) {
-        // Holiday (or today's index not yet published).
-        if (day < today) await ctx.store.setWatermark("edgar", WATERMARK_KEY, day);
+        // Holiday (or today's index not yet published); only advance forward.
+        if (day < today && (advanced === null || day > advanced)) {
+          advanced = day;
+          await ctx.store.setWatermark("edgar", WATERMARK_KEY, day);
+        }
         continue;
       }
       const { entries, headerLines } = parseMasterIndex(indexText);
@@ -165,7 +175,10 @@ export const edgarSource: DocketSource = {
           (result.perDataset["thirteenf-holdings"] ?? 0) + rows;
       }
       if (dayIncomplete) break;
-      if (day < today) await ctx.store.setWatermark("edgar", WATERMARK_KEY, day);
+      if (day < today && (advanced === null || day > advanced)) {
+        advanced = day;
+        await ctx.store.setWatermark("edgar", WATERMARK_KEY, day);
+      }
     }
 
     return result;

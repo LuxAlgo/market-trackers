@@ -133,4 +133,58 @@ describe("docket CLI", () => {
   it("--help lists the resolve command", () => {
     expect(docket(["--help"])).toContain("resolve");
   });
+
+  // Backfill's chunking/resume/limit behavior is covered at the engine
+  // level (packages/core/src/backfill/engine.test.ts) with an injected fake
+  // sync function; these black-box CLI tests only cover the validation
+  // paths that never reach the network.
+  it("backfill requires --from", () => {
+    let failed = false;
+    try {
+      docket(["backfill", "--source", "finra", "--db", "cli-test.db"]);
+    } catch (error) {
+      failed = true;
+      const err = error as { status: number; stderr: string };
+      expect(err.status).toBe(1);
+      expect(err.stderr).toContain("--from");
+    }
+    expect(failed).toBe(true);
+  });
+
+  it("backfill rejects an unknown source", () => {
+    expect(() =>
+      docket([
+        "backfill",
+        "--source",
+        "not-a-source",
+        "--from",
+        "2024-01-01",
+        "--db",
+        "cli-test.db",
+      ]),
+    ).toThrow();
+  });
+
+  it("backfill rejects a malformed --from/--to date and a --to before --from", () => {
+    expect(() =>
+      docket(["backfill", "--source", "finra", "--from", "not-a-date", "--db", "cli-test.db"]),
+    ).toThrow();
+    expect(() =>
+      docket([
+        "backfill",
+        "--source",
+        "finra",
+        "--from",
+        "2024-06-01",
+        "--to",
+        "2024-01-01",
+        "--db",
+        "cli-test.db",
+      ]),
+    ).toThrow();
+  });
+
+  it("--help lists the backfill command", () => {
+    expect(docket(["--help"])).toContain("backfill");
+  });
 });

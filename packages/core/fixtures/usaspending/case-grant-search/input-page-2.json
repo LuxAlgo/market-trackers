@@ -1,0 +1,42 @@
+{
+  "limit": 100,
+  "results": [
+    {
+      "internal_id": 220030003,
+      "Award ID": "1P01AI888888-01",
+      "Recipient Name": "MODERNATX BIODEFENSE DIVISION",
+      "Recipient UEI": "SYNTHMRNAUEI4",
+      "Awarding Agency": "Department of Health and Human Services",
+      "Awarding Sub Agency": "Biomedical Advanced Research and Development Authority",
+      "Award Amount": null,
+      "Description": null,
+      "Contract Award Type": "COOPERATIVE AGREEMENT",
+      "NAICS Code": null,
+      "NAICS Description": null,
+      "Start Date": "2026-08-20",
+      "generated_internal_id": "ASST_NON_SYNTHGRANT0003_7529_-NONE-_-NONE-"
+    },
+    {
+      "internal_id": 220030004,
+      "Award ID": "CFDA-93.859-0007",
+      "Recipient Name": "COMMUNITY HEALTH INITIATIVE OF THE PLAINS",
+      "Recipient UEI": "SYNTHCHIPUEI5",
+      "Awarding Agency": "Department of Health and Human Services",
+      "Awarding Sub Agency": "Health Resources and Services Administration",
+      "Award Amount": 89250.4,
+      "Description": "RURAL MATERNAL HEALTH OUTREACH GRANT",
+      "Contract Award Type": "BLOCK GRANT",
+      "NAICS Code": null,
+      "NAICS Description": null,
+      "Start Date": "2026-08-21",
+      "generated_internal_id": "ASST_NON_SYNTHGRANT0004_7529_-NONE-_-NONE-"
+    }
+  ],
+  "page_metadata": {
+    "page": 2,
+    "hasNext": false,
+    "last_record_unique_id": 220030004,
+    "last_record_sort_value": "2026-08-21"
+  },
+  "messages": []
+}

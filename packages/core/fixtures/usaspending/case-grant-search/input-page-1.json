@@ -1,0 +1,42 @@
+{
+  "limit": 100,
+  "results": [
+    {
+      "internal_id": 220030001,
+      "Award ID": "5R01AI999999-02",
+      "Recipient Name": "PFIZER INC",
+      "Recipient UEI": "SYNTHPFEUEI1",
+      "Awarding Agency": "Department of Health and Human Services",
+      "Awarding Sub Agency": "National Institutes of Health",
+      "Award Amount": 4200000.75,
+      "Description": "MRNA PLATFORM BIODEFENSE RESEARCH GRANT",
+      "Contract Award Type": "PROJECT GRANT",
+      "NAICS Code": null,
+      "NAICS Description": null,
+      "Start Date": "2026-08-18",
+      "generated_internal_id": "ASST_NON_SYNTHGRANT0001_7529_-NONE-_-NONE-"
+    },
+    {
+      "internal_id": 220030002,
+      "Award ID": "90ABC1234-01-00",
+      "Recipient Name": "TRUENORTH STATE UNIVERSITY",
+      "Recipient UEI": null,
+      "Awarding Agency": "Department of Education",
+      "Awarding Sub Agency": "Office of Postsecondary Education",
+      "Award Amount": 615000,
+      "Description": "STEM WORKFORCE DEVELOPMENT PROGRAM GRANT",
+      "Contract Award Type": "FORMULA GRANT",
+      "NAICS Code": null,
+      "NAICS Description": null,
+      "Start Date": "2026-08-19",
+      "generated_internal_id": "ASST_NON_SYNTHGRANT0002_7529_-NONE-_-NONE-"
+    }
+  ],
+  "page_metadata": {
+    "page": 1,
+    "hasNext": true,
+    "last_record_unique_id": 220030002,
+    "last_record_sort_value": "2026-08-19"
+  },
+  "messages": []
+}
