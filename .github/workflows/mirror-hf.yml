@@ -1,0 +1,105 @@
+name: Mirror to Hugging Face
+
+# Weekly best-effort mirror of the published data repo onto a Hugging Face
+# dataset repo, for people who'd rather `datasets.load_dataset(...)` or
+# browse the HF Hub than clone GitHub. GitHub (LuxAlgo/docket-data) stays
+# the source of truth; this is a read-only-on-our-side convenience copy of
+# it, not a second writer.
+#
+# No-op until configured:
+#   vars.DOCKET_DATA_REPO    — the repo to mirror, e.g. "LuxAlgo/docket-data"
+#   secrets.DOCKET_DATA_TOKEN — read access to check it out
+#   vars.HF_DATASET_REPO     — target HF dataset repo, e.g. "LuxAlgo/docket-data"
+#   secrets.HF_TOKEN         — a Hugging Face token with write access to it
+#
+# Bootstrapping: create the target dataset repo on huggingface.co first
+# (huggingface.co/new-dataset) — this workflow only ever pushes commits, it
+# never creates the repo itself. See docs/operations.md.
+on:
+  schedule:
+    - cron: "13 5 * * 1"
+  workflow_dispatch:
+
+# Only ever reads this repo's own checkout; every write goes to the two
+# *other* repos (docket-data, the HF dataset repo) via their own tokens.
+permissions:
+  contents: read
+
+# Guards against two mirror runs overlapping and racing each other for the
+# same Hugging Face ref. Independent of publish-dumps' group: this workflow
+# never touches the shared store cache or pushes to docket-data, so it has
+# nothing to race there.
+concurrency:
+  group: mirror-hf
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    if: vars.DOCKET_DATA_REPO != '' && vars.HF_DATASET_REPO != ''
+    steps:
+      # Secrets are not allowed in job-level `if`, so both tokens are
+      # checked here (env-mapped, never printed) and every later step keys
+      # off this output — same pattern as publish-dumps.yml/release.yml.
+      - name: Check mirror credentials
+        id: creds
+        env:
+          DOCKET_DATA_TOKEN: ${{ secrets.DOCKET_DATA_TOKEN }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          if [ -n "$DOCKET_DATA_TOKEN" ] && [ -n "$HF_TOKEN" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "DOCKET_DATA_TOKEN and/or HF_TOKEN not configured; skipping the HF mirror."
+          fi
+
+      - name: Checkout data repo
+        if: steps.creds.outputs.ready == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.DOCKET_DATA_REPO }}
+          token: ${{ secrets.DOCKET_DATA_TOKEN }}
+          path: data-repo
+          fetch-depth: 1
+
+      # Hugging Face's documented git-over-https form is
+      # `https://user:$HF_TOKEN@huggingface.co/datasets/{repo}` — that works,
+      # but it puts the token inside a URL that git repeats verbatim in its
+      # own verbose/error output, and that would get written into
+      # hf-repo/.git/config on disk (and into `git remote -v`) for the rest
+      # of the job. Passing the same credential as a one-shot
+      # `-c http.extraHeader` on each git invocation instead is
+      # wire-equivalent (HTTP Basic Auth either way — the URL form is just
+      # client-side sugar for the same header) without ever writing the
+      # token to disk or letting git echo it back. The token itself is
+      # env-mapped from the secret and never printed.
+      - name: Push to Hugging Face
+        if: steps.creds.outputs.ready == 'true'
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_DATASET_REPO: ${{ vars.HF_DATASET_REPO }}
+        run: |
+          set -euo pipefail
+          AUTH_HEADER="Authorization: Basic $(printf 'user:%s' "$HF_TOKEN" | base64 -w0)"
+          HF_URL="https://huggingface.co/datasets/${HF_DATASET_REPO}"
+
+          git -c http.extraHeader="$AUTH_HEADER" clone --depth 1 "$HF_URL" hf-repo
+
+          # --delete (unlike sync-fast.yml's rsync): this checks out the
+          # *whole* data repo every run, not a narrow per-dataset subset, so
+          # an exact mirror — including files docket-data has since removed
+          # — is the correct target here, with no risk of wiping something
+          # this run didn't touch.
+          rsync -a --delete --exclude ".git" data-repo/ hf-repo/
+
+          cd hf-repo
+          git config user.name "docket-publish[bot]"
+          git config user.email "docket-publish@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to mirror to Hugging Face this run."
+          else
+            git commit -m "data: $(date -u +%F) mirror from LuxAlgo/docket-data"
+            git -c http.extraHeader="$AUTH_HEADER" push
+          fi
