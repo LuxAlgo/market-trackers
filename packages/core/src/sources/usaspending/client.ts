@@ -7,7 +7,10 @@ import type { Logger } from "../../lib/logger.js";
 /**
  * USAspending award-search client. The API is free and keyless but shared —
  * stay well under any radar at ≤2 requests per rolling second, and page
- * with the documented `page_metadata.hasNext` cursor.
+ * with the documented `page_metadata.hasNext` cursor. One endpoint serves
+ * both award universes Docket tracks (contracts and grants); only the
+ * requested `award_type_codes` differ, so the request/response shapes below
+ * are shared rather than duplicated per dataset.
  *
  * Everything about the live payload this module assumes is listed under
  * `[verify-live]` in docs/sources/usaspending.md; the canary fingerprints
@@ -19,6 +22,15 @@ export const USASPENDING_AWARD_SEARCH_URL = `${USASPENDING_API_BASE}/search/spen
 
 /** Contract award type codes (A–D: BPA calls, POs, delivery orders, definitive contracts). */
 export const CONTRACT_AWARD_TYPE_CODES = ["A", "B", "C", "D"] as const;
+
+/**
+ * Grant award type codes. [verify-live] USAspending documents 02 (Block
+ * Grant), 03 (Formula Grant), 04 (Project Grant), and 05 (Cooperative
+ * Agreement) as the grant universe, distinct from contracts (A–D), loans
+ * (07/08), direct payments (06/10/11), and insurance (09) — confirm against
+ * the live award-type reference before depending on this list.
+ */
+export const GRANT_AWARD_TYPE_CODES = ["02", "03", "04", "05"] as const;
 
 /** The award date field requested, sorted on, and used for the watermark. */
 export const AWARD_DATE_FIELD = "Start Date";
@@ -93,6 +105,8 @@ export interface AwardSearchRequest {
   endDate: string;
   page: number;
   limit?: number;
+  /** Which award universe to query — contracts (A–D) or grants (02/03/04/05). */
+  awardTypeCodes: readonly string[];
 }
 
 export async function fetchAwardSearchPage(
@@ -105,7 +119,7 @@ export async function fetchAwardSearchPage(
     body: JSON.stringify({
       filters: {
         time_period: [{ start_date: request.startDate, end_date: request.endDate }],
-        award_type_codes: [...CONTRACT_AWARD_TYPE_CODES],
+        award_type_codes: [...request.awardTypeCodes],
       },
       fields: [...AWARD_SEARCH_FIELDS],
       page: request.page,
