@@ -97,3 +97,4 @@ export * from "./export/import.js";
 export * from "./analytics/prices.js";
 export * from "./analytics/event-returns.js";
 export * from "./analytics/adapters.js";
+export * from "./analytics/backtest.js";
