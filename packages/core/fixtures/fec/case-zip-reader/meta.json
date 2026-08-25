@@ -1,0 +1,7 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "A minimal two-entry ZIP exercising both compression methods this project's hand-rolled reader (packages/core/src/sources/fec/zip.ts) supports: one STORED entry at the archive root, one DEFLATED entry inside a subdirectory (also exercising case-insensitive, path-tolerant entry lookup). Built with Python's stdlib zipfile, a different implementation from zip.ts, so this is a cross-implementation check, not a round-trip of the reader's own output. See README.md.",
+  "sourceUrl": null,
+  "parser": null
+}
