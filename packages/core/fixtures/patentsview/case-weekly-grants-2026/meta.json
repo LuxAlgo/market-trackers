@@ -1,0 +1,25 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic PatentSearch API response pair (page 1 full, page 2 short/final) for a grant-date range query, paged via the assumed 'after' cursor on ascending patent_id. Exercises: a mapped assignee by exact name (Microsoft Corporation -> MSFT), an unmapped assignee (Example Innovations Inc.), an unassigned patent (empty assignees array, name stays null), a multi-assignee patent (first-listed organization wins the display name, assigneeCount keeps the total of 2), a second CPC entry that is ignored in favor of the first, and a second mapped assignee by exact name after suffix-stripping (International Business Machines Corporation -> IBM).",
+  "sourceUrl": null,
+  "parser": "patentsview-api@1",
+  "parseInput": {
+    "request": {
+      "url": "https://search.patentsview.org/api/v1/patent/",
+      "q": { "_and": [{ "_gte": { "patent_date": "2026-08-01" } }, { "_lte": { "patent_date": "2026-08-18" } }] },
+      "f": [
+        "patent_id",
+        "patent_title",
+        "patent_date",
+        "wipo_kind",
+        "assignees.assignee_organization",
+        "cpc_current.cpc_class_id"
+      ],
+      "o": { "size": 1000 },
+      "s": [{ "patent_id": "asc" }]
+    },
+    "retrievedAt": "2026-08-18T12:00:00.000Z"
+  },
+  "expectedStats": { "attempted": 5, "succeeded": 5 }
+}

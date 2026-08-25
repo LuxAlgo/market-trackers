@@ -1,0 +1,15 @@
+{
+  "error": false,
+  "count": 1,
+  "total_hits": 5,
+  "patents": [
+    {
+      "patent_id": "11800005",
+      "patent_title": "Quantum error correction code selection method",
+      "patent_date": "2026-08-11",
+      "wipo_kind": "B2",
+      "assignees": [{ "assignee_organization": "International Business Machines Corporation" }],
+      "cpc_current": [{ "cpc_class_id": "G06" }]
+    }
+  ]
+}
