@@ -125,9 +125,7 @@ describe("the shipped recipient-tickers map", () => {
 
   it("resolves pharma/tech names only through their scoped forms (collision guards)", () => {
     expect(resolveEntityTickers({ name: "Eli Lilly and Company" })).toEqual(["LLY"]);
-    expect(resolveEntityTickers({ name: "NOVARTIS PHARMACEUTICALS CORPORATION" })).toEqual([
-      "NVS",
-    ]);
+    expect(resolveEntityTickers({ name: "NOVARTIS PHARMACEUTICALS CORPORATION" })).toEqual(["NVS"]);
     expect(resolveEntityTickers({ name: "MERCK SHARP & DOHME LLC" })).toEqual(["MRK"]);
     expect(resolveEntityTickers({ name: "Merck & Co., Inc." })).toEqual(["MRK"]);
     expect(resolveEntityTickers({ name: "QUALCOMM Incorporated" })).toEqual(["QCOM"]);

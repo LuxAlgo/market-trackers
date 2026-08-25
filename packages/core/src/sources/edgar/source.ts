@@ -146,7 +146,7 @@ export const edgarSource: DocketSource = {
           } else {
             const parsed = parseThirteenf(common);
             // Ticker resolution for CUSIPs is cache-only here; `docket resolve`
-            // (and sprints wiring OpenFIGI) fill the cache.
+            // fills the cache via OpenFIGI (see resolve/cusip.ts).
             for (const row of parsed.rows) {
               const cached = await ctx.store.getCusip(row.cusip);
               if (cached?.ticker) row.ticker = cached.ticker;

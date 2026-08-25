@@ -2,20 +2,12 @@
   "version": 1,
   "entries": [
     {
-      "tickers": [
-        "LMT"
-      ],
-      "names": [
-        "LOCKHEED MARTIN",
-        "SIKORSKY",
-        "SIKORSKY AIRCRAFT"
-      ],
+      "tickers": ["LMT"],
+      "names": ["LOCKHEED MARTIN", "SIKORSKY", "SIKORSKY AIRCRAFT"],
       "uei": []
     },
     {
-      "tickers": [
-        "RTX"
-      ],
+      "tickers": ["RTX"],
       "names": [
         "RTX",
         "RAYTHEON",
@@ -27,28 +19,17 @@
       "uei": []
     },
     {
-      "tickers": [
-        "BA"
-      ],
-      "names": [
-        "BOEING",
-        "THE BOEING"
-      ],
+      "tickers": ["BA"],
+      "names": ["BOEING", "THE BOEING"],
       "uei": []
     },
     {
-      "tickers": [
-        "NOC"
-      ],
-      "names": [
-        "NORTHROP GRUMMAN"
-      ],
+      "tickers": ["NOC"],
+      "names": ["NORTHROP GRUMMAN"],
       "uei": []
     },
     {
-      "tickers": [
-        "GD"
-      ],
+      "tickers": ["GD"],
       "names": [
         "GENERAL DYNAMICS",
         "ELECTRIC BOAT",
@@ -58,9 +39,7 @@
       "uei": []
     },
     {
-      "tickers": [
-        "LHX"
-      ],
+      "tickers": ["LHX"],
       "names": [
         "L3HARRIS",
         "L3HARRIS TECHNOLOGIES",
@@ -71,680 +50,353 @@
       "uei": []
     },
     {
-      "tickers": [
-        "LDOS"
-      ],
-      "names": [
-        "LEIDOS",
-        "DYNETICS"
-      ],
+      "tickers": ["LDOS"],
+      "names": ["LEIDOS", "DYNETICS"],
       "uei": []
     },
     {
-      "tickers": [
-        "HII"
-      ],
-      "names": [
-        "HUNTINGTON INGALLS",
-        "NEWPORT NEWS SHIPBUILDING",
-        "INGALLS SHIPBUILDING"
-      ],
+      "tickers": ["HII"],
+      "names": ["HUNTINGTON INGALLS", "NEWPORT NEWS SHIPBUILDING", "INGALLS SHIPBUILDING"],
       "uei": []
     },
     {
-      "tickers": [
-        "BAH"
-      ],
-      "names": [
-        "BOOZ ALLEN",
-        "BOOZ ALLEN HAMILTON",
-        "BOOZ ALLEN AND HAMILTON"
-      ],
+      "tickers": ["BAH"],
+      "names": ["BOOZ ALLEN", "BOOZ ALLEN HAMILTON", "BOOZ ALLEN AND HAMILTON"],
       "uei": []
     },
     {
-      "tickers": [
-        "SAIC"
-      ],
-      "names": [
-        "SAIC",
-        "SCIENCE APPLICATIONS INTERNATIONAL"
-      ],
+      "tickers": ["SAIC"],
+      "names": ["SAIC", "SCIENCE APPLICATIONS INTERNATIONAL"],
       "uei": []
     },
     {
-      "tickers": [
-        "CACI"
-      ],
-      "names": [
-        "CACI"
-      ],
+      "tickers": ["CACI"],
+      "names": ["CACI"],
       "uei": []
     },
     {
-      "tickers": [
-        "PLTR"
-      ],
-      "names": [
-        "PALANTIR",
-        "PALANTIR TECHNOLOGIES"
-      ],
+      "tickers": ["PLTR"],
+      "names": ["PALANTIR", "PALANTIR TECHNOLOGIES"],
       "uei": []
     },
     {
-      "tickers": [
-        "KBR"
-      ],
-      "names": [
-        "KBR",
-        "KELLOGG BROWN AND ROOT"
-      ],
+      "tickers": ["KBR"],
+      "names": ["KBR", "KELLOGG BROWN AND ROOT"],
       "uei": []
     },
     {
-      "tickers": [
-        "TDY"
-      ],
-      "names": [
-        "TELEDYNE"
-      ],
+      "tickers": ["TDY"],
+      "names": ["TELEDYNE"],
       "uei": []
     },
     {
-      "tickers": [
-        "ACM"
-      ],
-      "names": [
-        "AECOM"
-      ],
+      "tickers": ["ACM"],
+      "names": ["AECOM"],
       "uei": []
     },
     {
-      "tickers": [
-        "J"
-      ],
-      "names": [
-        "JACOBS ENGINEERING",
-        "JACOBS SOLUTIONS",
-        "JACOBS TECHNOLOGY"
-      ],
+      "tickers": ["J"],
+      "names": ["JACOBS ENGINEERING", "JACOBS SOLUTIONS", "JACOBS TECHNOLOGY"],
       "uei": []
     },
     {
-      "tickers": [
-        "PSN"
-      ],
-      "names": [
-        "PARSONS",
-        "PARSONS GOVERNMENT SERVICES"
-      ],
+      "tickers": ["PSN"],
+      "names": ["PARSONS", "PARSONS GOVERNMENT SERVICES"],
       "uei": []
     },
     {
-      "tickers": [
-        "VVX"
-      ],
-      "names": [
-        "V2X",
-        "VECTRUS"
-      ],
+      "tickers": ["VVX"],
+      "names": ["V2X", "VECTRUS"],
       "uei": []
     },
     {
-      "tickers": [
-        "AMTM"
-      ],
-      "names": [
-        "AMENTUM"
-      ],
+      "tickers": ["AMTM"],
+      "names": ["AMENTUM"],
       "uei": []
     },
     {
-      "tickers": [
-        "GE"
-      ],
-      "names": [
-        "GENERAL ELECTRIC",
-        "GE AEROSPACE",
-        "GE AVIATION"
-      ],
+      "tickers": ["GE"],
+      "names": ["GENERAL ELECTRIC", "GE AEROSPACE", "GE AVIATION"],
       "uei": []
     },
     {
-      "tickers": [
-        "HON"
-      ],
-      "names": [
-        "HONEYWELL"
-      ],
+      "tickers": ["HON"],
+      "names": ["HONEYWELL"],
       "uei": []
     },
     {
-      "tickers": [
-        "TXT"
-      ],
-      "names": [
-        "TEXTRON",
-        "BELL TEXTRON",
-        "BELL HELICOPTER"
-      ],
+      "tickers": ["TXT"],
+      "names": ["TEXTRON", "BELL TEXTRON", "BELL HELICOPTER"],
       "uei": []
     },
     {
-      "tickers": [
-        "ORCL"
-      ],
-      "names": [
-        "ORACLE",
-        "CERNER"
-      ],
+      "tickers": ["ORCL"],
+      "names": ["ORACLE", "CERNER"],
       "uei": []
     },
     {
-      "tickers": [
-        "MSFT"
-      ],
-      "names": [
-        "MICROSOFT"
-      ],
+      "tickers": ["MSFT"],
+      "names": ["MICROSOFT"],
       "uei": []
     },
     {
-      "tickers": [
-        "AMZN"
-      ],
-      "names": [
-        "AMAZON COM",
-        "AMAZON WEB SERVICES"
-      ],
+      "tickers": ["AMZN"],
+      "names": ["AMAZON COM", "AMAZON WEB SERVICES"],
       "uei": []
     },
     {
-      "tickers": [
-        "GOOGL"
-      ],
-      "names": [
-        "GOOGLE",
-        "ALPHABET"
-      ],
+      "tickers": ["GOOGL"],
+      "names": ["GOOGLE", "ALPHABET"],
       "uei": []
     },
     {
-      "tickers": [
-        "IBM"
-      ],
-      "names": [
-        "IBM",
-        "INTERNATIONAL BUSINESS MACHINES"
-      ],
+      "tickers": ["IBM"],
+      "names": ["IBM", "INTERNATIONAL BUSINESS MACHINES"],
       "uei": []
     },
     {
-      "tickers": [
-        "CSCO"
-      ],
-      "names": [
-        "CISCO SYSTEMS"
-      ],
+      "tickers": ["CSCO"],
+      "names": ["CISCO SYSTEMS"],
       "uei": []
     },
     {
-      "tickers": [
-        "DELL"
-      ],
-      "names": [
-        "DELL",
-        "DELL TECHNOLOGIES"
-      ],
+      "tickers": ["DELL"],
+      "names": ["DELL", "DELL TECHNOLOGIES"],
       "uei": []
     },
     {
-      "tickers": [
-        "HPE"
-      ],
-      "names": [
-        "HEWLETT PACKARD ENTERPRISE"
-      ],
+      "tickers": ["HPE"],
+      "names": ["HEWLETT PACKARD ENTERPRISE"],
       "uei": []
     },
     {
-      "tickers": [
-        "ACN"
-      ],
-      "names": [
-        "ACCENTURE",
-        "ACCENTURE FEDERAL SERVICES"
-      ],
+      "tickers": ["ACN"],
+      "names": ["ACCENTURE", "ACCENTURE FEDERAL SERVICES"],
       "uei": []
     },
     {
-      "tickers": [
-        "NVDA"
-      ],
-      "names": [
-        "NVIDIA"
-      ],
+      "tickers": ["NVDA"],
+      "names": ["NVIDIA"],
       "uei": []
     },
     {
-      "tickers": [
-        "INTC"
-      ],
-      "names": [
-        "INTEL"
-      ],
+      "tickers": ["INTC"],
+      "names": ["INTEL"],
       "uei": []
     },
     {
-      "tickers": [
-        "CRM"
-      ],
-      "names": [
-        "SALESFORCE",
-        "SALESFORCE COM"
-      ],
+      "tickers": ["CRM"],
+      "names": ["SALESFORCE", "SALESFORCE COM"],
       "uei": []
     },
     {
-      "tickers": [
-        "NOW"
-      ],
-      "names": [
-        "SERVICENOW"
-      ],
+      "tickers": ["NOW"],
+      "names": ["SERVICENOW"],
       "uei": []
     },
     {
-      "tickers": [
-        "MSI"
-      ],
-      "names": [
-        "MOTOROLA SOLUTIONS"
-      ],
+      "tickers": ["MSI"],
+      "names": ["MOTOROLA SOLUTIONS"],
       "uei": []
     },
     {
-      "tickers": [
-        "MMS"
-      ],
-      "names": [
-        "MAXIMUS"
-      ],
+      "tickers": ["MMS"],
+      "names": ["MAXIMUS"],
       "uei": []
     },
     {
-      "tickers": [
-        "MMM"
-      ],
-      "names": [
-        "3M"
-      ],
+      "tickers": ["MMM"],
+      "names": ["3M"],
       "uei": []
     },
     {
-      "tickers": [
-        "CAT"
-      ],
-      "names": [
-        "CATERPILLAR"
-      ],
+      "tickers": ["CAT"],
+      "names": ["CATERPILLAR"],
       "uei": []
     },
     {
-      "tickers": [
-        "FDX"
-      ],
-      "names": [
-        "FEDEX",
-        "FEDERAL EXPRESS"
-      ],
+      "tickers": ["FDX"],
+      "names": ["FEDEX", "FEDERAL EXPRESS"],
       "uei": []
     },
     {
-      "tickers": [
-        "UPS"
-      ],
-      "names": [
-        "UNITED PARCEL SERVICE"
-      ],
+      "tickers": ["UPS"],
+      "names": ["UNITED PARCEL SERVICE"],
       "uei": []
     },
     {
-      "tickers": [
-        "VZ"
-      ],
-      "names": [
-        "VERIZON",
-        "VERIZON COMMUNICATIONS"
-      ],
+      "tickers": ["VZ"],
+      "names": ["VERIZON", "VERIZON COMMUNICATIONS"],
       "uei": []
     },
     {
-      "tickers": [
-        "T"
-      ],
-      "names": [
-        "AT AND T"
-      ],
+      "tickers": ["T"],
+      "names": ["AT AND T"],
       "uei": []
     },
     {
-      "tickers": [
-        "PFE"
-      ],
-      "names": [
-        "PFIZER"
-      ],
+      "tickers": ["PFE"],
+      "names": ["PFIZER"],
       "uei": []
     },
     {
-      "tickers": [
-        "MRNA"
-      ],
-      "names": [
-        "MODERNA",
-        "MODERNATX"
-      ],
+      "tickers": ["MRNA"],
+      "names": ["MODERNA", "MODERNATX"],
       "uei": []
     },
     {
-      "tickers": [
-        "JNJ"
-      ],
-      "names": [
-        "JOHNSON AND JOHNSON",
-        "JANSSEN PHARMACEUTICALS",
-        "JANSSEN BIOTECH"
-      ],
+      "tickers": ["JNJ"],
+      "names": ["JOHNSON AND JOHNSON", "JANSSEN PHARMACEUTICALS", "JANSSEN BIOTECH"],
       "uei": []
     },
     {
-      "tickers": [
-        "MCK"
-      ],
-      "names": [
-        "MCKESSON"
-      ],
+      "tickers": ["MCK"],
+      "names": ["MCKESSON"],
       "uei": []
     },
     {
-      "tickers": [
-        "CVS"
-      ],
-      "names": [
-        "CVS",
-        "CVS HEALTH",
-        "CVS PHARMACY",
-        "CVS CAREMARK",
-        "AETNA"
-      ],
+      "tickers": ["CVS"],
+      "names": ["CVS", "CVS HEALTH", "CVS PHARMACY", "CVS CAREMARK", "AETNA"],
       "uei": []
     },
     {
-      "tickers": [
-        "UNH"
-      ],
-      "names": [
-        "UNITEDHEALTH GROUP",
-        "UNITEDHEALTHCARE",
-        "UNITED HEALTHCARE",
-        "OPTUM"
-      ],
+      "tickers": ["UNH"],
+      "names": ["UNITEDHEALTH GROUP", "UNITEDHEALTHCARE", "UNITED HEALTHCARE", "OPTUM"],
       "uei": []
     },
     {
-      "tickers": [
-        "HUM"
-      ],
-      "names": [
-        "HUMANA"
-      ],
+      "tickers": ["HUM"],
+      "names": ["HUMANA"],
       "uei": []
     },
     {
-      "tickers": [
-        "CNC"
-      ],
-      "names": [
-        "CENTENE"
-      ],
+      "tickers": ["CNC"],
+      "names": ["CENTENE"],
       "uei": []
     },
     {
-      "tickers": [
-        "ELV"
-      ],
-      "names": [
-        "ELEVANCE HEALTH",
-        "ANTHEM"
-      ],
+      "tickers": ["ELV"],
+      "names": ["ELEVANCE HEALTH", "ANTHEM"],
       "uei": []
     },
     {
-      "tickers": [
-        "CI"
-      ],
-      "names": [
-        "CIGNA",
-        "THE CIGNA GROUP",
-        "EVERNORTH"
-      ],
+      "tickers": ["CI"],
+      "names": ["CIGNA", "THE CIGNA GROUP", "EVERNORTH"],
       "uei": []
     },
     {
-      "tickers": [
-        "AAPL"
-      ],
-      "names": [
-        "APPLE"
-      ],
+      "tickers": ["AAPL"],
+      "names": ["APPLE"],
       "uei": []
     },
     {
-      "tickers": [
-        "QCOM"
-      ],
-      "names": [
-        "QUALCOMM",
-        "QUALCOMM TECHNOLOGIES"
-      ],
+      "tickers": ["QCOM"],
+      "names": ["QUALCOMM", "QUALCOMM TECHNOLOGIES"],
       "uei": []
     },
     {
-      "tickers": [
-        "TXN"
-      ],
-      "names": [
-        "TEXAS INSTRUMENTS"
-      ],
+      "tickers": ["TXN"],
+      "names": ["TEXAS INSTRUMENTS"],
       "uei": []
     },
     {
-      "tickers": [
-        "AVGO"
-      ],
-      "names": [
-        "BROADCOM"
-      ],
+      "tickers": ["AVGO"],
+      "names": ["BROADCOM"],
       "uei": []
     },
     {
-      "tickers": [
-        "MU"
-      ],
-      "names": [
-        "MICRON TECHNOLOGY"
-      ],
+      "tickers": ["MU"],
+      "names": ["MICRON TECHNOLOGY"],
       "uei": []
     },
     {
-      "tickers": [
-        "AMAT"
-      ],
-      "names": [
-        "APPLIED MATERIALS"
-      ],
+      "tickers": ["AMAT"],
+      "names": ["APPLIED MATERIALS"],
       "uei": []
     },
     {
-      "tickers": [
-        "META"
-      ],
-      "names": [
-        "META PLATFORMS",
-        "FACEBOOK"
-      ],
+      "tickers": ["META"],
+      "names": ["META PLATFORMS", "FACEBOOK"],
       "uei": []
     },
     {
-      "tickers": [
-        "AMD"
-      ],
-      "names": [
-        "ADVANCED MICRO DEVICES"
-      ],
+      "tickers": ["AMD"],
+      "names": ["ADVANCED MICRO DEVICES"],
       "uei": []
     },
     {
-      "tickers": [
-        "TSLA"
-      ],
-      "names": [
-        "TESLA"
-      ],
+      "tickers": ["TSLA"],
+      "names": ["TESLA"],
       "uei": []
     },
     {
-      "tickers": [
-        "NVS"
-      ],
-      "names": [
-        "NOVARTIS",
-        "NOVARTIS PHARMACEUTICALS"
-      ],
+      "tickers": ["NVS"],
+      "names": ["NOVARTIS", "NOVARTIS PHARMACEUTICALS"],
       "uei": []
     },
     {
-      "tickers": [
-        "AZN"
-      ],
-      "names": [
-        "ASTRAZENECA",
-        "ASTRAZENECA PHARMACEUTICALS"
-      ],
+      "tickers": ["AZN"],
+      "names": ["ASTRAZENECA", "ASTRAZENECA PHARMACEUTICALS"],
       "uei": []
     },
     {
-      "tickers": [
-        "LLY"
-      ],
-      "names": [
-        "ELI LILLY",
-        "ELI LILLY AND"
-      ],
+      "tickers": ["LLY"],
+      "names": ["ELI LILLY", "ELI LILLY AND"],
       "uei": []
     },
     {
-      "tickers": [
-        "MRK"
-      ],
-      "names": [
-        "MERCK SHARP AND DOHME",
-        "MERCK AND"
-      ],
+      "tickers": ["MRK"],
+      "names": ["MERCK SHARP AND DOHME", "MERCK AND"],
       "uei": []
     },
     {
-      "tickers": [
-        "BMY"
-      ],
-      "names": [
-        "BRISTOL-MYERS SQUIBB",
-        "BRISTOL MYERS SQUIBB"
-      ],
+      "tickers": ["BMY"],
+      "names": ["BRISTOL-MYERS SQUIBB", "BRISTOL MYERS SQUIBB"],
       "uei": []
     },
     {
-      "tickers": [
-        "GSK"
-      ],
-      "names": [
-        "GLAXOSMITHKLINE",
-        "GSK"
-      ],
+      "tickers": ["GSK"],
+      "names": ["GLAXOSMITHKLINE", "GSK"],
       "uei": []
     },
     {
-      "tickers": [
-        "SNY"
-      ],
-      "names": [
-        "SANOFI"
-      ],
+      "tickers": ["SNY"],
+      "names": ["SANOFI"],
       "uei": []
     },
     {
-      "tickers": [
-        "AMGN"
-      ],
-      "names": [
-        "AMGEN"
-      ],
+      "tickers": ["AMGN"],
+      "names": ["AMGEN"],
       "uei": []
     },
     {
-      "tickers": [
-        "GILD"
-      ],
-      "names": [
-        "GILEAD SCIENCES"
-      ],
+      "tickers": ["GILD"],
+      "names": ["GILEAD SCIENCES"],
       "uei": []
     },
     {
-      "tickers": [
-        "ABBV"
-      ],
-      "names": [
-        "ABBVIE"
-      ],
+      "tickers": ["ABBV"],
+      "names": ["ABBVIE"],
       "uei": []
     },
     {
-      "tickers": [
-        "REGN"
-      ],
-      "names": [
-        "REGENERON PHARMACEUTICALS",
-        "REGENERON"
-      ],
+      "tickers": ["REGN"],
+      "names": ["REGENERON PHARMACEUTICALS", "REGENERON"],
       "uei": []
     },
     {
-      "tickers": [
-        "VRTX"
-      ],
-      "names": [
-        "VERTEX PHARMACEUTICALS"
-      ],
+      "tickers": ["VRTX"],
+      "names": ["VERTEX PHARMACEUTICALS"],
       "uei": []
     },
     {
-      "tickers": [
-        "BIIB"
-      ],
-      "names": [
-        "BIOGEN"
-      ],
+      "tickers": ["BIIB"],
+      "names": ["BIOGEN"],
       "uei": []
     },
     {
-      "tickers": [
-        "ILMN"
-      ],
-      "names": [
-        "ILLUMINA"
-      ],
+      "tickers": ["ILMN"],
+      "names": ["ILLUMINA"],
       "uei": []
     }
   ]
