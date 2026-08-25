@@ -7,27 +7,32 @@ configured yet: every workflow is a safe no-op until its variables and secrets e
 
 ## Workflows at a glance
 
-| Workflow            | Trigger                       | Needs                                                     | Without configuration                                                         |
-| ------------------- | ----------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `ci.yml`            | push to `main`, pull requests | nothing                                                   | fully functional (offline tests, no keys)                                     |
-| `canaries.yml`      | daily cron, manual            | `DOCKET_CONTACT` (optional)                               | runs keyless; the EDGAR probe reports the gap and shows amber                 |
-| `publish-dumps.yml` | daily cron, manual            | `DOCKET_DATA_REPO`, `DOCKET_DATA_TOKEN`, `DOCKET_CONTACT` | job skipped without the repo var; builds but does not push without the token  |
-| `release.yml`       | manual (`workflow_dispatch`)  | `NPM_TOKEN`                                               | ends successfully after logging "NPM_TOKEN not configured; skipping publish." |
+| Workflow            | Trigger                           | Needs                                                                  | Without configuration                                                                                           |
+| ------------------- | --------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `ci.yml`            | push to `main`, pull requests     | nothing                                                                | fully functional (offline tests, no keys)                                                                       |
+| `canaries.yml`      | daily cron, manual                | `DOCKET_CONTACT` (optional)                                            | runs keyless; the EDGAR probe reports the gap and shows amber                                                   |
+| `publish-dumps.yml` | daily cron, manual                | `DOCKET_DATA_REPO`, `DOCKET_DATA_TOKEN`, `DOCKET_CONTACT`              | job skipped without the repo var; builds but does not push without the token                                    |
+| `sync-fast.yml`     | ~2-hourly cron (weekdays), manual | same as `publish-dumps.yml`                                            | job skipped without `DOCKET_DATA_REPO`; syncs but does not push without the token                               |
+| `mirror-hf.yml`     | weekly cron, manual               | `DOCKET_DATA_REPO`, `DOCKET_DATA_TOKEN`, `HF_DATASET_REPO`, `HF_TOKEN` | job skipped without `DOCKET_DATA_REPO`/`HF_DATASET_REPO`; skips the push (with a log line) without either token |
+| `release.yml`       | manual (`workflow_dispatch`)      | `NPM_TOKEN`                                                            | ends successfully after logging "NPM_TOKEN not configured; skipping publish."                                   |
 
 All workflows keep `permissions:` minimal, never print secrets, and pass secrets only through
-env vars (`DOCKET_DATA_TOKEN` to checkout/push, `NPM_TOKEN` as `NODE_AUTH_TOKEN`).
+env vars (`DOCKET_DATA_TOKEN` to checkout/push, `HF_TOKEN` to authenticate the Hugging Face
+mirror push, `NPM_TOKEN` as `NODE_AUTH_TOKEN`).
 
 ## Repository variables and secrets
 
 Set variables under **Settings → Secrets and variables → Actions → Variables**, secrets under
 **… → Secrets**.
 
-| Name                | Kind     | What it enables                                                                                                                       | What stays off without it                                                                                 |
-| ------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `DOCKET_CONTACT`    | variable | The contact email the SEC's fair-access policy requires in the EDGAR User-Agent. Enables EDGAR sync in canaries and publishing.       | EDGAR sync is skipped; the EDGAR canary soft-fails with "skipped: no contact email…" and shows amber.     |
-| `DOCKET_DATA_REPO`  | variable | The target data repository, e.g. `LuxAlgo/docket-data`. Gates the whole publish job.                                                  | `publish-dumps.yml` is skipped entirely — no sync, no export, no health-board commit.                     |
-| `DOCKET_DATA_TOKEN` | secret   | Push access to the data repo. Enables checkout of the data repo, the first-publish README/LICENSE bootstrap, and the daily data push. | Dumps are still built (and the store cache still accumulates), but nothing is pushed; a log line says so. |
-| `NPM_TOKEN`         | secret   | Publishing `@luxalgo/docket-core`, `@luxalgo/docket-mcp`, `@luxalgo/docket-cli` to npm via `release.yml`.                             | The release run ends green after "NPM_TOKEN not configured; skipping publish." Nothing is published.      |
+| Name                | Kind     | What it enables                                                                                                                                                                                                               | What stays off without it                                                                                  |
+| ------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `DOCKET_CONTACT`    | variable | The contact email the SEC's fair-access policy requires in the EDGAR User-Agent. Enables EDGAR sync in canaries and publishing.                                                                                               | EDGAR sync is skipped; the EDGAR canary soft-fails with "skipped: no contact email…" and shows amber.      |
+| `DOCKET_DATA_REPO`  | variable | The target data repository, e.g. `LuxAlgo/docket-data`. Gates the whole publish job.                                                                                                                                          | `publish-dumps.yml` is skipped entirely — no sync, no export, no health-board commit.                      |
+| `DOCKET_DATA_TOKEN` | secret   | Push access to the data repo. Enables checkout of the data repo, the first-publish README/LICENSE bootstrap, and the daily data push — and also unlocks `sync-fast.yml`'s pushes and `mirror-hf.yml`'s read of the data repo. | Dumps are still built (and the store cache still accumulates), but nothing is pushed; a log line says so.  |
+| `HF_DATASET_REPO`   | variable | The target Hugging Face dataset repo for `mirror-hf.yml`, e.g. `LuxAlgo/docket-data`. Gates the mirror job.                                                                                                                   | `mirror-hf.yml` is skipped entirely.                                                                       |
+| `HF_TOKEN`          | secret   | A Hugging Face token with write access to `HF_DATASET_REPO`. Enables `mirror-hf.yml`'s weekly push.                                                                                                                           | `mirror-hf.yml`'s job is skipped entirely (both it and `HF_DATASET_REPO` are checked before the job runs). |
+| `NPM_TOKEN`         | secret   | Publishing `@luxalgo/docket-core`, `@luxalgo/docket-mcp`, `@luxalgo/docket-cli` to npm via `release.yml`.                                                                                                                     | The release run ends green after "NPM_TOKEN not configured; skipping publish." Nothing is published.       |
 
 The contact email is only ever sent inside the EDGAR User-Agent header — Docket has no
 telemetry (see `buildUserAgent` in `packages/core/src/config.ts`, which refuses to sync EDGAR
@@ -57,6 +62,104 @@ repo starts empty.
 
 Day-to-day, the only writer to the data repo is this workflow. Human PRs to data files there
 are closed; fixes belong in this repo's parsers and fixtures.
+
+## The intraday fast lane
+
+`sync-fast.yml` tops up the two most time-sensitive datasets — `congress-trades` and
+`insider-transactions` — between daily publishes, on the same accumulating store and the same
+data repo `publish-dumps.yml` uses. It needs no configuration beyond what `publish-dumps.yml`
+already needs (`DOCKET_DATA_REPO`, `DOCKET_DATA_TOKEN`, `DOCKET_CONTACT`); it is a safe no-op
+under the same conditions.
+
+**Schedule.** SEC EDGAR accepts filings roughly 6am-10pm ET on business days, and Senate eFD /
+House Clerk PTRs post on the same business-day rhythm. ET is UTC-4 (EDT) or UTC-5 (EST), so that
+window falls somewhere across 10:00 UTC through 03:00 UTC the _next_ calendar day depending on
+the time of year — the same reason `publish-dumps.yml` and `canaries.yml` both run through
+Saturday in UTC terms rather than stopping at Friday. `sync-fast.yml` covers that ground with two
+cron entries at roughly a 2-hour cadence: daytime UTC hours on Mon-Fri, plus the post-midnight UTC
+hours (Tue-Sat) that are still evening-ET on the previous US business day.
+
+**Why it never races or wipes the daily publish.** Two mechanisms, both load-bearing:
+
+- **Concurrency.** `sync-fast.yml` shares `publish-dumps.yml`'s exact concurrency group
+  (`publish-dumps`, `cancel-in-progress: false`). At most one of the two workflows ever runs at a
+  time on this repo; whichever fires while the other is in flight queues instead of overlapping,
+  so there is never a second writer touching the store cache or the data repo concurrently.
+- **The rsync.** `sync-fast.yml`'s push step rsyncs **without** `--delete`, so a fast-lane run can
+  only add or update files, never remove one — unlike `publish-dumps.yml`'s daily rsync, which
+  intentionally does use `--delete` to retire files the export layout no longer produces. It also
+  excludes `manifest.json` outright: `docket export --dataset ... --no-snapshot` still writes a
+  manifest (it's built from a whole-store freshness report regardless of `--dataset`, see
+  `buildManifest` in `packages/core/src/export/writer.ts`), but with `--no-snapshot` that
+  manifest's `snapshots` listing comes back empty for _every_ dataset, not just the two the fast
+  lane touches. Pushing it would clobber the accurate listing the daily publish just wrote for
+  every other dataset, so the fast lane leaves `manifest.json` alone entirely and lets
+  `publish-dumps.yml` keep owning it.
+
+The store cache family (`docket-store-v1-`) is shared too: both workflows restore by the same
+key prefix, so whichever ran most recently is what the other picks up next, and watermarks
+advance continuously across both instead of drifting apart in two separate stores.
+
+## Parquet siblings
+
+`publish-dumps.yml` writes a `.parquet` sibling next to every `snapshot*.json.gz` file (the
+per-year shards and, for small datasets, the combined `snapshot.json.gz`) via
+`scripts/make-parquet.mjs`, run right after the `Export` step. The conversion uses DuckDB's
+`read_json` reader piped into `COPY ... TO ... (FORMAT PARQUET)`.
+
+DuckDB is never a project dependency — nothing changes in `package.json` or `pnpm-lock.yaml`. The
+workflow installs the `duckdb` npm package ephemerally, immediately before the one script that
+needs it (`npm i --no-save duckdb`). That package ships no CLI (`npm view duckdb bin` prints
+nothing; `main` is `./lib/duckdb.js`), so the script drives it programmatically through its Node
+API rather than shelling out to a nonexistent `npx duckdb` shell.
+
+This step can never break a publish. `make-parquet.mjs` degrades gracefully at two levels: if the
+`duckdb` package isn't importable — the `npm i` above was skipped, failed, or the runner's
+platform has no matching prebuilt binary — it logs a clear line and exits 0 without attempting
+any conversion; if one particular file fails to convert, that file is logged and skipped while
+the rest still proceed. `ci.yml` smoke-tests both the empty-directory and the
+duckdb-not-installed cases directly (duckdb is never installed in CI).
+
+Column types in the Parquet files come from DuckDB's own JSON type inference, not from the zod
+schemas in `packages/core/src/schema/`. The JSON stays the canonical, exact representation of a
+dataset; the Parquet files are a best-effort, schema-inferred convenience mirror of it for
+columnar tooling (DuckDB, pandas, polars, ...).
+
+## Mirroring to Hugging Face (and Kaggle)
+
+`mirror-hf.yml` runs weekly and pushes a full copy of the data repo onto a Hugging Face dataset
+repo, for consumers who prefer `datasets.load_dataset(...)` or browsing the HF Hub over cloning
+GitHub. GitHub (`LuxAlgo/docket-data`) stays the source of truth; the mirror is a convenience
+copy, not a second writer to anything in this repo.
+
+Needs `DOCKET_DATA_REPO` + `DOCKET_DATA_TOKEN` (to read the data repo, same as
+`publish-dumps.yml`) and the new `HF_DATASET_REPO` + `HF_TOKEN` (to push it onward). Without
+either the data-repo or the HF-repo variable the job is skipped entirely; without either token it
+logs that it's skipping the push and ends green.
+
+**Bootstrapping:** create the target dataset repo on Hugging Face first
+(`huggingface.co/new-dataset`) and grant a token write access — this workflow only ever pushes
+commits to an existing repo, it never creates one.
+
+**Keeping the token out of logs.** Hugging Face documents git-over-https access as
+`https://user:$HF_TOKEN@huggingface.co/datasets/{repo}`. That form works, but embeds the token in
+a URL that git repeats verbatim in its own error/verbose output and that would get written into
+the mirror checkout's `.git/config` on disk for the rest of the job. `mirror-hf.yml` instead
+passes the same credential as a one-shot `-c http.extraHeader="Authorization: Basic ..."` on each
+git invocation — wire-equivalent (HTTP Basic Auth either way; the URL form is just client-side
+sugar for the same header), but the token is never written to disk, never part of a URL git might
+echo back, and only ever lives in an env var populated straight from the secret.
+
+**Kaggle** is not mirrored automatically — Kaggle dataset versions are managed through the
+`kaggle` CLI/API rather than plain git, which doesn't fit this repo's git-only mirroring approach
+without a new dependency. To publish a Kaggle mirror by hand:
+
+1. `pip install kaggle` and place an API token at `~/.kaggle/kaggle.json` (from Kaggle account
+   settings).
+2. Clone `LuxAlgo/docket-data` (or download a release of it).
+3. Create the dataset once with `kaggle datasets create -p <path>` (needs a `dataset-metadata.json`
+   describing title/license/id — CC0, matching the data repo's `LICENSE`), then push updates with
+   `kaggle datasets version -p <path> -m "<message>"`.
 
 ## Canary statuses and the response playbook
 

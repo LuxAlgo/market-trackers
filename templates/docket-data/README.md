@@ -40,6 +40,19 @@ The record shapes are defined by the schemas in
 [LuxAlgo/docket](https://github.com/LuxAlgo/docket); the manifest's `schemaVersion` bumps
 whenever a published shape changes.
 
+## Feeds, Parquet, and the explorer
+
+- **Feeds.** Every dataset directory also has a `feed.xml` — RSS 2.0 over its newest rows, each
+  item linking straight back to the primary-source document. Point a feed reader (or anything
+  that already watches feeds) at it for zero-infrastructure notice of new rows.
+- **Parquet.** Every `snapshot*.json.gz` has a `.parquet` sibling with the same rows, for
+  DuckDB/pandas/polars/Spark and anything else that would rather read columnar data than parse
+  gzipped JSON. Column types there are inferred, not pinned — the JSON stays the exact,
+  canonical form of the data.
+- **Explorer.** If this repository has an `index.html` at its root (alongside this README), it's
+  a small static site for browsing the data in a browser; enable GitHub Pages on this repo,
+  pointed at the root, to serve it.
+
 ## Written only by CI
 
 Data files in this repository are produced exclusively by the publish workflow in

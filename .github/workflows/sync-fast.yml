@@ -1,0 +1,159 @@
+name: Sync fast lane
+
+# Intraday top-ups for the two most time-sensitive datasets (congress trades,
+# insider transactions) between daily publishes. Same accumulating store,
+# same data repo, same bot identity as publish-dumps.yml — this workflow
+# just runs a narrower slice of it more often, and is careful never to
+# touch anything the daily publish owns.
+#
+# No-ops until configured (identical requirements to publish-dumps.yml —
+# see docs/operations.md):
+#   vars.DOCKET_CONTACT       — contact email for the SEC EDGAR User-Agent
+#   vars.DOCKET_DATA_REPO     — e.g. "LuxAlgo/docket-data" (job skipped without it)
+#   secrets.DOCKET_DATA_TOKEN — token with push access to the data repo
+#                               (without it, the store still syncs but nothing is pushed)
+#
+# Cron reasoning: SEC EDGAR accepts filings roughly 6am-10pm ET on business
+# days, and Senate eFD / House Clerk PTRs post on the same business-day
+# rhythm. ET is UTC-4 (EDT) or UTC-5 (EST), so that window falls somewhere
+# across 10:00 UTC through 03:00 UTC the *next* calendar day, depending on
+# the time of year — the same reason publish-dumps.yml and canaries.yml both
+# run through Saturday in UTC terms rather than stopping at Friday: the tail
+# of Friday's US business day is already Saturday once you cross into UTC.
+# Two schedules cover that same ground here, at roughly a 2-hour cadence:
+on:
+  schedule:
+    # Daytime UTC hours, Mon-Fri — the bulk of the 6am-10pm ET window under
+    # both DST regimes.
+    - cron: "27 10,12,14,16,18,20,22 * * 1-5"
+    # Post-midnight UTC hours that are still evening-ET on the *previous* US
+    # business day (Tue-Sat UTC catches Mon-Fri evenings ET) — mirrors why
+    # publish-dumps.yml/canaries.yml run 1-6 instead of 1-5.
+    - cron: "27 0,2 * * 2-6"
+  workflow_dispatch:
+
+# Never pushes to this repo (only to the external data repo via
+# secrets.DOCKET_DATA_TOKEN), so contents:write is not needed here.
+permissions:
+  contents: read
+
+# Shares publish-dumps.yml's concurrency group on purpose: a fast-lane run
+# queues behind an in-flight daily publish (or vice versa) instead of racing
+# it for the shared store cache or the data-repo push. cancel-in-progress
+# stays false so a queued run still completes rather than being dropped.
+concurrency:
+  group: publish-dumps
+  cancel-in-progress: false
+
+jobs:
+  sync-fast:
+    runs-on: ubuntu-latest
+    if: vars.DOCKET_DATA_REPO != ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      # Secrets are not allowed in job-level `if`, so the data-repo steps key
+      # off this output instead. The token itself is never printed — same
+      # pattern as publish-dumps.yml.
+      - name: Check data-repo credentials
+        id: creds
+        env:
+          DOCKET_DATA_TOKEN: ${{ secrets.DOCKET_DATA_TOKEN }}
+        run: |
+          if [ -n "$DOCKET_DATA_TOKEN" ]; then
+            echo "push=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "push=false" >> "$GITHUB_OUTPUT"
+            echo "DOCKET_DATA_TOKEN not configured; the fast lane will sync but not publish."
+          fi
+
+      # Same store, same cache-key family as publish-dumps.yml
+      # (docket-store-v1-) — restoring by prefix picks up whichever of the
+      # two workflows saved most recently, so watermarks advance
+      # continuously across both instead of each keeping a separate store.
+      - name: Restore store
+        uses: actions/cache/restore@v4
+        with:
+          path: publish.db
+          key: docket-store-v1-${{ github.run_id }}
+          restore-keys: |
+            docket-store-v1-
+
+      # Only the sources that back the two fast datasets, with a soft
+      # document cap since this runs often and is meant to be quick.
+      # `|| true`: runSync already isolates one source's failure from the
+      # others internally (see packages/core/src/sync/engine.ts), but the
+      # CLI's own exit code still reflects the worst per-source result, and
+      # a flaky source must never fail this job before Export/Save-store run.
+      - name: Sync (fast sources)
+        env:
+          DOCKET_CONTACT: ${{ vars.DOCKET_CONTACT }}
+        run: |
+          node packages/cli/dist/index.js sync --db publish.db --source senate-efd,house-clerk,edgar --limit 2000 --json || true
+
+      # Deltas + feeds only, for the two fast datasets only. --no-snapshot
+      # because full-history snapshots stay the daily publish's job (they're
+      # unconditionally expensive to rebuild every couple of hours for no
+      # benefit); --dataset restricts the export to exactly the two
+      # directories this workflow is allowed to touch.
+      - name: Export (fast datasets, no snapshot)
+        run: node packages/cli/dist/index.js export --db publish.db --out dumps --dataset congress-trades,insider-transactions --no-snapshot --json
+
+      - name: Checkout data repo
+        if: steps.creds.outputs.push == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.DOCKET_DATA_REPO }}
+          token: ${{ secrets.DOCKET_DATA_TOKEN }}
+          path: data-repo
+
+      # rsync WITHOUT --delete (unlike publish-dumps.yml's daily rsync) so a
+      # fast-lane run can only ever add or update files — it never removes
+      # anything, so it can never wipe a dataset directory this run didn't
+      # touch. manifest.json is additionally excluded outright: it's written
+      # unconditionally by every `docket export` run from a whole-store
+      # freshness report (see buildManifest in
+      # packages/core/src/export/writer.ts), regardless of --dataset, but
+      # with --no-snapshot its `snapshots` listing comes back empty for
+      # *every* dataset, not just these two. Pushing that would clobber the
+      # accurate snapshot listing the daily publish just wrote for every
+      # other dataset — so the fast lane leaves manifest.json alone
+      # entirely and lets the next daily publish own it, as always.
+      - name: Commit & push dumps
+        if: steps.creds.outputs.push == 'true'
+        run: |
+          rsync -a --exclude ".git" --exclude "README.md" --exclude "LICENSE" --exclude "manifest.json" dumps/ data-repo/
+          cd data-repo
+          git config user.name "docket-publish[bot]"
+          git config user.email "docket-publish@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No fast-lane data changes this run."
+          else
+            git commit -m "data: $(date -u +"%Y-%m-%dT%H:%MZ") intraday fast-lane sync (congress-trades, insider-transactions)"
+            git push
+          fi
+
+      # Saved last (and even on failure) so this run's progress is never
+      # lost — same reasoning as publish-dumps.yml. The run-id key is
+      # unique across every workflow in the repo, not just this one, so it
+      # never collides with a publish-dumps.yml save.
+      - name: Save store
+        if: ${{ always() && hashFiles('publish.db') != '' }}
+        uses: actions/cache/save@v4
+        with:
+          path: publish.db
+          key: docket-store-v1-${{ github.run_id }}

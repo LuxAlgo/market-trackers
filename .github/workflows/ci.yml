@@ -70,3 +70,22 @@ jobs:
           grep -q "🔴 broken" "$RUNNER_TEMP/readme-smoke.out.md"
           grep -q "🟡 stale" "$RUNNER_TEMP/readme-smoke.out.md"
           git diff --exit-code README.md
+
+      # Smoke make-parquet.mjs's graceful-degrade path: duckdb is never
+      # installed in this job, so both an empty directory and one holding a
+      # real snapshot*.json.gz file must still exit 0 with a clear log line
+      # rather than fail the build.
+      - name: Parquet script smoke (degrade path)
+        run: |
+          set -euo pipefail
+
+          EMPTY_DIR="$RUNNER_TEMP/parquet-smoke-empty"
+          mkdir -p "$EMPTY_DIR"
+          node scripts/make-parquet.mjs "$EMPTY_DIR" | tee "$RUNNER_TEMP/parquet-smoke-empty.log"
+          grep -q "nothing to do" "$RUNNER_TEMP/parquet-smoke-empty.log"
+
+          SNAPSHOT_DIR="$RUNNER_TEMP/parquet-smoke-snapshot/congress/trades"
+          mkdir -p "$SNAPSHOT_DIR"
+          echo "[]" | gzip > "$SNAPSHOT_DIR/snapshot-2026.json.gz"
+          node scripts/make-parquet.mjs "$RUNNER_TEMP/parquet-smoke-snapshot" | tee "$RUNNER_TEMP/parquet-smoke-snapshot.log"
+          grep -qi "duckdb" "$RUNNER_TEMP/parquet-smoke-snapshot.log"
