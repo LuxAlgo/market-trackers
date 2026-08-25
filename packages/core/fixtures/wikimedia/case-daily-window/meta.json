@@ -1,0 +1,17 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic Wikimedia REST pageviews per-article response for a 3-day window. One ranged request covers every day in the window in a single response (unlike a day-by-day file walk or an offset-paged window) — this is the happy path, no gaps or malformed items.",
+  "sourceUrl": null,
+  "parser": "wikimedia-pageviews@1",
+  "parseInput": {
+    "project": "en.wikipedia",
+    "article": "Nvidia",
+    "tickers": ["NVDA"],
+    "start": "2026-08-18",
+    "end": "2026-08-20",
+    "sourceUrl": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Nvidia/daily/2026081800/2026082000",
+    "retrievedAt": "2026-08-24T12:00:00.000Z"
+  },
+  "expectedStats": { "attempted": 3, "succeeded": 3 }
+}
