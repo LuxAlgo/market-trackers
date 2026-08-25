@@ -85,6 +85,20 @@ see CONTRIBUTING.md). Consumers should pin the major behavior on it: same `schem
 previously written parsers keep working. Internal changes that don't alter published rows do
 not bump it.
 
+## The bundled explorer
+
+[`templates/docket-data/explorer/index.html`](../templates/docket-data/explorer/index.html) is
+a single, self-contained static page (no build step, no external assets) that browses the
+published dumps client-side: it fetches `manifest.json`, renders a table of every dataset with
+links to its `latest.json`/`feed.xml`/snapshots, and lets a visitor pick a dataset and filter
+its `latest.json` rows, each linking its `provenance.sourceUrl`. It resolves `manifest.json`
+path-relatively (`../manifest.json`, with a same-directory fallback) so it works wherever the
+data repo is served — a raw checkout, `python3 -m http.server`, or GitHub Pages — and reads
+`prefers-color-scheme` for dark/light. It is meant to be installed into the data repo the same
+way as `README.md` and `LICENSE` (present at `explorer/` there, first-publish-only, left to
+humans after that) once the publish workflow installs it; as of this writing the workflow only
+installs the two files above, so wiring the explorer in is still open.
+
 ## Only CI writes
 
 The data repository has exactly one writer: the `publish-dumps.yml` workflow in this repo,
