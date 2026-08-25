@@ -1,0 +1,12 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic bulk files for one election cycle (2026): weball26.zip (6 candidate rows: 5 valid across House/Senate/President plus 1 malformed CAND_ID that must be skipped), pas226.zip (10 contribution rows: 8 valid plus 2 malformed), cn26.zip and cm26.zip (masters covering most, deliberately not all, of the ids referenced above, to exercise both the join-hit and join-miss/null paths). See README.md in this directory for exactly how the row values were chosen and how the ZIPs were built.",
+  "sourceUrl": null,
+  "sourceUrlPattern": "https://www.fec.gov/files/bulk-downloads/{cycle}/{file}{yy}.zip",
+  "parser": "fec-bulk@1",
+  "expectedStats": {
+    "candidates": { "attempted": 6, "succeeded": 5 },
+    "contributions": { "attempted": 10, "succeeded": 8 }
+  }
+}

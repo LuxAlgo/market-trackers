@@ -1,0 +1,117 @@
+[
+  {
+    "id": "H2NY00111:2026",
+    "candidateId": "H2NY00111",
+    "cycle": 2026,
+    "name": "EXAMPLE, DAN",
+    "party": null,
+    "office": "H",
+    "state": "NY",
+    "district": "05",
+    "incumbentChallenger": "O",
+    "totalReceipts": null,
+    "totalDisbursements": 500000,
+    "cashOnHand": 120000,
+    "coverageEndDate": null,
+    "provenance": {
+      "source": "fec",
+      "sourceUrl": "https://www.fec.gov/data/candidate/H2NY00111/?cycle=2026",
+      "retrievedAt": "2026-08-25T12:00:00.000Z",
+      "parser": "fec-bulk@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "H6VT01234:2026",
+    "candidateId": "H6VT01234",
+    "cycle": 2026,
+    "name": "EXAMPLE, JANE",
+    "party": "IND",
+    "office": "H",
+    "state": "VT",
+    "district": "00",
+    "incumbentChallenger": "I",
+    "totalReceipts": 1250000.5,
+    "totalDisbursements": 900000.25,
+    "cashOnHand": 350000.25,
+    "coverageEndDate": "2026-06-30",
+    "provenance": {
+      "source": "fec",
+      "sourceUrl": "https://www.fec.gov/data/candidate/H6VT01234/?cycle=2026",
+      "retrievedAt": "2026-08-25T12:00:00.000Z",
+      "parser": "fec-bulk@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "P60003456:2026",
+    "candidateId": "P60003456",
+    "cycle": 2026,
+    "name": "EXAMPLE, CAROL",
+    "party": "DEM",
+    "office": "P",
+    "state": "US",
+    "district": null,
+    "incumbentChallenger": "O",
+    "totalReceipts": 50000000,
+    "totalDisbursements": 42000000,
+    "cashOnHand": 8000000,
+    "coverageEndDate": "2026-08-01",
+    "provenance": {
+      "source": "fec",
+      "sourceUrl": "https://www.fec.gov/data/candidate/P60003456/?cycle=2026",
+      "retrievedAt": "2026-08-25T12:00:00.000Z",
+      "parser": "fec-bulk@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "S4TX00222:2026",
+    "candidateId": "S4TX00222",
+    "cycle": 2026,
+    "name": "EXAMPLE, ERIN",
+    "party": "REP",
+    "office": "S",
+    "state": "TX",
+    "district": null,
+    "incumbentChallenger": "I",
+    "totalReceipts": 6200000,
+    "totalDisbursements": null,
+    "cashOnHand": 900000,
+    "coverageEndDate": "2026-07-01",
+    "provenance": {
+      "source": "fec",
+      "sourceUrl": "https://www.fec.gov/data/candidate/S4TX00222/?cycle=2026",
+      "retrievedAt": "2026-08-25T12:00:00.000Z",
+      "parser": "fec-bulk@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "S6CA00123:2026",
+    "candidateId": "S6CA00123",
+    "cycle": 2026,
+    "name": "EXAMPLE, BOB",
+    "party": "REP",
+    "office": "S",
+    "state": "CA",
+    "district": null,
+    "incumbentChallenger": "C",
+    "totalReceipts": 3400000,
+    "totalDisbursements": 3100000,
+    "cashOnHand": 300000,
+    "coverageEndDate": "2026-07-15",
+    "provenance": {
+      "source": "fec",
+      "sourceUrl": "https://www.fec.gov/data/candidate/S6CA00123/?cycle=2026",
+      "retrievedAt": "2026-08-25T12:00:00.000Z",
+      "parser": "fec-bulk@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  }
+]
