@@ -89,13 +89,18 @@
         font-size: 1.1rem;
         margin: 0 0 0.9rem;
       }
+      h3 {
+        font-size: 1rem;
+        margin: 0 0 0.5rem;
+      }
       .table-wrap {
         overflow-x: auto;
         border: 1px solid var(--border);
         border-radius: 10px;
         background: var(--bg-elevated);
       }
-      #rows-wrap {
+      #rows-wrap,
+      .dataset-block .table-wrap {
         max-height: 32rem;
         overflow-y: auto;
       }
@@ -155,6 +160,10 @@
         background: var(--stale-bg);
         color: var(--stale);
       }
+      .badge.nodata {
+        background: var(--code-bg);
+        color: var(--text-muted);
+      }
       .viewer-controls {
         display: flex;
         flex-wrap: wrap;
@@ -163,7 +172,9 @@
         margin-bottom: 0.9rem;
       }
       select,
-      input[type="search"] {
+      input[type="search"],
+      input[type="text"],
+      button {
         font: inherit;
         padding: 0.45rem 0.7rem;
         border-radius: 8px;
@@ -174,6 +185,12 @@
       input[type="search"] {
         flex: 1;
         min-width: 12rem;
+      }
+      button {
+        cursor: pointer;
+      }
+      button:hover {
+        background: var(--hover-bg);
       }
       .row-count {
         color: var(--text-muted);
@@ -197,11 +214,64 @@
         padding: 0.1rem 0.35rem;
         border-radius: 4px;
       }
+      .hint {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        margin: 0.3rem 0 0.6rem;
+      }
+      .ticker-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+        margin: 1.1rem 0 0;
+      }
+      .ticker-form input {
+        width: 9rem;
+        text-transform: uppercase;
+      }
+      svg.chart {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .chart-bar {
+        fill: var(--accent);
+      }
+      .chart-label,
+      .chart-value,
+      .chart-empty {
+        font-size: 10px;
+        fill: var(--text-muted);
+      }
+      .chart-line {
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 1.6;
+      }
+      .chart-area {
+        fill: var(--accent);
+        opacity: 0.15;
+        stroke: none;
+      }
+      .chart-dot {
+        fill: var(--bg-elevated);
+        stroke: var(--accent);
+        stroke-width: 1.4;
+      }
+      .dataset-block {
+        margin: 1.4rem 0;
+        padding-top: 1.1rem;
+        border-top: 1px solid var(--border);
+      }
       footer {
         border-top: 1px solid var(--border);
         padding: 1.5rem;
         color: var(--text-muted);
         font-size: 0.82rem;
+      }
+      footer p {
+        margin: 0.3rem 0;
       }
     </style>
   </head>
@@ -209,26 +279,40 @@
     <header>
       <div class="inner">
         <p class="crumb"><a href="../">&larr; alt-datasets repository root</a></p>
+        <p class="crumb" id="crumb-back" hidden><a href="#/">&larr; back to overview</a></p>
         <h1>LuxAlgo Alt Data explorer</h1>
         <p>
           <strong>LuxAlgo Alt Data</strong> publishes the public record of US markets —
           congressional trades, insider filings, 13F holdings, government contracts &amp; grants,
-          lobbying, short-sale volume, committee assignments, patents, clinical trials, FDA events,
-          and CFTC positioning — as free daily dumps. Every row is parsed from a primary source and
-          carries a working link back to it.
+          lobbying filings, short-sale volume, committee assignments, patents, clinical trials, FDA
+          drug-application events, CFTC positioning, Wikipedia pageviews, federal legislation, and
+          FEC campaign-finance data — as free daily dumps. Every row is parsed from a primary source
+          and carries a working link back to it.
         </p>
-        <p>
-          This data is dedicated to the public domain under
-          <a id="license-link" href="../LICENSE">CC0 1.0</a> — use it for anything, no attribution
-          required. Source and parsers:
-          <a href="https://github.com/LuxAlgo/alt-data">github.com/LuxAlgo/alt-data</a>.
-        </p>
+        <p>Browse a dataset below, or look up a ticker to see what every dataset says about it.</p>
+        <form id="ticker-form" class="ticker-form">
+          <label for="ticker-input" class="hint">Look up a ticker</label>
+          <input id="ticker-input" type="text" placeholder="e.g. NVDA" autocomplete="off" />
+          <button type="submit">Go</button>
+        </form>
       </div>
     </header>
     <main>
-      <section id="datasets-section">
+      <section id="page-overview">
         <h2>Datasets</h2>
         <div id="datasets-state" class="state">Loading manifest&hellip;</div>
+        <div id="chart-overview-wrap" style="margin: 0.9rem 0 1.3rem" hidden>
+          <h3>Rows per dataset</h3>
+          <p class="hint">
+            From the current snapshot row counts in <code>manifest.json</code>, largest first.
+          </p>
+          <svg
+            id="chart-overview"
+            class="chart"
+            role="img"
+            aria-label="Row counts per dataset"
+          ></svg>
+        </div>
         <div class="table-wrap" id="datasets-wrap" hidden>
           <table>
             <thead>
@@ -244,8 +328,8 @@
           </table>
         </div>
       </section>
-      <section id="viewer-section" hidden>
-        <h2>Browse a dataset</h2>
+      <section id="page-dataset" hidden>
+        <h2 id="dataset-heading">Browse a dataset</h2>
         <div class="viewer-controls">
           <select id="dataset-select" aria-label="Choose a dataset"></select>
           <input
@@ -255,6 +339,13 @@
             aria-label="Filter rows"
           />
           <span class="row-count" id="row-count"></span>
+        </div>
+        <div id="dataset-sparkline-wrap" style="margin: 0.9rem 0 1.3rem" hidden>
+          <h3>Rows per day</h3>
+          <p class="hint">
+            Rows in <code>latest.json</code> grouped by <span id="dataset-date-field"></span>.
+          </p>
+          <svg id="chart-dataset" class="chart" role="img" aria-label="Row count by day"></svg>
         </div>
         <div id="viewer-state" class="state" hidden></div>
         <div class="table-wrap" id="rows-wrap" hidden>
@@ -266,72 +357,208 @@
           </table>
         </div>
       </section>
+      <section id="page-ticker" hidden>
+        <h2 id="ticker-heading">Ticker</h2>
+        <p class="hint">
+          This searches only the newest delta (<code>latest.json</code>, the newest UTC ingestion
+          day) of every dataset that carries tickers. Full history lives in each dataset's snapshot
+          files below, or the <code>.parquet</code> siblings next to them.
+        </p>
+        <div id="ticker-state" class="state">Loading&hellip;</div>
+        <div class="table-wrap" id="ticker-summary-wrap" hidden>
+          <table>
+            <thead>
+              <tr>
+                <th>Dataset</th>
+                <th>Hits</th>
+                <th>Full history</th>
+              </tr>
+            </thead>
+            <tbody id="ticker-summary-body"></tbody>
+          </table>
+        </div>
+        <div id="ticker-results"></div>
+      </section>
     </main>
     <footer>
       <div class="inner">
-        Generated by the LuxAlgo Alt Data export pipeline. This page runs entirely in your browser —
-        it fetches <code>manifest.json</code> and each dataset's <code>latest.json</code> straight
-        from wherever it's hosted; nothing is sent anywhere else.
+        <p>
+          Generated by the LuxAlgo Alt Data export pipeline. This page runs entirely in your browser
+          — it fetches <code>manifest.json</code> and each dataset's
+          <code>latest.json</code> straight from wherever it's hosted; nothing is sent anywhere
+          else.
+        </p>
+        <p>
+          Data dedicated to the public domain under
+          <a id="license-link" href="../LICENSE">CC0 1.0</a> — use it for anything, no attribution
+          required. Pipeline &amp; parsers:
+          <a href="https://github.com/LuxAlgo/alt-data">github.com/LuxAlgo/alt-data</a>. Data
+          repository:
+          <a href="https://github.com/LuxAlgo/alt-datasets">github.com/LuxAlgo/alt-datasets</a>.
+        </p>
       </div>
     </footer>
     <script>
       (function () {
         "use strict";
 
-        var MANIFEST_CANDIDATES = ["../manifest.json", "manifest.json"];
-
-        var datasetsState = document.getElementById("datasets-state");
-        var datasetsWrap = document.getElementById("datasets-wrap");
-        var datasetsBody = document.getElementById("datasets-body");
-        var viewerSection = document.getElementById("viewer-section");
-        var datasetSelect = document.getElementById("dataset-select");
-        var filterInput = document.getElementById("filter-input");
-        var rowCountEl = document.getElementById("row-count");
-        var viewerState = document.getElementById("viewer-state");
-        var rowsWrap = document.getElementById("rows-wrap");
-        var rowsHead = document.getElementById("rows-head");
-        var rowsBody = document.getElementById("rows-body");
-
-        // Assumes the common deployment (this page one level under the repo
-        // root, at explorer/index.html); corrected once loadManifest()
-        // confirms which candidate actually resolved.
-        var base = "../";
-        var manifest = null;
-        var currentRows = [];
-
-        function fileProtocolHint() {
-          return location.protocol === "file:"
-            ? " You opened this page directly from disk (file://); browsers block those " +
-                "fetches. Serve the folder instead, e.g. `python3 -m http.server` from the " +
-                "data repo root, then open http://localhost:8000/explorer/."
-            : "";
+        // ---- Router (pure: hash string in, route object out — unit-testable) ----
+        function parseRoute(hash) {
+          var h = String(hash || "").replace(/^#/, "");
+          var parts = h.split("/").filter(Boolean);
+          if (parts[0] === "dataset" && parts[1]) {
+            return { view: "dataset", id: decodeURIComponent(parts[1]) };
+          }
+          if (parts[0] === "ticker" && parts[1]) {
+            return { view: "ticker", ticker: decodeURIComponent(parts[1]).toUpperCase() };
+          }
+          return { view: "overview" };
+        }
+        function routeHash(view, param) {
+          if (view === "dataset") return "#/dataset/" + encodeURIComponent(param);
+          if (view === "ticker") {
+            return "#/ticker/" + encodeURIComponent(String(param).trim().toUpperCase());
+          }
+          return "#/";
         }
 
+        // ---- Dataset-shape knowledge (mirrors packages/core/src/schema/*.ts — a
+        // static page has no zod access, so ticker location and each dataset's
+        // natural event-date field are hard-coded here instead). ----
+        var tickerField = (r) => (r.ticker ? [r.ticker] : []);
+        var nestedTickers = (key) => (r) => (r[key] && r[key].tickers) || [];
+        var TICKER_DATASETS = [
+          { id: "congress-trades", get: tickerField },
+          { id: "insider-transactions", get: tickerField },
+          { id: "thirteenf-holdings", get: tickerField },
+          { id: "gov-contracts", get: nestedTickers("recipient") },
+          { id: "gov-grants", get: nestedTickers("recipient") },
+          { id: "lobbying-filings", get: nestedTickers("client") },
+          { id: "short-volume", get: tickerField },
+          { id: "patents", get: nestedTickers("assignee") },
+          { id: "clinical-trials", get: nestedTickers("sponsor") },
+          { id: "fda-approvals", get: nestedTickers("sponsor") },
+          { id: "wiki-pageviews", get: (r) => r.tickers || [] },
+        ];
+        // Numeric series the ticker view can chart; every other ticker-bearing
+        // dataset gets rows + links only, never an invented metric.
+        var TICKER_NUMERIC_SERIES = {
+          "short-volume": { field: "shortRatio", dateField: "date", label: "short-sale ratio" },
+          "wiki-pageviews": { field: "views", dateField: "day", label: "Wikipedia pageviews" },
+        };
+        // Mirrors DATASETS[id].eventDate; naturalDate() below falls back to
+        // provenance.retrievedAt for anything not listed or not a usable string.
+        var DATASET_DATE_FIELD = {
+          "congress-trades": (r) => r.transactedAt,
+          "insider-transactions": (r) => r.transactedAt || r.filedAt,
+          "thirteenf-holdings": (r) => r.periodEnd,
+          "gov-contracts": (r) => r.actionDate,
+          "gov-grants": (r) => r.actionDate,
+          "lobbying-filings": (r) => (r.filingYear ? r.filingYear + "-01-01" : null),
+          "short-volume": (r) => r.date,
+          patents: (r) => r.grantDate,
+          "clinical-trials": (r) => r.lastUpdated,
+          "fda-approvals": (r) => r.statusDate,
+          "cot-reports": (r) => r.reportDate,
+          "wiki-pageviews": (r) => r.day,
+          bills: (r) => r.latestActionDate || r.introducedDate,
+          "fec-candidates": (r) => r.coverageEndDate || (r.cycle ? r.cycle + "-01-01" : null),
+          "fec-contributions": (r) => r.date || (r.cycle ? r.cycle + "-01-01" : null),
+        };
+        function naturalDate(datasetId, row) {
+          var fn = DATASET_DATE_FIELD[datasetId];
+          var v = fn ? fn(row) : null;
+          if (typeof v === "string" && /^\d{4}-\d{2}(-\d{2})?/.test(v)) return v.slice(0, 10);
+          var retrievedAt = row && row.provenance && row.provenance.retrievedAt;
+          return typeof retrievedAt === "string" ? retrievedAt.slice(0, 10) : null;
+        }
+        function rowsPerDay(datasetId, rows) {
+          var counts = {};
+          rows.forEach((row) => {
+            var d = naturalDate(datasetId, row) || "unknown";
+            counts[d] = (counts[d] || 0) + 1;
+          });
+          return Object.keys(counts)
+            .sort()
+            .map((d) => ({ x: d, y: counts[d] }));
+        }
+
+        // ---- Small pure helpers ----
+        var ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+        function escapeHtml(s) {
+          return String(s).replace(/[&<>"']/g, (c) => ESCAPES[c]);
+        }
+        function truncateLabel(s, max) {
+          s = String(s);
+          return s.length > max ? s.slice(0, max - 1) + "…" : s;
+        }
+        function fmtDate(iso) {
+          if (!iso) return "—";
+          return iso.replace("T", " ").replace(/\.\d+Z$/, " UTC");
+        }
+        function cellHtml(value) {
+          if (value === null || value === undefined) return "—";
+          if (typeof value === "object") {
+            var text = escapeHtml(JSON.stringify(value));
+            return `<span title="${text}">${text}</span>`;
+          }
+          return escapeHtml(String(value));
+        }
+        function columnsFor(rows) {
+          return rows.length ? Object.keys(rows[0]).filter((c) => c !== "provenance") : [];
+        }
+        function rowsToTableHtml(rows, columns) {
+          var thead = columns.map((c) => `<th>${escapeHtml(c)}</th>`).join("") + "<th>source</th>";
+          var tbody = rows
+            .map((row) => {
+              var cells = columns.map((c) => `<td class="cell-json">${cellHtml(row[c])}</td>`);
+              var src = row.provenance && row.provenance.sourceUrl;
+              cells.push(
+                `<td>${
+                  src
+                    ? `<a href="${escapeHtml(src)}" target="_blank" rel="noopener noreferrer">source &rarr;</a>`
+                    : "—"
+                }</td>`,
+              );
+              return `<tr>${cells.join("")}</tr>`;
+            })
+            .join("");
+          return { thead: thead, tbody: tbody };
+        }
+        function fileProtocolHint() {
+          return location.protocol === "file:"
+            ? "You opened this page directly from disk (file://); browsers block those fetches. Serve the folder instead, e.g. `python3 -m http.server` from the data repo root, then open http://localhost:8000/explorer/."
+            : "";
+        }
         function showError(el, message) {
           el.hidden = false;
           el.className = "state error";
           el.textContent = message + fileProtocolHint();
         }
 
-        function fmtDate(iso) {
-          if (!iso) return "—";
-          return iso.replace("T", " ").replace(/\.\d+Z$/, " UTC");
-        }
-
-        function escapeHtml(s) {
-          return String(s).replace(/[&<>"']/g, function (c) {
-            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-          });
-        }
-
+        // ---- Fetch layer: per-URL cache, so switching views never refetches.
+        // Only manifest.json and latest.json are ever requested — snapshots are
+        // linked, never fetched. ----
+        var jsonCache = {};
         function fetchJson(url) {
-          return fetch(url, { cache: "no-store" }).then(function (res) {
-            if (!res.ok) throw new Error("HTTP " + res.status + " for " + url);
-            return res.json();
-          });
+          if (!(url in jsonCache)) {
+            jsonCache[url] = fetch(url, { cache: "no-store" }).then((res) => {
+              if (!res.ok) {
+                throw Object.assign(new Error(`HTTP ${res.status} for ${url}`), {
+                  status: res.status,
+                });
+              }
+              return res.json();
+            });
+          }
+          return jsonCache[url];
         }
-
+        var MANIFEST_CANDIDATES = ["../manifest.json", "manifest.json"];
+        var base = "../";
+        var manifest = null;
+        var manifestPromise = null;
         function loadManifest() {
+          if (manifestPromise) return manifestPromise;
           var tried = [];
           function attempt(i) {
             if (i >= MANIFEST_CANDIDATES.length) {
@@ -339,184 +566,315 @@
             }
             var candidate = MANIFEST_CANDIDATES[i];
             return fetchJson(candidate)
-              .then(function (data) {
+              .then((data) => {
                 base = candidate.slice(0, candidate.length - "manifest.json".length);
+                manifest = data;
                 return data;
               })
-              .catch(function (err) {
+              .catch((err) => {
                 tried.push(candidate + ": " + err.message);
                 return attempt(i + 1);
               });
           }
-          return attempt(0);
+          manifestPromise = attempt(0);
+          return manifestPromise;
         }
 
-        function renderDatasets(m) {
-          var ids = Object.keys(m.datasets).sort();
-          ids.forEach(function (id) {
-            var d = m.datasets[id];
-            var files = ['<a href="' + base + d.exportDir + '/latest.json">latest.json</a>'];
-            if (d.feed) files.push('<a href="' + base + d.feed + '">feed.xml</a>');
-            (d.snapshots || []).forEach(function (s) {
-              files.push(
-                '<a href="' +
-                  base +
-                  d.exportDir +
-                  "/" +
-                  s.file +
-                  '">' +
-                  escapeHtml(s.file) +
-                  "</a>",
-              );
-            });
-
-            var tr = document.createElement("tr");
-            tr.innerHTML =
-              "<td><strong>" +
-              escapeHtml(d.title) +
-              '</strong><br><span class="dataset-id">' +
-              escapeHtml(id) +
-              "</span></td>" +
-              "<td>" +
-              d.rows.toLocaleString() +
-              "</td>" +
-              "<td>" +
-              fmtDate(d.lastIngestedAt) +
-              "</td>" +
-              '<td><span class="badge' +
-              (d.stale ? " stale" : "") +
-              '">' +
-              (d.stale ? "stale" : "fresh") +
-              "</span></td>" +
-              "<td>" +
-              files.join(" &middot; ") +
-              "</td>";
-            datasetsBody.appendChild(tr);
-
-            var opt = document.createElement("option");
-            opt.value = id;
-            opt.textContent = d.title + " (" + d.rows.toLocaleString() + ")";
-            datasetSelect.appendChild(opt);
-          });
-
-          document.getElementById("license-link").href = base + "LICENSE";
-          datasetsState.hidden = true;
-          datasetsWrap.hidden = false;
-          viewerSection.hidden = false;
+        // ---- Inline SVG charts: built as innerHTML strings (escaped like any row
+        // cell — same trust boundary as the row tables below). Every renderer
+        // tolerates 0, 1, or many points and never throws on missing or
+        // non-finite values; it just skips them or shows a plain note. ----
+        function sizeChart(svg, w, h) {
+          svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+          svg.setAttribute("width", w);
+          svg.setAttribute("height", h);
         }
-
-        function cellHtml(value) {
-          if (value === null || value === undefined) return "—";
-          if (typeof value === "object") {
-            var text = JSON.stringify(value);
-            return '<span title="' + escapeHtml(text) + '">' + escapeHtml(text) + "</span>";
+        function renderBarChart(svg, items) {
+          var w = 680,
+            rowH = 22,
+            labelW = 210;
+          var barMaxW = w - labelW - 70;
+          var sorted = items.slice().sort((a, b) => (b.value || 0) - (a.value || 0));
+          sizeChart(svg, w, Math.max(sorted.length, 1) * rowH);
+          if (sorted.length === 0) {
+            svg.innerHTML = `<text x="4" y="14" class="chart-empty">No datasets.</text>`;
+            return;
           }
-          return escapeHtml(String(value));
+          var maxVal = sorted.reduce((m, it) => Math.max(m, it.value || 0), 0);
+          svg.innerHTML = sorted
+            .map((it, i) => {
+              var y = i * rowH,
+                val = Number(it.value) || 0;
+              var bw = maxVal > 0 ? Math.max((val / maxVal) * barMaxW, val > 0 ? 2 : 0) : 0;
+              var label = escapeHtml(truncateLabel(it.label, 30));
+              return `<text x="${labelW - 8}" y="${y + rowH / 2}" text-anchor="end" dominant-baseline="middle" class="chart-label"><title>${escapeHtml(it.label)}</title>${label}</text><rect x="${labelW}" y="${y + 4}" width="${bw}" height="${rowH - 9}" rx="2" class="chart-bar"></rect><text x="${labelW + bw + 6}" y="${y + rowH / 2}" dominant-baseline="middle" class="chart-value">${val.toLocaleString()}</text>`;
+            })
+            .join("");
+        }
+        function renderSparkline(svg, points) {
+          var w = 480,
+            h = 56,
+            pad = 6;
+          sizeChart(svg, w, h);
+          var pts = points.filter((p) => typeof p.y === "number" && isFinite(p.y));
+          if (pts.length === 0) {
+            svg.innerHTML = `<text x="${pad}" y="${h / 2}" dominant-baseline="middle" class="chart-empty">No numeric data to chart.</text>`;
+            return;
+          }
+          var min = pts.reduce((m, p) => Math.min(m, p.y), pts[0].y);
+          var max = pts.reduce((m, p) => Math.max(m, p.y), pts[0].y);
+          if (min === max) {
+            min -= 1;
+            max += 1;
+          }
+          var xAt = (i) =>
+            pts.length === 1 ? w / 2 : pad + (i / (pts.length - 1)) * (w - 2 * pad);
+          var yAt = (v) => h - pad - ((v - min) / (max - min)) * (h - 2 * pad);
+          var line = pts.length >= 2 ? pts.map((p, i) => `${xAt(i)},${yAt(p.y)}`).join(" ") : "";
+          var lines = line
+            ? `<polygon points="${xAt(0)},${h - pad} ${line} ${xAt(pts.length - 1)},${h - pad}" class="chart-area"></polygon><polyline points="${line}" class="chart-line"></polyline>`
+            : "";
+          var dots = pts
+            .map(
+              (p, i) =>
+                `<circle cx="${xAt(i)}" cy="${yAt(p.y)}" r="2.4" class="chart-dot"><title>${escapeHtml(p.x + ": " + p.y)}</title></circle>`,
+            )
+            .join("");
+          svg.innerHTML = lines + dots;
         }
 
-        function renderRows(rows, columns) {
-          rowsHead.innerHTML =
-            columns
-              .map(function (c) {
-                return "<th>" + escapeHtml(c) + "</th>";
-              })
-              .join("") + "<th>source</th>";
-          rowsBody.innerHTML = "";
-          rows.forEach(function (row) {
-            var cells = columns.map(function (c) {
-              return '<td class="cell-json">' + cellHtml(row[c]) + "</td>";
-            });
-            var src = row.provenance && row.provenance.sourceUrl;
-            cells.push(
-              "<td>" +
-                (src
-                  ? '<a href="' +
-                    escapeHtml(src) +
-                    '" target="_blank" rel="noopener noreferrer">source &rarr;</a>'
-                  : "—") +
-                "</td>",
-            );
-            var tr = document.createElement("tr");
-            tr.innerHTML = cells.join("");
-            rowsBody.appendChild(tr);
+        // ---- DOM refs (only the ones read/written from several places; anything
+        // touched once is looked up inline at that call site). ----
+        var datasetSelect = document.getElementById("dataset-select");
+        var viewerState = document.getElementById("viewer-state");
+        var tickerState = document.getElementById("ticker-state");
+        var tickerSummaryBody = document.getElementById("ticker-summary-body");
+        var tickerResults = document.getElementById("ticker-results");
+        var currentDatasetId = null;
+        var currentRows = [];
+        var currentTicker = null;
+
+        // ---- Overview view ----
+        function badgeHtml(d) {
+          if (d.rows === 0) return `<span class="badge nodata">no data yet</span>`;
+          return `<span class="badge${d.stale ? " stale" : ""}">${d.stale ? "stale" : "fresh"}</span>`;
+        }
+        function snapshotFilesHtml(d) {
+          var files = [`<a href="${base}${d.exportDir}/latest.json">latest.json</a>`];
+          if (d.feed) files.push(`<a href="${base}${d.feed}">feed.xml</a>`);
+          (d.snapshots || []).forEach((s) => {
+            files.push(`<a href="${base}${d.exportDir}/${s.file}">${escapeHtml(s.file)}</a>`);
           });
-          rowsWrap.hidden = rows.length === 0;
+          return files.join(" &middot; ");
+        }
+        function renderOverview() {
+          var ids = Object.keys(manifest.datasets).sort();
+          var chartItems = [];
+          document.getElementById("datasets-body").innerHTML = ids
+            .map((id) => {
+              var d = manifest.datasets[id];
+              chartItems.push({ label: d.title, value: d.rows });
+              return `<tr><td><a href="#/dataset/${encodeURIComponent(id)}"><strong>${escapeHtml(d.title)}</strong></a><br><span class="dataset-id">${escapeHtml(id)}</span></td><td>${d.rows.toLocaleString()}</td><td>${fmtDate(d.lastIngestedAt)}</td><td>${badgeHtml(d)}</td><td>${snapshotFilesHtml(d)}</td></tr>`;
+            })
+            .join("");
+          datasetSelect.innerHTML = ids
+            .map((id) => {
+              var d = manifest.datasets[id];
+              return `<option value="${id}">${escapeHtml(d.title)} (${d.rows.toLocaleString()})</option>`;
+            })
+            .join("");
+          document.getElementById("license-link").href = base + "LICENSE";
+          document.getElementById("datasets-state").hidden = true;
+          document.getElementById("datasets-wrap").hidden = false;
+          document.getElementById("chart-overview-wrap").hidden = false;
+          renderBarChart(document.getElementById("chart-overview"), chartItems);
         }
 
+        // ---- Dataset view ----
         function applyFilter() {
-          var needle = filterInput.value.trim().toLowerCase();
+          var needle = document.getElementById("filter-input").value.trim().toLowerCase();
           var filtered = !needle
             ? currentRows
-            : currentRows.filter(function (row) {
-                return JSON.stringify(row).toLowerCase().indexOf(needle) !== -1;
-              });
-          var columns = currentRows.length
-            ? Object.keys(currentRows[0]).filter(function (c) {
-                return c !== "provenance";
-              })
-            : [];
-          renderRows(filtered, columns);
-          rowCountEl.textContent =
-            filtered.length.toLocaleString() +
-            " of " +
-            currentRows.length.toLocaleString() +
-            " rows shown (latest.json)";
+            : currentRows.filter((row) => JSON.stringify(row).toLowerCase().indexOf(needle) !== -1);
+          var t = rowsToTableHtml(filtered, columnsFor(currentRows));
+          document.getElementById("rows-head").innerHTML = t.thead;
+          document.getElementById("rows-body").innerHTML = t.tbody;
+          document.getElementById("rows-wrap").hidden = filtered.length === 0;
+          document.getElementById("row-count").textContent =
+            `${filtered.length.toLocaleString()} of ${currentRows.length.toLocaleString()} rows shown (latest.json)`;
         }
-
-        function loadDataset(id) {
-          rowsWrap.hidden = true;
+        function renderDatasetPage(id) {
+          var d = manifest.datasets[id];
+          if (!d) {
+            currentRows = [];
+            document.getElementById("rows-wrap").hidden = true;
+            document.getElementById("dataset-sparkline-wrap").hidden = true;
+            document.getElementById("dataset-heading").textContent = "Browse a dataset";
+            showError(viewerState, `Unknown dataset '${id}'.`);
+            return;
+          }
+          document.title = d.title + " – LuxAlgo Alt Data explorer";
+          document.getElementById("dataset-heading").textContent = "Browse: " + d.title;
+          if (datasetSelect.value !== id) datasetSelect.value = id;
+          document.getElementById("filter-input").value = "";
+          document.getElementById("rows-wrap").hidden = true;
+          document.getElementById("dataset-sparkline-wrap").hidden = true;
           viewerState.hidden = false;
           viewerState.className = "state";
           viewerState.textContent = "Loading " + id + "…";
-          var d = manifest.datasets[id];
+          currentDatasetId = id; // guards a stale fetch landing after a newer navigation
+
           fetchJson(base + d.exportDir + "/latest.json")
-            .then(function (rows) {
+            .then((rows) => {
+              if (currentDatasetId !== id) return;
               currentRows = rows;
-              filterInput.value = "";
               applyFilter();
-              if (rows.length === 0) {
-                viewerState.hidden = false;
-                viewerState.textContent =
-                  "latest.json for " +
-                  id +
-                  " has no rows yet (the newest ingestion day was empty).";
-              } else {
-                viewerState.hidden = true;
-              }
+              viewerState.hidden = rows.length !== 0;
+              viewerState.className = "state";
+              viewerState.textContent = `latest.json for ${id} has no rows yet (the newest ingestion day was empty).`;
+              document.getElementById("dataset-date-field").textContent = DATASET_DATE_FIELD[id]
+                ? "its event date"
+                : "provenance.retrievedAt (ingestion date)";
+              document.getElementById("dataset-sparkline-wrap").hidden = false;
+              renderSparkline(document.getElementById("chart-dataset"), rowsPerDay(id, rows));
             })
-            .catch(function (err) {
+            .catch((err) => {
+              if (currentDatasetId !== id) return;
               currentRows = [];
-              showError(
-                viewerState,
-                "Could not load " + d.exportDir + "/latest.json: " + err.message,
-              );
+              applyFilter();
+              if (err.status === 404) {
+                viewerState.hidden = false;
+                viewerState.className = "state";
+                viewerState.textContent = `No data ingested yet for ${d.title} (${d.exportDir}/latest.json isn't published).`;
+              } else {
+                showError(viewerState, `Could not load ${d.exportDir}/latest.json: ${err.message}`);
+              }
             });
         }
 
-        datasetSelect.addEventListener("change", function () {
-          loadDataset(datasetSelect.value);
-        });
-        filterInput.addEventListener("input", applyFilter);
+        // ---- Ticker view ----
+        function snapshotLinksHtml(exportDir, snapshots) {
+          if (!snapshots || snapshots.length === 0) return "no snapshot published yet";
+          return snapshots
+            .map((s) => {
+              var gz = `<a href="${base}${exportDir}/${s.file}">${escapeHtml(s.file)}</a>`;
+              var pqFile = s.file.replace(/\.json\.gz$/, ".parquet");
+              var pq =
+                pqFile !== s.file ? ` (<a href="${base}${exportDir}/${pqFile}">.parquet</a>)` : "";
+              return `${gz}${pq} — ${s.rows.toLocaleString()} rows`;
+            })
+            .join("<br>");
+        }
+        function tickerSummaryRowHtml(r) {
+          var title = r.d ? r.d.title : r.td.id;
+          var hits =
+            r.status === "ok"
+              ? r.rows.length.toLocaleString()
+              : r.status === "no-data"
+                ? "no data yet"
+                : "load error";
+          var name = r.d
+            ? `<a href="#/dataset/${encodeURIComponent(r.td.id)}">${escapeHtml(title)}</a>`
+            : escapeHtml(title);
+          var history = r.d ? snapshotLinksHtml(r.d.exportDir, r.d.snapshots) : "—";
+          return `<tr><td>${name}</td><td>${escapeHtml(hits)}</td><td>${history}</td></tr>`;
+        }
+        function tickerBlockHtml(r, ticker) {
+          var series = TICKER_NUMERIC_SERIES[r.td.id];
+          var t = rowsToTableHtml(r.rows, columnsFor(r.rows));
+          var chart = series
+            ? `<p class="hint">${escapeHtml(series.label)} for ${escapeHtml(ticker)}, newest delta only</p><svg class="chart" role="img" aria-label="${escapeHtml(series.label)} for ${escapeHtml(ticker)}"></svg>`
+            : "";
+          return `<h3>${escapeHtml(r.d.title)} — ${r.rows.length.toLocaleString()} match${r.rows.length === 1 ? "" : "es"}</h3>${chart}<div class="table-wrap"><table><thead><tr>${t.thead}</tr></thead><tbody>${t.tbody}</tbody></table></div>`;
+        }
+        function renderTickerPage(ticker) {
+          document.title = ticker + " – LuxAlgo Alt Data explorer";
+          document.getElementById("ticker-heading").textContent = "Ticker: " + ticker;
+          document.getElementById("ticker-input").value = ticker;
+          tickerState.hidden = false;
+          tickerState.className = "state";
+          tickerState.textContent = `Searching ${TICKER_DATASETS.length} datasets for ${ticker}…`;
+          document.getElementById("ticker-summary-wrap").hidden = true;
+          tickerResults.textContent = "";
+          currentTicker = ticker; // guards a stale search landing after a newer one
 
-        loadManifest()
-          .then(function (m) {
-            manifest = m;
-            renderDatasets(m);
-            var ids = Object.keys(m.datasets).sort();
-            var withRows = ids.find(function (id) {
-              return m.datasets[id].rows > 0;
-            });
-            if (withRows) {
-              datasetSelect.value = withRows;
-              loadDataset(withRows);
-            } else {
-              viewerState.hidden = false;
-              viewerState.textContent = "No dataset has any rows yet.";
-            }
-          })
-          .catch(function (err) {
-            showError(datasetsState, err.message);
+          var jobs = TICKER_DATASETS.map((td) => {
+            var d = manifest.datasets[td.id];
+            if (!d) return Promise.resolve({ td: td, d: null, status: "unknown", rows: [] });
+            return fetchJson(base + d.exportDir + "/latest.json")
+              .then((rows) => {
+                var matches = rows.filter((row) =>
+                  (td.get(row) || []).some((t) => String(t).toUpperCase() === ticker),
+                );
+                return { td: td, d: d, status: "ok", rows: matches };
+              })
+              .catch((err) => ({
+                td: td,
+                d: d,
+                status: err.status === 404 ? "no-data" : "error",
+                rows: [],
+              }));
           });
+
+          Promise.all(jobs).then((results) => {
+            if (currentTicker !== ticker) return;
+            tickerState.hidden = true;
+            document.getElementById("ticker-summary-wrap").hidden = false;
+            tickerSummaryBody.innerHTML = results.map(tickerSummaryRowHtml).join("");
+
+            var withHits = results.filter((r) => r.rows.length > 0);
+            tickerResults.innerHTML = withHits
+              .map((r) => `<div class="dataset-block">${tickerBlockHtml(r, ticker)}</div>`)
+              .join("");
+            var blocks = tickerResults.querySelectorAll(".dataset-block");
+            withHits.forEach((r, i) => {
+              var series = TICKER_NUMERIC_SERIES[r.td.id];
+              if (!series) return;
+              var pts = r.rows
+                .map((row) => ({ x: row[series.dateField], y: row[series.field] }))
+                .filter((p) => typeof p.x === "string")
+                .sort((a, b) => (a.x < b.x ? -1 : a.x > b.x ? 1 : 0));
+              renderSparkline(blocks[i].querySelector("svg"), pts);
+            });
+            if (withHits.length === 0) {
+              tickerResults.innerHTML = `<p class="hint">No rows for ${escapeHtml(ticker)} in the newest delta of any dataset.</p>`;
+            }
+          });
+        }
+
+        // ---- Route glue ----
+        datasetSelect.addEventListener("change", () => {
+          location.hash = routeHash("dataset", datasetSelect.value);
+        });
+        document.getElementById("filter-input").addEventListener("input", applyFilter);
+        document.getElementById("ticker-form").addEventListener("submit", (e) => {
+          e.preventDefault();
+          var v = document.getElementById("ticker-input").value.trim();
+          if (v) location.hash = routeHash("ticker", v);
+        });
+        function showView(view) {
+          document.getElementById("page-overview").hidden = view !== "overview";
+          document.getElementById("page-dataset").hidden = view !== "dataset";
+          document.getElementById("page-ticker").hidden = view !== "ticker";
+          document.getElementById("crumb-back").hidden = view === "overview";
+          if (view === "overview") document.title = "LuxAlgo Alt Data explorer";
+        }
+        function route() {
+          var r = parseRoute(location.hash);
+          loadManifest()
+            .then(() => {
+              showView(r.view);
+              if (r.view === "dataset") renderDatasetPage(r.id);
+              else if (r.view === "ticker") renderTickerPage(r.ticker);
+              else renderOverview();
+            })
+            .catch((err) => {
+              showView("overview");
+              showError(document.getElementById("datasets-state"), err.message);
+            });
+        }
+        window.addEventListener("hashchange", route);
+        route();
       })();
     </script>
   </body>
