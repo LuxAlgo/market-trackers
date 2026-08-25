@@ -1,0 +1,42 @@
+{
+  "error": false,
+  "count": 4,
+  "total_hits": 5,
+  "patents": [
+    {
+      "patent_id": "11800001",
+      "patent_title": "Method for secure query routing in a virtualization layer",
+      "patent_date": "2026-08-11",
+      "wipo_kind": "B2",
+      "assignees": [{ "assignee_organization": "Microsoft Corporation" }],
+      "cpc_current": [{ "cpc_class_id": "H04" }, { "cpc_class_id": "G06" }]
+    },
+    {
+      "patent_id": "11800002",
+      "patent_title": "Adaptive thermal regulation system for portable electronics",
+      "patent_date": "2026-08-11",
+      "wipo_kind": "B2",
+      "assignees": [{ "assignee_organization": "Example Innovations Inc." }],
+      "cpc_current": [{ "cpc_class_id": "H05" }]
+    },
+    {
+      "patent_id": "11800003",
+      "patent_title": "Ergonomic hand tool grip",
+      "patent_date": "2026-08-11",
+      "wipo_kind": "B1",
+      "assignees": [],
+      "cpc_current": [{ "cpc_class_id": "B25" }]
+    },
+    {
+      "patent_id": "11800004",
+      "patent_title": "Distributed sensor fusion for autonomous inspection drones",
+      "patent_date": "2026-08-04",
+      "wipo_kind": "B2",
+      "assignees": [
+        { "assignee_organization": "Northrop Grumman" },
+        { "assignee_organization": "Example Robotics Corp" }
+      ],
+      "cpc_current": [{ "cpc_class_id": "G05" }, { "cpc_class_id": "B64" }]
+    }
+  ]
+}

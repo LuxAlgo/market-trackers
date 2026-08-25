@@ -30,6 +30,7 @@ describe("selectSources", () => {
       "finra",
       "house-clerk",
       "lda",
+      "patentsview",
       "senate-efd",
       "usaspending",
     ]);

@@ -1,0 +1,92 @@
+[
+  {
+    "id": "11800001",
+    "patentId": "11800001",
+    "title": "Method for secure query routing in a virtualization layer",
+    "grantDate": "2026-08-11",
+    "assignee": { "name": "Microsoft Corporation", "tickers": ["MSFT"] },
+    "assigneeCount": 1,
+    "kind": "B2",
+    "cpcClass": "H04",
+    "provenance": {
+      "source": "patentsview",
+      "sourceUrl": "https://ppubs.uspto.gov/dirsearch-public/print/downloadPdf/11800001",
+      "retrievedAt": "2026-08-18T12:00:00.000Z",
+      "parser": "patentsview-api@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "11800002",
+    "patentId": "11800002",
+    "title": "Adaptive thermal regulation system for portable electronics",
+    "grantDate": "2026-08-11",
+    "assignee": { "name": "Example Innovations Inc.", "tickers": [] },
+    "assigneeCount": 1,
+    "kind": "B2",
+    "cpcClass": "H05",
+    "provenance": {
+      "source": "patentsview",
+      "sourceUrl": "https://ppubs.uspto.gov/dirsearch-public/print/downloadPdf/11800002",
+      "retrievedAt": "2026-08-18T12:00:00.000Z",
+      "parser": "patentsview-api@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "11800003",
+    "patentId": "11800003",
+    "title": "Ergonomic hand tool grip",
+    "grantDate": "2026-08-11",
+    "assignee": { "name": null, "tickers": [] },
+    "assigneeCount": 0,
+    "kind": "B1",
+    "cpcClass": "B25",
+    "provenance": {
+      "source": "patentsview",
+      "sourceUrl": "https://ppubs.uspto.gov/dirsearch-public/print/downloadPdf/11800003",
+      "retrievedAt": "2026-08-18T12:00:00.000Z",
+      "parser": "patentsview-api@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "11800004",
+    "patentId": "11800004",
+    "title": "Distributed sensor fusion for autonomous inspection drones",
+    "grantDate": "2026-08-04",
+    "assignee": { "name": "Northrop Grumman", "tickers": ["NOC"] },
+    "assigneeCount": 2,
+    "kind": "B2",
+    "cpcClass": "G05",
+    "provenance": {
+      "source": "patentsview",
+      "sourceUrl": "https://ppubs.uspto.gov/dirsearch-public/print/downloadPdf/11800004",
+      "retrievedAt": "2026-08-18T12:00:00.000Z",
+      "parser": "patentsview-api@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "11800005",
+    "patentId": "11800005",
+    "title": "Quantum error correction code selection method",
+    "grantDate": "2026-08-11",
+    "assignee": { "name": "International Business Machines Corporation", "tickers": ["IBM"] },
+    "assigneeCount": 1,
+    "kind": "B2",
+    "cpcClass": "G06",
+    "provenance": {
+      "source": "patentsview",
+      "sourceUrl": "https://ppubs.uspto.gov/dirsearch-public/print/downloadPdf/11800005",
+      "retrievedAt": "2026-08-18T12:00:00.000Z",
+      "parser": "patentsview-api@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  }
+]
