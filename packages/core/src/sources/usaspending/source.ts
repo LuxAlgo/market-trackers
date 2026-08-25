@@ -11,7 +11,8 @@ import type { GovContractAward } from "../../schema/gov-contract-award.js";
 import { ALT_DATA_VERSION } from "../../config.js";
 import { addDays, hoursSince, toDateString } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
-import { resolveEntityTickers } from "../../resolve/recipients.js";
+import type { AltDataStore } from "../../store/store.js";
+import { resolveEntityTickersTiered } from "../../resolve/sec-names.js";
 import {
   AWARD_DATE_FIELD,
   AWARD_SEARCH_PAGE_LIMIT,
@@ -42,8 +43,10 @@ export {
  * universe keeps an independent watermark and fingerprint so one can lag or
  * drift without masking the other. Natural key is the `generated_internal_id`,
  * so the trailing re-walk and today's partial data upsert without
- * duplicates. Recipients resolve to tickers through the curated map;
- * unmatched recipients are stored with `tickers: []`.
+ * duplicates. Recipients resolve to tickers through the two-tier resolver
+ * (curated map, then the SEC issuer-name fallback — see
+ * `resolve/sec-names.ts`); still-unmatched recipients are stored with
+ * `tickers: []`.
  */
 
 export const USASPENDING_PARSER = "usaspending-awards@1";
@@ -85,10 +88,11 @@ function buildFetch(ctx: SourceContext): PoliteFetch {
 }
 
 /** Normalizes one raw result row; throws when a required field is unusable. */
-export function normalizeAwardRow(
+export async function normalizeAwardRow(
   raw: Record<string, unknown>,
   retrievedAt: string,
-): GovContractAward {
+  store: AltDataStore,
+): Promise<GovContractAward> {
   const row = awardSearchRowSchema.parse(raw);
   const id = row.generated_internal_id;
 
@@ -110,7 +114,7 @@ export function normalizeAwardRow(
     awardType: row["Contract Award Type"] ?? null,
     agency,
     subAgency: row["Awarding Sub Agency"] ?? null,
-    recipient: { name, uei, tickers: resolveEntityTickers({ name, uei }) },
+    recipient: { name, uei, tickers: await resolveEntityTickersTiered(store, { name, uei }) },
     // Null amounts stay null — never zeroed.
     amountUsd: row["Award Amount"] ?? null,
     actionDate,
@@ -212,7 +216,7 @@ async function syncUniverse(
       out.processed += 1;
       out.parse.attempted += 1;
       try {
-        const award = normalizeAwardRow(raw, retrievedAt);
+        const award = await normalizeAwardRow(raw, retrievedAt, ctx.store);
         awards.push(award);
         out.parse.succeeded += 1;
         if (maxActionDate === null || award.actionDate > maxActionDate) {
@@ -364,7 +368,7 @@ export const usaspendingSource: AltDataSource = {
           let succeeded = 0;
           for (const raw of response.results) {
             try {
-              normalizeAwardRow(raw, now.toISOString());
+              await normalizeAwardRow(raw, now.toISOString(), ctx.store);
               succeeded += 1;
             } catch {
               // Counted below.

@@ -162,6 +162,46 @@ describe("openfdaSource.sync", () => {
     expect(captured).toHaveLength(0);
     await store.close();
   });
+
+  it("resolves a sponsor through the SEC-name fallback, seeded in cik_tickers before the sync runs", async () => {
+    const { ctx, store } = await makeCtx();
+    // A name the curated map has no entry for at all — only the SEC tier,
+    // seeded directly into this store, can resolve it.
+    await store.replaceCikTickers([
+      { cik: "0000000987", ticker: "HVBI", name: "Harborview Biotherapeutics Inc" },
+    ]);
+    ctx.fetchImpl = (async () =>
+      new Response(
+        JSON.stringify({
+          meta: { results: { skip: 0, limit: 100, total: 1 } },
+          results: [
+            {
+              application_number: "NDA555001",
+              sponsor_name: "HARBORVIEW BIOTHERAPEUTICS, INC.",
+              submissions: [
+                {
+                  submission_type: "ORIG",
+                  submission_number: "1",
+                  submission_status: "AP",
+                  submission_status_date: "20260805",
+                },
+              ],
+            },
+          ],
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      )) as typeof fetch;
+
+    const result = await openfdaSource.sync(ctx, { since: "2026-08-01" });
+    expect(result.rowsUpserted).toBe(1);
+    const rows: FdaApproval[] = [];
+    for await (const row of store.iterate(DATASETS["fda-approvals"])) rows.push(row);
+    expect(rows[0]?.sponsor).toEqual({
+      name: "HARBORVIEW BIOTHERAPEUTICS, INC.",
+      tickers: ["HVBI"],
+    });
+    await store.close();
+  });
 });
 
 describe("openfdaSource.sync — skip-ceiling narrowing", () => {

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { clinicaltrialsSource, normalizeStudy } from "./source.js";
 import {
   CLINICALTRIALS_FIELDS,
@@ -247,6 +247,46 @@ describe("clinicaltrialsSource.sync", () => {
     expect(captured).toHaveLength(0);
     await ctx.store.close();
   });
+
+  it("resolves a sponsor through the SEC-name fallback, seeded in cik_tickers before the sync runs", async () => {
+    const { ctx, store } = await makeCtx();
+    // A name the curated map has no entry for at all — only the SEC tier,
+    // seeded directly into this store, can resolve it.
+    await store.replaceCikTickers([
+      { cik: "0000000654", ticker: "HVBI", name: "Harborview Biotherapeutics Inc" },
+    ]);
+    const secFallbackPage = JSON.stringify({
+      studies: [
+        {
+          protocolSection: {
+            identificationModule: { nctId: "NCT09999001", briefTitle: "SEC-Fallback Probe Study" },
+            statusModule: {
+              overallStatus: "RECRUITING",
+              lastUpdatePostDateStruct: { date: "2026-08-05", type: "ACTUAL" },
+            },
+            sponsorCollaboratorsModule: {
+              leadSponsor: { name: "HARBORVIEW BIOTHERAPEUTICS, INC." },
+            },
+          },
+          hasResults: false,
+        },
+      ],
+    });
+    ctx.fetchImpl = (async () => new Response(secFallbackPage, { status: 200 })) as typeof fetch;
+
+    const result = await clinicaltrialsSource.sync(ctx, {
+      since: "2026-08-01",
+      until: "2026-08-24",
+    });
+    expect(result.rowsUpserted).toBe(1);
+    const rows: ClinicalTrial[] = [];
+    for await (const row of store.iterate(DATASETS["clinical-trials"])) rows.push(row);
+    expect(rows[0]?.sponsor).toEqual({
+      name: "HARBORVIEW BIOTHERAPEUTICS, INC.",
+      tickers: ["HVBI"],
+    });
+    await store.close();
+  });
 });
 
 describe("clinicaltrialsSource.canary", () => {
@@ -325,8 +365,17 @@ describe("extractPartialDate / extractFullDate", () => {
 
 describe("normalizeStudy", () => {
   const RETRIEVED_AT = "2026-08-24T12:00:00.000Z";
+  let store: AltDataStore;
 
-  it("throws rather than guessing when a required field is missing", () => {
+  beforeAll(async () => {
+    store = await AltDataStore.open(":memory:");
+  });
+
+  afterAll(async () => {
+    await store.close();
+  });
+
+  it("throws rather than guessing when a required field is missing", async () => {
     const missingSponsor = {
       protocolSection: {
         identificationModule: { nctId: "NCT00000001", briefTitle: "Untitled" },
@@ -336,10 +385,10 @@ describe("normalizeStudy", () => {
         },
       },
     };
-    expect(() => normalizeStudy(missingSponsor, RETRIEVED_AT)).toThrow(/sponsor/i);
+    await expect(normalizeStudy(missingSponsor, RETRIEVED_AT, store)).rejects.toThrow(/sponsor/i);
   });
 
-  it("joins multiple phases verbatim rather than picking one", () => {
+  it("joins multiple phases verbatim rather than picking one", async () => {
     const multiPhase = {
       protocolSection: {
         identificationModule: { nctId: "NCT00000002", briefTitle: "Two-Phase Study" },
@@ -351,10 +400,11 @@ describe("normalizeStudy", () => {
         designModule: { studyType: "INTERVENTIONAL", phases: ["PHASE2", "PHASE3"] },
       },
     };
-    expect(normalizeStudy(multiPhase, RETRIEVED_AT).phase).toBe("PHASE2/PHASE3");
+    const trial = await normalizeStudy(multiPhase, RETRIEVED_AT, store);
+    expect(trial.phase).toBe("PHASE2/PHASE3");
   });
 
-  it("defaults absent conditions to [] and absent phase/studyType/dates to null", () => {
+  it("defaults absent conditions to [] and absent phase/studyType/dates to null", async () => {
     const bareMinimum = {
       protocolSection: {
         identificationModule: { nctId: "NCT00000003", briefTitle: "Bare Minimum Study" },
@@ -365,11 +415,33 @@ describe("normalizeStudy", () => {
         sponsorCollaboratorsModule: { leadSponsor: { name: "Example Sponsor" } },
       },
     };
-    const trial = normalizeStudy(bareMinimum, RETRIEVED_AT);
+    const trial = await normalizeStudy(bareMinimum, RETRIEVED_AT, store);
     expect(trial.conditions).toEqual([]);
     expect(trial.phase).toBeNull();
     expect(trial.studyType).toBeNull();
     expect(trial.startDate).toBeNull();
     expect(trial.primaryCompletionDate).toBeNull();
+  });
+
+  it("resolves a sponsor through the SEC-name fallback when only cik_tickers has it", async () => {
+    const seeded = await AltDataStore.open(":memory:");
+    await seeded.replaceCikTickers([
+      { cik: "0000000654", ticker: "HVBI", name: "Harborview Biotherapeutics Inc" },
+    ]);
+    const study = {
+      protocolSection: {
+        identificationModule: { nctId: "NCT00000004", briefTitle: "SEC-Fallback Probe Study" },
+        statusModule: {
+          overallStatus: "RECRUITING",
+          lastUpdatePostDateStruct: { date: "2026-08-01" },
+        },
+        sponsorCollaboratorsModule: {
+          leadSponsor: { name: "HARBORVIEW BIOTHERAPEUTICS, INC." },
+        },
+      },
+    };
+    const trial = await normalizeStudy(study, RETRIEVED_AT, seeded);
+    expect(trial.sponsor).toEqual({ name: "HARBORVIEW BIOTHERAPEUTICS, INC.", tickers: ["HVBI"] });
+    await seeded.close();
   });
 });

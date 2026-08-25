@@ -137,6 +137,49 @@ describe("usaspendingSource.sync — contracts", () => {
     expect(captured).toHaveLength(0);
     await store.close();
   });
+
+  it("resolves a recipient through the SEC-name fallback, seeded in cik_tickers before the sync runs", async () => {
+    const { ctx, store } = await makeCtx();
+    // A name the curated map has no entry for at all — only the SEC tier,
+    // seeded directly into this store, can resolve it.
+    await store.replaceCikTickers([
+      { cik: "0000000789", ticker: "TRFC", name: "Torchlight Robotics Corp" },
+    ]);
+    ctx.fetchImpl = (async () =>
+      new Response(
+        JSON.stringify({
+          results: [
+            {
+              generated_internal_id: "SEC_FALLBACK_0001",
+              "Award ID": "SEC-FALLBACK-1",
+              "Recipient Name": "TORCHLIGHT ROBOTICS CORP",
+              "Recipient UEI": null,
+              "Awarding Agency": "Department of Example",
+              "Awarding Sub Agency": null,
+              "Award Amount": 500_000,
+              Description: null,
+              "Contract Award Type": "DEFINITIVE CONTRACT",
+              "NAICS Code": null,
+              "NAICS Description": null,
+              "Start Date": "2026-08-20",
+            },
+          ],
+          page_metadata: { page: 1, hasNext: false },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      )) as typeof fetch;
+
+    const result = await usaspendingSource.sync(ctx, { datasets: ["gov-contracts"] });
+    expect(result.rowsUpserted).toBe(1);
+    const rows: GovContractAward[] = [];
+    for await (const row of store.iterate(DATASETS["gov-contracts"])) rows.push(row);
+    expect(rows[0]?.recipient).toEqual({
+      name: "TORCHLIGHT ROBOTICS CORP",
+      uei: null,
+      tickers: ["TRFC"],
+    });
+    await store.close();
+  });
 });
 
 describe("usaspendingSource.sync — grants", () => {

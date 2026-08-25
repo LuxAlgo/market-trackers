@@ -5,7 +5,8 @@ import type { Patent } from "../../schema/patent.js";
 import { ALT_DATA_VERSION } from "../../config.js";
 import { addDays, hoursSince, toDateString } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
-import { resolveEntityTickers } from "../../resolve/recipients.js";
+import type { AltDataStore } from "../../store/store.js";
+import { resolveEntityTickersTiered } from "../../resolve/sec-names.js";
 import {
   createPatentsviewFetch,
   fetchPatentPage,
@@ -65,7 +66,11 @@ function buildFetch(ctx: SourceContext): PoliteFetch {
 }
 
 /** Normalizes one raw result row; throws when a required field is unusable. */
-export function normalizePatentRow(raw: Record<string, unknown>, retrievedAt: string): Patent {
+export async function normalizePatentRow(
+  raw: Record<string, unknown>,
+  retrievedAt: string,
+  store: AltDataStore,
+): Promise<Patent> {
   const row = patentsviewPatentRowSchema.parse(raw);
 
   const patentId = row.patent_id.trim();
@@ -97,7 +102,7 @@ export function normalizePatentRow(raw: Record<string, unknown>, retrievedAt: st
     grantDate,
     assignee: {
       name: orgName ?? null,
-      tickers: orgName ? resolveEntityTickers({ name: orgName }) : [],
+      tickers: orgName ? await resolveEntityTickersTiered(store, { name: orgName }) : [],
     },
     assigneeCount: assignees.length,
     kind: row.wipo_kind?.trim() || null,
@@ -201,7 +206,7 @@ export const patentsviewSource: AltDataSource = {
         processed += 1;
         result.parse.attempted += 1;
         try {
-          const patent = normalizePatentRow(raw, retrievedAt);
+          const patent = await normalizePatentRow(raw, retrievedAt, ctx.store);
           rows.push(patent);
           result.parse.succeeded += 1;
           if (maxGrantDate === null || patent.grantDate > maxGrantDate)
@@ -299,7 +304,7 @@ export const patentsviewSource: AltDataSource = {
           let succeeded = 0;
           for (const raw of response.patents) {
             try {
-              normalizePatentRow(raw, now.toISOString());
+              await normalizePatentRow(raw, now.toISOString(), ctx.store);
               succeeded += 1;
             } catch {
               // counted below
