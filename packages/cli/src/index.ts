@@ -16,6 +16,7 @@ import { resolveCommand } from "./commands/resolve.js";
 import { importCommand } from "./commands/import.js";
 import { backfillCommand } from "./commands/backfill.js";
 import { analyzeCommand } from "./commands/analyze.js";
+import { backtestCommand } from "./commands/backtest.js";
 
 const program = new Command();
 
@@ -165,6 +166,26 @@ globalOptions(
 ).action(async (what, flags) => {
   try {
     process.exit(await analyzeCommand(what, flags));
+  } catch (error) {
+    fail(error);
+  }
+});
+
+globalOptions(
+  program
+    .command("backtest <what>")
+    .description(
+      "Bring-your-own-prices backtest: one fixed, equal-weight, entry-at-disclosure strategy over stored events (LuxAlgo Alt Data ships no price data and computes no scores; see docs/analytics.md)",
+    )
+    .option("--prices <file>", "user-supplied price series (CSV: date,ticker,close)")
+    .option("--ticker <t>", "restrict to one ticker")
+    .option("--member <name>", "restrict to one member (congress-trades)")
+    .option("--since <date>", "earliest event date")
+    .option("--window <days>", "days after disclosure at which to exit (default 30)")
+    .option("--out <file>", "write the full result to a file"),
+).action(async (what, flags) => {
+  try {
+    process.exit(await backtestCommand(what, flags));
   } catch (error) {
     fail(error);
   }
