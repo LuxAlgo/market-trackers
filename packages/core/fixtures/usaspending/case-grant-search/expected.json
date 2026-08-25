@@ -8,7 +8,9 @@
     "recipient": {
       "name": "PFIZER INC",
       "uei": "SYNTHPFEUEI1",
-      "tickers": ["PFE"]
+      "tickers": [
+        "PFE"
+      ]
     },
     "amountUsd": 4200000.75,
     "actionDate": "2026-08-18",
@@ -58,7 +60,7 @@
     "recipient": {
       "name": "MODERNATX BIODEFENSE DIVISION",
       "uei": "SYNTHMRNAUEI4",
-      "tickers": ["MRNA"]
+      "tickers": []
     },
     "amountUsd": null,
     "actionDate": "2026-08-20",

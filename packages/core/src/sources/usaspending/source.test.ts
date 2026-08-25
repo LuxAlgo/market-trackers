@@ -211,9 +211,11 @@ describe("usaspendingSource.sync — grants", () => {
     expect(
       rows.find((r) => r.recipient.name === "TRUENORTH STATE UNIVERSITY")?.recipient.tickers,
     ).toEqual([]);
+    // Single-token map names are exact-match only: "MODERNATX" never
+    // prefix-claims a longer division name (see resolve/recipients.ts).
     expect(
       rows.find((r) => r.recipient.name === "MODERNATX BIODEFENSE DIVISION")?.recipient.tickers,
-    ).toEqual(["MRNA"]);
+    ).toEqual([]);
     const nullAmountRow = rows.find((r) => r.amountUsd === null);
     expect(nullAmountRow?.description).toBeNull();
 

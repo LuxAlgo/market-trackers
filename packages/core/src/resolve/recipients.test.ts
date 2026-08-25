@@ -16,6 +16,7 @@ const testMap: RecipientTickerMap = {
     { tickers: ["LMT"], names: ["LOCKHEED MARTIN", "SIKORSKY AIRCRAFT"], uei: ["UEILMT0000001"] },
     { tickers: ["AAA"], names: ["ACME AEROSPACE"], uei: [] },
     { tickers: ["BBB"], names: ["ACME AEROSPACE SYSTEMS"], uei: [] },
+    { tickers: ["CCC"], names: ["ZEPHYRCO"], uei: [] },
   ],
 };
 
@@ -38,6 +39,13 @@ describe("resolveWithIndex", () => {
       "LMT",
     ]);
     expect(resolveWithIndex(index, { name: "LOCKHEED MARTINI BAR LLC" })).toEqual([]);
+  });
+
+  it("single-token names are exact-match only, never prefixes", () => {
+    // Exact (post-suffix-strip) still resolves…
+    expect(resolveWithIndex(index, { name: "Zephyrco, Inc." })).toEqual(["CCC"]);
+    // …but a one-word brand never claims longer unrelated names.
+    expect(resolveWithIndex(index, { name: "ZEPHYRCO INDUSTRIAL HOLDINGS LLC" })).toEqual([]);
   });
 
   it("returns [] when a prefix matches more than one entry (ambiguity)", () => {
@@ -121,6 +129,11 @@ describe("the shipped recipient-tickers map", () => {
     // No bare-surname or lookalike leakage.
     expect(resolveEntityTickers({ name: "HARRIS COUNTY TOLL ROAD AUTHORITY" })).toEqual([]);
     expect(resolveEntityTickers({ name: "GE HEALTHCARE TECHNOLOGIES INC" })).toEqual([]);
+    // Single-token brand names never prefix-claim longer unrelated entities.
+    expect(resolveEntityTickers({ name: "APPLE VALLEY SCHOOL DISTRICT" })).toEqual([]);
+    expect(resolveEntityTickers({ name: "EXXON NEWFOUNDLAND DRILLING PARTNERS" })).toEqual([]);
+    // The curated multi-word subsidiary form is how brands extend instead.
+    expect(resolveEntityTickers({ name: "Oracle America, Inc." })).toEqual(["ORCL"]);
   });
 
   it("resolves pharma/tech names only through their scoped forms (collision guards)", () => {

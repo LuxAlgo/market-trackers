@@ -83,9 +83,14 @@ export function resolveWithIndex(index: RecipientTickerIndex, query: EntityTicke
   // Word-boundary prefix ("LOCKHEED MARTIN" matches "LOCKHEED MARTIN
   // AERONAUTICS", never "LOCKHEED MARTINI") — and only when exactly one map
   // entry matches; two candidate entries means ambiguity, which returns [].
+  // Single-token names are exact-match only: a one-word prefix is where
+  // false positives live ("APPLE" must never claim "APPLE VALLEY SCHOOL
+  // DISTRICT"), so brand-word entries only prefix-extend through explicitly
+  // curated multi-word forms (e.g. "ORACLE AMERICA").
   const matchedEntries = new Set<number>();
   let matchedTickers: readonly string[] | null = null;
   for (const candidate of index.names) {
+    if (!candidate.name.includes(" ")) continue;
     if (normalized.startsWith(`${candidate.name} `)) {
       matchedEntries.add(candidate.entry);
       matchedTickers = candidate.tickers;
