@@ -37,7 +37,15 @@ export const ldaFilingRowSchema = z
     registrant: z.object({ name: z.string().min(1) }).passthrough(),
     client: z.object({ name: z.string().min(1) }).passthrough(),
     lobbying_activities: z
-      .array(z.object({ general_issue_code: z.string().nullish() }).passthrough())
+      .array(
+        z
+          .object({
+            general_issue_code: z.string().nullish(),
+            /** Free-text "specific lobbying issues" narrative — where bill citations live. */
+            description: z.string().nullish(),
+          })
+          .passthrough(),
+      )
       .nullish(),
     filing_document_url: z.string().nullish(),
     dt_posted: z.string().nullish(),

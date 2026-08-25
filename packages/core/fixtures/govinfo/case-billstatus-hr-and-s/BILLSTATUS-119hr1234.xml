@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<billStatus>
+  <bill>
+    <congress>119</congress>
+    <type>HR</type>
+    <originChamber>House</originChamber>
+    <number>1234</number>
+    <introducedDate>2025-02-10</introducedDate>
+    <sponsors>
+      <item>
+        <bioguideId>E000001</bioguideId>
+        <fullName>Rep. Example, Jane [D-VT-1]</fullName>
+        <party>D</party>
+        <state>VT</state>
+      </item>
+    </sponsors>
+    <cosponsors>
+      <item>
+        <bioguideId>E000002</bioguideId>
+        <fullName>Rep. Second, Cosponsor [D-CA-5]</fullName>
+        <isOriginalCosponsor>True</isOriginalCosponsor>
+      </item>
+      <item>
+        <bioguideId>E000003</bioguideId>
+        <fullName>Rep. Third, Cosponsor [R-TX-2]</fullName>
+        <isOriginalCosponsor>False</isOriginalCosponsor>
+      </item>
+    </cosponsors>
+    <latestAction>
+      <actionDate>2026-08-12</actionDate>
+      <text>Referred to the Subcommittee on Example Matters.</text>
+    </latestAction>
+    <title>Example Data Transparency &amp; Modernization Act</title>
+    <titles>
+      <item>
+        <titleType>Display Title</titleType>
+        <title>Example Data Transparency &amp; Modernization Act</title>
+      </item>
+      <item>
+        <titleType>Short Title(s) as Introduced</titleType>
+        <title>A DIFFERENT NESTED TITLE THAT MUST NOT BE PICKED</title>
+      </item>
+    </titles>
+    <policyArea>
+      <name>Science, Technology, Communications</name>
+    </policyArea>
+  </bill>
+</billStatus>

@@ -1,7 +1,7 @@
 {
   "synthetic": true,
   "verified": true,
-  "notes": "Format-faithful synthetic LDA filings list pair (page 1 with next, page 2 final), newest-first by dt_posted. Exercises an income filing with a mapped client (Lockheed → LMT), an expenses-only filing, a filing with no reported amount (stays null), a multi-issue filing with a duplicate issue code (deduped, order preserved), a prefix-mapped client (Oracle America → ORCL), and a registration with a null filing_document_url whose provenance falls back to the API detail URL.",
+  "notes": "Format-faithful synthetic LDA filings list pair (page 1 with next, page 2 final), newest-first by dt_posted. Exercises an income filing with a mapped client (Lockheed → LMT), an expenses-only filing whose second lobbying_activities entry's description names an explicit bill (H.R. 3684 → billReferences: [\"hr3684\"], proving extraction joins across all of a filing's activities, not just the first), a filing with no reported amount (stays null), a multi-issue filing with a duplicate issue code (deduped, order preserved), a prefix-mapped client (Oracle America → ORCL), and a registration with a null filing_document_url whose provenance falls back to the API detail URL. Every other filing's activities describe issues with no explicit bill citation, so billReferences stays [].",
   "sourceUrl": null,
   "parser": "lda-filings@1",
   "parseInput": {

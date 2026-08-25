@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<billStatus>
+  <bill>
+    <congress>119</congress>
+    <type>S</type>
+    <originChamber>Senate</originChamber>
+    <number>200</number>
+    <introducedDate>2025-03-05</introducedDate>
+    <title>Example Public Health Data Sharing Act</title>
+    <sponsors>
+      <item>
+        <bioguideId>E000005</bioguideId>
+        <fullName>Sen. Fifth, Example [D-NY]</fullName>
+      </item>
+    </sponsors>
+    <cosponsors></cosponsors>
+    <latestAction>
+      <actionDate>2026-08-01</actionDate>
+      <text>Placed on Senate Legislative Calendar under General Orders.</text>
+    </latestAction>
+    <policyArea>
+      <name>Health</name>
+    </policyArea>
+  </bill>
+</billStatus>

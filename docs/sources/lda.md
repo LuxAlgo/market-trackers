@@ -82,3 +82,40 @@ misparsing silently:
   addition, or removal turns it red.
 - **Anonymous vs. keyed rate limits.** Shipped conservatively under the documented ceilings
   (keyless 15/min, keyed 100/min) — confirm the currently published limits still match.
+
+## Bill references
+
+- `billReferences` — normalized bill tokens (`billReferenceToken()` from `schema/bill.ts`, e.g.
+  `"hr1234"`, `"sconres7"`) extracted from a filing's own specific-issues narrative:
+  `lobbying_activities[].description`, the same array `issues` reads `general_issue_code` from.
+  Every activity's `description` in the row is trimmed, filtered for blanks, joined with a space,
+  and passed through `extractBillReferences()` (`bill-refs.ts`) once per filing. A filing whose
+  narrative names no bill explicitly gets `billReferences: []`; nothing is ever inferred from
+  `general_issue_code` alone, and nothing about the bill's status is looked up here — this is
+  citation extraction only, not a join against the `bills` dataset.
+- Extraction is deliberately conservative (see `bill-refs.ts` for the full policy and its unit
+  tests). It recognizes only the 8 GovInfo BILLSTATUS bill/resolution types (`hr`, `s`, `hjres`,
+  `sjres`, `hconres`, `sconres`, `hres`, `sres`), each written either in the standard dotted
+  abbreviation ("H.R. 1234", "S.Con.Res. 7" — 0 or 1 space allowed before the number, so
+  "H.R.1234" also matches) or fully dotless ("HR 1234", "SConRes 7" — exactly 1 space required; a
+  bare "HR1234" with no separator at all is deliberately not recognized). Every type token is
+  anchored by a word boundary on both sides, and the single/double-letter dotless tokens ("HR",
+  "S") are matched case-sensitively, uppercase only. Together these are what keep "HRS 200" (no
+  boundary after "HR"), "US 101" (no boundary before "S"), "SB 5" (a state-bill style prefix, no
+  boundary after "S"), and "s 100 million" (lowercase) from ever matching. Bill numbers are 1–5
+  digits — a longer digit run never matches at all, rather than truncating.
+- `billReferences` is congress-agnostic on purpose — the token is just type + number (e.g.
+  `"hr1234"`), because free-text lobbying narratives essentially never say which congress a bill
+  belongs to. A consumer who wants to resolve a reference to an actual `bills` row scopes the
+  match by year/congress themselves (a filing's `filingYear` is a reasonable proxy for which
+  congress was sitting).
+- `[verify-live]` **the narrative field's name.** Assumed each `lobbying_activities[]` entry
+  carries a `description` field holding the free-text "specific lobbying issues" narrative (the
+  fixture models this; this offline environment cannot confirm the live API's exact field name
+  for it — see the field-name bullet above for the rest of the row shape, which does not
+  currently list this field). If the live field is actually named something else, the
+  fingerprint canary catches that rename the same way it catches any other field drift, but
+  unlike a _required_ field going missing, `billReferences` would just silently stay `[]` from
+  then on — a wrong field name here isn't something the existing `parse-success-rate` check would
+  ever flag, since the row still parses successfully either way. Confirm the field name against
+  the current LDA API docs before relying on non-empty `billReferences` in production.
