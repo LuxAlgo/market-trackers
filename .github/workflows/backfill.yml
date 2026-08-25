@@ -1,0 +1,234 @@
+name: Backfill
+
+# Manual, one-source-at-a-time deep-history backfill
+# (packages/core/src/backfill/engine.ts drives the chunking/resume logic;
+# this workflow is just dispatch + export + archive plumbing around it).
+#
+# GitHub Actions hard-caps a job at 6 hours (`timeout-minutes` below). A run
+# that hits that cap — or --limit, or a transient failure — simply stops
+# mid-chunk; re-dispatch with the SAME --source/--from and it resumes from
+# `backfill.completedThrough` instead of re-walking covered ground. Dispatch
+# a source's entire free-history depth in year-sized (or smaller) windows
+# rather than one multi-decade run — see docs/backfill.md for per-source
+# depth notes and the resume model.
+#
+# No-ops until configured:
+#   vars.DOCKET_CONTACT       — contact email for the SEC EDGAR User-Agent (only needed for `source: edgar`)
+#   vars.DOCKET_DATA_REPO     — e.g. "LuxAlgo/docket-data" (archive-release publish step skipped without it)
+#   secrets.DOCKET_DATA_TOKEN — token with contents:write on the data repo (archive-release publish step skipped without it)
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Source id to backfill (e.g. edgar, finra, usaspending)"
+        required: true
+        type: string
+      from:
+        description: "Start of the window (YYYY-MM-DD)"
+        required: true
+        type: string
+      to:
+        description: "End of the window (YYYY-MM-DD); defaults to today"
+        required: false
+        type: string
+      chunk_days:
+        description: "Days per resumable chunk"
+        required: false
+        type: string
+        default: "30"
+      limit:
+        description: "Soft cap on documents fetched this run (leave empty for none)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+# Two dispatches for the SAME source would race the same db file, the same
+# backfill.completedThrough watermark, and (if archiving) the same release
+# tag — queue them instead of running in parallel. Different sources are
+# independent and may run concurrently under separate workflow runs.
+concurrency:
+  group: backfill-${{ inputs.source }}
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      # set +e: a backfill that stops early (--limit, an error, or the job
+      # timeout looming) still needs export/upload to run on whatever WAS
+      # ingested — the run's overall pass/fail is decided at the very end.
+      - name: Backfill
+        id: backfill
+        env:
+          DOCKET_CONTACT: ${{ vars.DOCKET_CONTACT }}
+          SOURCE: ${{ inputs.source }}
+          FROM: ${{ inputs.from }}
+          TO_INPUT: ${{ inputs.to }}
+          CHUNK_DAYS: ${{ inputs.chunk_days }}
+          LIMIT_INPUT: ${{ inputs.limit }}
+        run: |
+          set +e
+          args=(backfill --source "$SOURCE" --from "$FROM" --chunk-days "${CHUNK_DAYS:-30}" --db "backfill-$SOURCE.db" --json)
+          [ -n "$TO_INPUT" ] && args+=(--to "$TO_INPUT")
+          [ -n "$LIMIT_INPUT" ] && args+=(--limit "$LIMIT_INPUT")
+          node packages/cli/dist/index.js "${args[@]}" | tee backfill-summary.json
+          echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+      - name: Export
+        env:
+          SOURCE: ${{ inputs.source }}
+        run: node packages/cli/dist/index.js export --db "backfill-$SOURCE.db" --out dumps --json
+
+      - name: Upload dumps artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backfill-${{ inputs.source }}-${{ inputs.from }}
+          path: dumps
+          retention-days: 30
+
+      # Secrets can't be read directly in a job/step `if:`, so the token is
+      # checked here (via env, never echoed) and the result exposed as a
+      # step output that later steps gate on.
+      - name: Check data-repo credentials
+        id: creds
+        if: vars.DOCKET_DATA_REPO != ''
+        env:
+          DOCKET_DATA_TOKEN: ${{ secrets.DOCKET_DATA_TOKEN }}
+        run: |
+          if [ -n "$DOCKET_DATA_TOKEN" ]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "DOCKET_DATA_TOKEN not configured; skipping the archive-release publish step."
+          fi
+
+      # Publishes this run's year-shard snapshot-*.json.gz files as assets on
+      # a GitHub Release (created if missing) in the data repo, tagged
+      # archive-{source}-{from}-{to} — see docs/backfill.md for the layout
+      # and the restore steps. A per-asset >2GB failure (GitHub's release
+      # asset limit) is reported and skipped; it never fails the run.
+      - name: Publish archive release
+        if: steps.creds.outputs.publish == 'true'
+        uses: actions/github-script@v7
+        env:
+          DATA_REPO: ${{ vars.DOCKET_DATA_REPO }}
+          SOURCE: ${{ inputs.source }}
+        with:
+          github-token: ${{ secrets.DOCKET_DATA_TOKEN }}
+          script: |
+            const fs = require("fs");
+            const path = require("path");
+
+            function findSnapshots(dir, out = []) {
+              for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+                const full = path.join(dir, entry.name);
+                if (entry.isDirectory()) findSnapshots(full, out);
+                else if (entry.name.startsWith("snapshot-") && entry.name.endsWith(".json.gz")) {
+                  out.push(full);
+                }
+              }
+              return out;
+            }
+
+            const files = findSnapshots("dumps");
+            if (files.length === 0) {
+              core.notice("No snapshot-*.json.gz files were produced by this run; nothing to archive.");
+              return;
+            }
+
+            const summary = JSON.parse(fs.readFileSync("backfill-summary.json", "utf8"));
+            const [owner, repo] = process.env.DATA_REPO.split("/");
+            const source = process.env.SOURCE;
+            const tag = `archive-${source}-${summary.from}-${summary.to}`;
+
+            let release;
+            try {
+              release = (await github.rest.repos.getReleaseByTag({ owner, repo, tag })).data;
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              release = (
+                await github.rest.repos.createRelease({
+                  owner,
+                  repo,
+                  tag_name: tag,
+                  name: tag,
+                  body:
+                    `Deep-history archive for **${source}**, event window ${summary.from}..${summary.to}.\n\n` +
+                    "Snapshot files are sharded by event year. Restore with `docket import` " +
+                    "against a downloaded asset, or a full checkout of this repo — see " +
+                    "docs/backfill.md in LuxAlgo/docket for the full restore story.",
+                })
+              ).data;
+              core.info(`Created release ${tag}`);
+            }
+
+            const TWO_GB = 2 * 1024 * 1024 * 1024;
+            const failedAssets = [];
+            for (const file of files) {
+              const name = path.basename(file);
+              const size = fs.statSync(file).size;
+              if (size > TWO_GB) {
+                core.warning(
+                  `Skipping asset ${name}: ${size} bytes exceeds GitHub's ${TWO_GB}-byte release-asset ` +
+                    "limit. Publish it manually (e.g. via a data-repo checkout) or re-dispatch this " +
+                    "backfill in smaller (e.g. year-sized) windows so each snapshot shard stays under it.",
+                );
+                failedAssets.push(name);
+                continue;
+              }
+
+              // A resumed/re-dispatched run for the same window re-uploads —
+              // clear any same-named asset from a prior attempt first.
+              const { data: existingAssets } = await github.rest.repos.listReleaseAssets({
+                owner,
+                repo,
+                release_id: release.id,
+                per_page: 100,
+              });
+              const existing = existingAssets.find((a) => a.name === name);
+              if (existing) {
+                await github.rest.repos.deleteReleaseAsset({ owner, repo, asset_id: existing.id });
+              }
+
+              await github.rest.repos.uploadReleaseAsset({
+                owner,
+                repo,
+                release_id: release.id,
+                name,
+                data: fs.readFileSync(file),
+              });
+              core.info(`Uploaded ${name} (${size} bytes) to release ${tag}`);
+            }
+
+            if (failedAssets.length > 0) {
+              core.setFailed(
+                `${failedAssets.length} asset(s) exceeded the 2GB release-asset limit and were not ` +
+                  `published: ${failedAssets.join(", ")}. See the warnings above.`,
+              );
+            }
+
+      - name: Fail the run if the backfill didn't fully complete
+        if: steps.backfill.outputs.exit_code != '0'
+        run: |
+          echo "The backfill stopped before reaching --to (docket backfill exit code ${{ steps.backfill.outputs.exit_code }})."
+          echo "Whatever WAS ingested this run was still exported and uploaded above."
+          echo "Re-dispatch this workflow with the same source/from — it resumes automatically from backfill.completedThrough."
+          exit 1

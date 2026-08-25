@@ -64,7 +64,14 @@ export const finraSource: DocketSource = {
       const start =
         opts.since ??
         (watermark ? addDays(watermark, 1) : addDays(today, -ctx.config.backfillDays));
-      const days = eachDayInclusive(start, today).filter((d) => !isWeekend(d));
+      // A bounded (--until) run — e.g. one backfill chunk — never walks past
+      // its requested end date, even though "today" is always in its future.
+      const end = opts.until && opts.until < today ? opts.until : today;
+      const days = eachDayInclusive(start, end).filter((d) => !isWeekend(d));
+      // Tracks the highest day actually advanced so far, so a chunk walking
+      // OLD ground (a historical backfill run after the live watermark has
+      // already moved past it) can never regress it.
+      let advanced = watermark;
 
       for (const day of days) {
         if (fetched >= limit) {
@@ -77,8 +84,11 @@ export const finraSource: DocketSource = {
         if (response.status === 404) {
           await response.arrayBuffer().catch(() => undefined);
           // Market holiday — or today's file not published yet: only advance
-          // the watermark past days that are conclusively over.
-          if (day < today) await ctx.store.setWatermark("finra", watermarkKey(market), day);
+          // the watermark past days that are conclusively over, and only forward.
+          if (day < today && (advanced === null || day > advanced)) {
+            advanced = day;
+            await ctx.store.setWatermark("finra", watermarkKey(market), day);
+          }
           continue;
         }
         if (!response.ok) {
@@ -105,7 +115,10 @@ export const finraSource: DocketSource = {
         result.rowsUpserted += rows;
         result.perDataset["short-volume"] = (result.perDataset["short-volume"] ?? 0) + rows;
         logger.info(`${market} ${day}: ${rows} rows`);
-        await ctx.store.setWatermark("finra", watermarkKey(market), day);
+        if (advanced === null || day > advanced) {
+          advanced = day;
+          await ctx.store.setWatermark("finra", watermarkKey(market), day);
+        }
       }
     }
 

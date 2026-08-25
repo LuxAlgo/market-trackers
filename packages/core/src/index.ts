@@ -84,6 +84,7 @@ export * from "./resolve/cusip.js";
 export * from "./resolve/members.js";
 
 export * from "./sync/engine.js";
+export * from "./backfill/engine.js";
 export * from "./canary/runner.js";
 export * from "./export/writer.js";
 export * from "./export/feeds.js";

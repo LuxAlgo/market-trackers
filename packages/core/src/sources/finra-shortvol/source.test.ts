@@ -73,6 +73,34 @@ describe("finraSource.sync", () => {
     expect(result.rowsUpserted).toBe(0);
     await store.close();
   });
+
+  it("honors --until: never requests a day past it, even though today is later", async () => {
+    const { ctx, store } = await makeCtx(); // "today" is pinned to 2026-03-03
+    const requested: string[] = [];
+    const inner = ctx.fetchImpl as typeof fetch;
+    ctx.fetchImpl = (async (url: Parameters<typeof fetch>[0], init?: RequestInit) => {
+      requested.push(String(url));
+      return inner(url, init);
+    }) as typeof fetch;
+
+    const result = await finraSource.sync(ctx, { since: FIXTURE_DAY, until: FIXTURE_DAY });
+    expect(result.rowsUpserted).toBe(2);
+    // Tomorrow's (today's, in walk terms) file is never requested.
+    expect(requested).toEqual([FIXTURE_URL]);
+    expect(await store.getWatermark("finra", "shortvol.CNMS.lastDay")).toBe(FIXTURE_DAY);
+    await store.close();
+  });
+
+  it("a bounded backfill chunk over old ground never regresses an already-advanced watermark", async () => {
+    const { ctx, store } = await makeCtx();
+    // Simulate a live watermark that has already moved well past the fixture
+    // day (as it would after months of regular incremental syncs).
+    await store.setWatermark("finra", "shortvol.CNMS.lastDay", "2026-03-10");
+
+    await finraSource.sync(ctx, { since: FIXTURE_DAY, until: FIXTURE_DAY });
+    expect(await store.getWatermark("finra", "shortvol.CNMS.lastDay")).toBe("2026-03-10");
+    await store.close();
+  });
 });
 
 describe("finraSource.canary", () => {

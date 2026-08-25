@@ -101,6 +101,30 @@ describe("edgarSource.sync", () => {
     expect(await store.count("thirteenf-holdings")).toBe(3);
     await store.close();
   });
+
+  it("honors --until: never requests a day past it, even though today is later", async () => {
+    const { fetchImpl, requests } = mockEdgarFetch();
+    const { ctx, store } = await makeCtx(fetchImpl); // "today" is pinned to 2026-08-21
+
+    const result = await edgarSource.sync(ctx, { since: FIXTURE_DAY, until: FIXTURE_DAY });
+    expect(result.rowsUpserted).toBe(7);
+    // Today's index (2026-08-21) is never requested — the walk stopped at --until.
+    expect(requests.some((r) => r.url.includes("master.20260821.idx"))).toBe(false);
+    expect(await store.getWatermark("edgar", "daily-index.lastCompletedDay")).toBe(FIXTURE_DAY);
+    await store.close();
+  });
+
+  it("a bounded backfill chunk over old ground never regresses an already-advanced watermark", async () => {
+    const { fetchImpl } = mockEdgarFetch();
+    const { ctx, store } = await makeCtx(fetchImpl);
+    // Simulate a live watermark that has already moved well past the fixture
+    // day (as it would after months of regular incremental syncs).
+    await store.setWatermark("edgar", "daily-index.lastCompletedDay", "2026-08-25");
+
+    await edgarSource.sync(ctx, { since: FIXTURE_DAY, until: FIXTURE_DAY });
+    expect(await store.getWatermark("edgar", "daily-index.lastCompletedDay")).toBe("2026-08-25");
+    await store.close();
+  });
 });
 
 describe("edgarSource.canary", () => {
