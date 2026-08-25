@@ -1,7 +1,7 @@
 /**
  * Congressional disclosure amounts are ranges, never exact values. This
  * module parses the printed range text into { min, max } bounds and nothing
- * more — Docket never fabricates midpoints or point estimates.
+ * more — LuxAlgo Alt Data never fabricates midpoints or point estimates.
  */
 
 export interface AmountRange {

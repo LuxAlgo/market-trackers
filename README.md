@@ -1,14 +1,14 @@
 <div align="center">
 
-# Docket
+# LuxAlgo Alt Data
 
 **The public record, as infrastructure.**
 
 Congress trades, insider filings, 13F holdings, government contracts and grants, lobbying,
 short-sale volume, committee assignments, patents, clinical trials, FDA drug approvals, futures
-positioning — the data the alt-data platforms sell is free. Now it's also open.
+positioning — the data the paid platforms sell is free. Now it's also open.
 
-[![CI](https://github.com/LuxAlgo/docket/actions/workflows/ci.yml/badge.svg)](https://github.com/LuxAlgo/docket/actions/workflows/ci.yml)
+[![CI](https://github.com/LuxAlgo/alt-data/actions/workflows/ci.yml/badge.svg)](https://github.com/LuxAlgo/alt-data/actions/workflows/ci.yml)
 [![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE)
 [![Data: CC0](https://img.shields.io/badge/data-CC0-blue.svg)](data-licenses/DATA-LICENSE)
 [![No telemetry](https://img.shields.io/badge/telemetry-none-brightgreen.svg)](#why-free)
@@ -17,7 +17,7 @@ positioning — the data the alt-data platforms sell is free. Now it's also open
 
 ---
 
-Docket ingests the public record of US markets from **primary sources only**, normalizes it into
+LuxAlgo Alt Data ingests the public record of US markets from **primary sources only**, normalizes it into
 one schema, stores it in a local database, serves it to AI agents over **MCP**, and republishes it
 as **free daily data dumps**. Every row carries provenance — a working deep link to the primary
 document it was parsed from. No accounts, no telemetry, no paywall, and every source is keyless
@@ -41,34 +41,34 @@ access to this data; the sources are free, and so is this.
 | **FDA drug approvals**        | openFDA (Drugs@FDA)                            | Approval actions as the FDA recorded them — history, never a prediction      | ✅ ingesting            |
 | **Futures positioning (COT)** | CFTC Commitments of Traders                    | Weekly legacy-report positioning per market                                  | ✅ ingesting            |
 
-`docket status` always tells you exactly what your build ingests — sources that aren't implemented
+`alt-data status` always tells you exactly what your build ingests — sources that aren't implemented
 yet say so out loud instead of pretending.
 
 ## Quickstart
 
-Zero keys, zero infrastructure. The only identity Docket ever sends is a contact email inside the
+Zero keys, zero infrastructure. The only identity LuxAlgo Alt Data ever sends is a contact email inside the
 User-Agent that the SEC's fair-access policy requires for EDGAR.
 
 ```bash
 # 1. Pull data — short-sale volume needs nothing at all:
-npx @luxalgo/docket-cli sync --source finra
+npx @luxalgo/alt-data-cli sync --source finra
 
 # 2. Insider filings need the SEC-required contact email:
-npx @luxalgo/docket-cli sync --source edgar --contact you@example.com --limit 500
+npx @luxalgo/alt-data-cli sync --source edgar --contact you@example.com --limit 500
 
 # 3. See what you have:
-npx @luxalgo/docket-cli status
+npx @luxalgo/alt-data-cli status
 
 # 4. Serve it to your AI agent over MCP:
-npx @luxalgo/docket-cli serve
+npx @luxalgo/alt-data-cli serve
 ```
 
-Or skip ingestion entirely — the published dumps are a rebuildable archive, and `docket import`
-is the exact mirror image of `docket export`:
+Or skip ingestion entirely — the published dumps are a rebuildable archive, and `alt-data import`
+is the exact mirror image of `alt-data export`:
 
 ```bash
-git clone https://github.com/LuxAlgo/docket-data
-npx @luxalgo/docket-cli import ./docket-data
+git clone https://github.com/LuxAlgo/alt-datasets
+npx @luxalgo/alt-data-cli import ./alt-datasets
 ```
 
 From a checkout instead:
@@ -78,13 +78,13 @@ pnpm install && pnpm build
 node packages/cli/dist/index.js sync --source finra
 ```
 
-Everything is incremental and idempotent: `docket sync` picks up where it left off (per-source
+Everything is incremental and idempotent: `alt-data sync` picks up where it left off (per-source
 watermarks) and re-running never duplicates a row (natural-key upserts). SQLite by default;
 `--db postgres://…` is the same store behind one flag.
 
 ## Ask your agent, get receipts
 
-`docket-mcp` serves the whole store to any MCP client — locally over stdio, or hosted over
+`alt-data-mcp` serves the whole store to any MCP client — locally over stdio, or hosted over
 stateless streamable HTTP. Every answer carries primary-source citations: when an agent tells you
 what Congress bought this week, it can show you the actual filings.
 
@@ -92,47 +92,47 @@ what Congress bought this week, it can show you the actual filings.
 // Claude Desktop / Claude Code / any MCP client
 {
   "mcpServers": {
-    "docket": {
+    "alt-data": {
       "command": "npx",
-      "args": ["-y", "@luxalgo/docket-mcp"],
-      "env": { "DOCKET_DB": "/path/to/docket.db" },
+      "args": ["-y", "@luxalgo/alt-data-mcp"],
+      "env": { "ALT_DATA_DB": "/path/to/alt-data.db" },
     },
   },
 }
 ```
 
-| Tool                      | What it answers                                                            |
-| ------------------------- | -------------------------------------------------------------------------- |
-| `docket_congress_trades`  | "What did Congress buy this week?" — with per-filing citations             |
-| `docket_congress_members` | Resolve member names; who trades most                                      |
-| `docket_member_profile`   | One member's whole public footprint: trades, committees, top tickers       |
-| `docket_committees`       | Committee rosters — who sits where, joined to what they trade              |
-| `docket_insider_trades`   | Form 3/4/5 rows by ticker/insider/code/value, with the SEC code legend     |
-| `docket_insider_summary`  | Buys vs sells, net shares, notable insiders for a ticker — arithmetic only |
-| `docket_13f_holders`      | Who holds a security, with share changes vs the prior quarter              |
-| `docket_13f_manager`      | One manager's holdings ("what does Berkshire hold?")                       |
-| `docket_gov_contracts`    | Federal contract awards by ticker/recipient/agency                         |
-| `docket_gov_grants`       | Federal grant awards by ticker/recipient/agency                            |
-| `docket_lobbying`         | Lobbying filings by ticker/client/registrant                               |
-| `docket_short_volume`     | Daily short-sale volume series for a ticker                                |
-| `docket_patents`          | Granted patents by ticker/assignee                                         |
-| `docket_clinical_trials`  | Studies by ticker/sponsor/status/phase                                     |
-| `docket_fda_approvals`    | Drugs@FDA approval actions by ticker/company/drug                          |
-| `docket_cot`              | Weekly futures positioning series for a market                             |
-| `docket_search`           | One query across tickers, members, managers, insiders                      |
-| `docket_freshness`        | How old every dataset is — agents check before they answer                 |
+| Tool                        | What it answers                                                            |
+| --------------------------- | -------------------------------------------------------------------------- |
+| `alt_data_congress_trades`  | "What did Congress buy this week?" — with per-filing citations             |
+| `alt_data_congress_members` | Resolve member names; who trades most                                      |
+| `alt_data_member_profile`   | One member's whole public footprint: trades, committees, top tickers       |
+| `alt_data_committees`       | Committee rosters — who sits where, joined to what they trade              |
+| `alt_data_insider_trades`   | Form 3/4/5 rows by ticker/insider/code/value, with the SEC code legend     |
+| `alt_data_insider_summary`  | Buys vs sells, net shares, notable insiders for a ticker — arithmetic only |
+| `alt_data_13f_holders`      | Who holds a security, with share changes vs the prior quarter              |
+| `alt_data_13f_manager`      | One manager's holdings ("what does Berkshire hold?")                       |
+| `alt_data_gov_contracts`    | Federal contract awards by ticker/recipient/agency                         |
+| `alt_data_gov_grants`       | Federal grant awards by ticker/recipient/agency                            |
+| `alt_data_lobbying`         | Lobbying filings by ticker/client/registrant                               |
+| `alt_data_short_volume`     | Daily short-sale volume series for a ticker                                |
+| `alt_data_patents`          | Granted patents by ticker/assignee                                         |
+| `alt_data_clinical_trials`  | Studies by ticker/sponsor/status/phase                                     |
+| `alt_data_fda_approvals`    | Drugs@FDA approval actions by ticker/company/drug                          |
+| `alt_data_cot`              | Weekly futures positioning series for a market                             |
+| `alt_data_search`           | One query across tickers, members, managers, insiders                      |
+| `alt_data_freshness`        | How old every dataset is — agents check before they answer                 |
 
-`docket_freshness` is first-class on purpose: an agent quoting stale congress data without knowing
+`alt_data_freshness` is first-class on purpose: an agent quoting stale congress data without knowing
 it is the failure mode that kills trust. And the committee tools exist because the most-asked
 question about congressional trading — "do they trade what they oversee?" — is a **join**, not a
-score: Docket gives you both sides of it with receipts and leaves the conclusion to you.
+score: LuxAlgo Alt Data gives you both sides of it with receipts and leaves the conclusion to you.
 
 ## The dumps
 
-`docket export` writes the full store as versioned JSON — daily deltas per dataset, full snapshots
+`alt-data export` writes the full store as versioned JSON — daily deltas per dataset, full snapshots
 sharded by event year, an RSS feed per dataset, and a manifest with row counts, watermarks, and
 per-source health. A scheduled CI workflow publishes them to a public data repository
-([`LuxAlgo/docket-data`](https://github.com/LuxAlgo/docket-data)) so analysts and journalists who
+([`LuxAlgo/alt-datasets`](https://github.com/LuxAlgo/alt-datasets)) so analysts and journalists who
 will never run code still get the data — one URL, no signup:
 
 ```
@@ -148,7 +148,7 @@ explorer/index.html                       # zero-build data browser (works on Gi
 The two most time-sensitive datasets (congress trades, insider transactions) also get an intraday
 fast lane that tops up their deltas between daily publishes, and a weekly workflow mirrors the
 whole data repo to a Hugging Face dataset for `datasets.load_dataset(...)` consumers. The full
-contract is in [`docs/docket-data.md`](docs/docket-data.md).
+contract is in [`docs/alt-datasets.md`](docs/alt-datasets.md).
 
 Code is MIT; **the dumps are CC0** — public-domain-derived government data stays public domain.
 See [`data-licenses/`](data-licenses/).
@@ -163,19 +163,19 @@ nothing to deploy.
 
 ## Deep history
 
-`docket backfill --source edgar --from 2004-01-01` walks a source as far back as its free history
+`alt-data backfill --source edgar --from 2004-01-01` walks a source as far back as its free history
 goes — chunked, resumable, watermark-driven, so an interrupted run picks up exactly where it
 stopped instead of re-walking covered ground. The `backfill.yml` workflow runs the same engine on
 CI and publishes the resulting year-sharded snapshots as release assets on the data repo, so
-nobody has to re-crawl a decade of filings that CI already crawled. And because `docket import`
+nobody has to re-crawl a decade of filings that CI already crawled. And because `alt-data import`
 rebuilds a store from published dumps, the archive is not a pile of downloads — it's a restorable
 database. Per-source depth notes: [`docs/backfill.md`](docs/backfill.md).
 
 ## Bring your own prices
 
-`docket analyze congress --prices your-prices.csv` joins disclosed trades against a price series
+`alt-data analyze congress --prices your-prices.csv` joins disclosed trades against a price series
 **you supply** (`date,ticker,close`) and reports the price change over a window after each
-disclosure — the classic "what happened after they filed?" table. Docket ships no market data and
+disclosure — the classic "what happened after they filed?" table. LuxAlgo Alt Data ships no market data and
 computes no scores; the output is arithmetic between public records and your own inputs, every
 result carries a disclaimer saying exactly that, disclosed amounts stay ranges, and the timeline
 anchors on the **filing** date, because that's when the public actually learned. Details:
@@ -183,14 +183,14 @@ anchors on the **filing** date, because that's when the public actually learned.
 
 ## Python
 
-The dumps are plain JSON with Parquet siblings, so nothing about Docket requires JavaScript. The
+The dumps are plain JSON with Parquet siblings, so nothing about LuxAlgo Alt Data requires JavaScript. The
 dependency-light reader in [`python/`](python/) (pandas optional) loads them from a URL or a
 checkout:
 
 ```python
-from docket_data import load_snapshot, to_dataframe
+from alt_datasets import load_snapshot, to_dataframe
 
-rows = load_snapshot("https://raw.githubusercontent.com/LuxAlgo/docket-data/main", "congress-trades")
+rows = load_snapshot("https://raw.githubusercontent.com/LuxAlgo/alt-datasets/main", "congress-trades")
 df = to_dataframe(rows)  # plain list[dict] if pandas isn't installed
 ```
 
@@ -232,24 +232,24 @@ misparses. This board is generated from the latest canary run:
 - **Receipts everywhere.** Every row carries `provenance`: the primary-source URL, retrieval time,
   parser identity, and a confidence tier. Rows extracted from scanned documents are flagged
   `needsReview` instead of silently trusted.
-- **No telemetry.** Docket never phones home. The only outbound identity is the SEC-required
+- **No telemetry.** LuxAlgo Alt Data never phones home. The only outbound identity is the SEC-required
   contact email in the EDGAR User-Agent — and it goes to the SEC, nobody else.
 - **Fair access, enforced in code.** The EDGAR client is hard-capped at 10 requests/second by a
   rate limiter with a unit test, not by a sentence in a README.
 
 ## Non-goals
 
-Things Docket deliberately does not do:
+Things LuxAlgo Alt Data deliberately does not do:
 
-- **No predictions, signals, scores, or "conviction" ratings.** Docket is data with receipts, not
-  advice. `shortRatio`, buy/sell counts, and `docket analyze`'s price changes are arithmetic, not
+- **No predictions, signals, scores, or "conviction" ratings.** LuxAlgo Alt Data is data with receipts, not
+  advice. `shortRatio`, buy/sell counts, and `alt-data analyze`'s price changes are arithmetic, not
   recommendations.
-- **No fabricated precision.** Congressional amounts are disclosed as ranges; Docket stores the
+- **No fabricated precision.** Congressional amounts are disclosed as ranges; LuxAlgo Alt Data stores the
   range bounds and never invents midpoints — not even in analytics output.
 - **No social/Reddit sentiment.** Redistribution restrictions make it unshippable in dumps; it
   doesn't belong here.
-- **No scraping of commercial data products.** If it isn't a primary source, it isn't in Docket.
-- **No editorially curated calendars presented as public record.** Docket ships the FDA's own
+- **No scraping of commercial data products.** If it isn't a primary source, it isn't in LuxAlgo Alt Data.
+- **No editorially curated calendars presented as public record.** LuxAlgo Alt Data ships the FDA's own
   record of approval actions (Drugs@FDA); it does not ship hand-maintained future-decision-date
   calendars or any other dataset that needs human curation to exist.
 
@@ -257,16 +257,16 @@ Things Docket deliberately does not do:
 
 ```
 packages/
-  core/   @luxalgo/docket-core  — ingestors, parsers, zod schemas (source of truth),
+  core/   @luxalgo/alt-data-core  — ingestors, parsers, zod schemas (source of truth),
                                   storage (SQLite default / Postgres via one flag),
                                   entity resolution, backfill, dump export/import,
                                   BYO-prices analytics, canaries
-  mcp/    @luxalgo/docket-mcp   — MCP server: stdio + stateless streamable HTTP
-  cli/    @luxalgo/docket-cli   — docket sync | status | export | import | backfill |
+  mcp/    @luxalgo/alt-data-mcp   — MCP server: stdio + stateless streamable HTTP
+  cli/    @luxalgo/alt-data-cli   — alt-data sync | status | export | import | backfill |
                                   resolve | analyze | canary | serve
-python/   docket-data           — dependency-light reader for the published dumps
+python/   alt-datasets           — dependency-light reader for the published dumps
 notebooks/                      — worked examples over the dumps (no keys, reproducible)
-templates/docket-data/          — the data repo's README, LICENSE, and static explorer
+templates/alt-datasets/          — the data repo's README, LICENSE, and static explorer
 ```
 
 Design decisions are documented in [`docs/decisions/`](docs/decisions/), per-source

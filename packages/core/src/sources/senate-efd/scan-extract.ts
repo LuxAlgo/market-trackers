@@ -4,7 +4,7 @@ import type { CongressTrade } from "../../schema/congress-trade.js";
  * Pluggable extractor seam for scanned paper PTRs
  * (`/search/view/paper/{uuid}/` — image scans with no parseable table).
  *
- * Docket ships no OCR/LLM extraction; whoever wires one in registers it
+ * LuxAlgo Alt Data ships no OCR/LLM extraction; whoever wires one in registers it
  * here. Extracted rows must be honest about their tier: confidence 0.7 and
  * `needsReview: true` on every row — the source validates that contract
  * before upserting. Without a registered extractor, scanned filings are

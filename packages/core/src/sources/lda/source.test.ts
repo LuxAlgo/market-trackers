@@ -3,7 +3,7 @@ import { ldaSource, ldaFilingYears, LDA_FILINGS_URL } from "./source.js";
 import { parseLdaAmount } from "./client.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { LobbyingFiling } from "../../schema/lobbying-filing.js";
-import { DocketStore } from "../../store/store.js";
+import { AltDataStore } from "../../store/store.js";
 import { resolveConfig, type ConfigOverrides } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
 import { readFixture, readFixtureJson } from "../../test-helpers.js";
@@ -54,8 +54,8 @@ function mockFetch(captured: CapturedRequest[]): typeof fetch {
 async function makeCtx(
   overrides: ConfigOverrides = {},
   nowIso = NOW,
-): Promise<{ ctx: SourceContext; store: DocketStore; captured: CapturedRequest[] }> {
-  const store = await DocketStore.open(":memory:");
+): Promise<{ ctx: SourceContext; store: AltDataStore; captured: CapturedRequest[] }> {
+  const store = await AltDataStore.open(":memory:");
   const captured: CapturedRequest[] = [];
   const ctx: SourceContext = {
     store,

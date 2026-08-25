@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { exportDumps } from "./writer.js";
 import { importDumps } from "./import.js";
-import { DocketStore } from "../store/store.js";
+import { AltDataStore } from "../store/store.js";
 import { DATASETS } from "../schema/datasets.js";
 import {
   makeCongressTrade,
@@ -17,11 +17,11 @@ import type { ShortVolumeDay } from "../schema/short-volume-day.js";
  * fresh store rebuilt from a dumps directory matches the original.
  */
 
-let source: DocketStore;
+let source: AltDataStore;
 let tmp: { dir: string; cleanup: () => void };
 
 beforeAll(async () => {
-  source = await DocketStore.open(":memory:");
+  source = await AltDataStore.open(":memory:");
   await source.upsert(DATASETS["short-volume"], [
     makeShortVolumeDay({ id: "2026-08-20:EXCO:CNMS", date: "2026-08-20" }),
     makeShortVolumeDay({ id: "2026-08-21:EXCO:CNMS", date: "2026-08-21" }),
@@ -41,7 +41,7 @@ afterAll(async () => {
 
 describe("importDumps", () => {
   it("rebuilds a fresh store from a dumps directory", async () => {
-    const rebuilt = await DocketStore.open(":memory:");
+    const rebuilt = await AltDataStore.open(":memory:");
     const summary = await importDumps(rebuilt, tmp.dir);
     expect(summary.perDataset["short-volume"]).toBeGreaterThanOrEqual(3);
     expect(summary.perDataset["congress-trades"]).toBeGreaterThanOrEqual(1);
@@ -62,7 +62,7 @@ describe("importDumps", () => {
   });
 
   it("imports a single snapshot file, inferring the dataset from its path", async () => {
-    const rebuilt = await DocketStore.open(":memory:");
+    const rebuilt = await AltDataStore.open(":memory:");
     const summary = await importDumps(
       rebuilt,
       join(tmp.dir, "short-volume", "daily", "snapshot-2025.json.gz"),
@@ -73,7 +73,7 @@ describe("importDumps", () => {
   });
 
   it("refuses a file whose dataset can't be inferred, naming the flag to use", async () => {
-    const rebuilt = await DocketStore.open(":memory:");
+    const rebuilt = await AltDataStore.open(":memory:");
     const { writeFileSync } = await import("node:fs");
     const orphan = join(tmp.dir, "orphan.json");
     writeFileSync(orphan, "[]");

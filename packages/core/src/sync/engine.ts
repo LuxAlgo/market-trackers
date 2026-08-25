@@ -1,6 +1,6 @@
 import type { SourceId } from "../schema/provenance.js";
 import type {
-  DocketSource,
+  AltDataSource,
   SourceContext,
   SourceSyncResult,
   SyncOptions,
@@ -24,7 +24,7 @@ export interface RunSyncOptions extends SyncOptions {
   sources?: SourceId[];
 }
 
-export function selectSources(sourceIds?: SourceId[]): DocketSource[] {
+export function selectSources(sourceIds?: SourceId[]): AltDataSource[] {
   if (!sourceIds || sourceIds.length === 0) {
     return ALL_SOURCES.filter((s) => s.implemented);
   }

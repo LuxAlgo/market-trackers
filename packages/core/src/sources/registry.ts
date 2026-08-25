@@ -1,5 +1,5 @@
 import type { SourceId } from "../schema/provenance.js";
-import type { DocketSource } from "./types.js";
+import type { AltDataSource } from "./types.js";
 import { edgarSource } from "./edgar/source.js";
 import { senateEfdSource } from "./senate-efd/source.js";
 import { houseClerkSource } from "./house-clerk/source.js";
@@ -18,7 +18,7 @@ import { cftcSource } from "./cftc/source.js";
  * wired by implementing the contract in its own directory; nothing else
  * changes.
  */
-export const ALL_SOURCES: DocketSource[] = [
+export const ALL_SOURCES: AltDataSource[] = [
   edgarSource,
   senateEfdSource,
   houseClerkSource,
@@ -32,7 +32,7 @@ export const ALL_SOURCES: DocketSource[] = [
   cftcSource,
 ];
 
-export function sourceById(id: string): DocketSource {
+export function sourceById(id: string): AltDataSource {
   const source = ALL_SOURCES.find((s) => s.id === id);
   if (!source) {
     throw new Error(

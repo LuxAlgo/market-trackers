@@ -13,9 +13,9 @@ name: Backfill
 # depth notes and the resume model.
 #
 # No-ops until configured:
-#   vars.DOCKET_CONTACT       — contact email for the SEC EDGAR User-Agent (only needed for `source: edgar`)
-#   vars.DOCKET_DATA_REPO     — e.g. "LuxAlgo/docket-data" (archive-release publish step skipped without it)
-#   secrets.DOCKET_DATA_TOKEN — token with contents:write on the data repo (archive-release publish step skipped without it)
+#   vars.ALT_DATA_CONTACT       — contact email for the SEC EDGAR User-Agent (only needed for `source: edgar`)
+#   vars.ALT_DATASETS_REPO     — e.g. "LuxAlgo/alt-datasets" (archive-release publish step skipped without it)
+#   secrets.ALT_DATASETS_TOKEN — token with contents:write on the data repo (archive-release publish step skipped without it)
 on:
   workflow_dispatch:
     inputs:
@@ -78,7 +78,7 @@ jobs:
       - name: Backfill
         id: backfill
         env:
-          DOCKET_CONTACT: ${{ vars.DOCKET_CONTACT }}
+          ALT_DATA_CONTACT: ${{ vars.ALT_DATA_CONTACT }}
           SOURCE: ${{ inputs.source }}
           FROM: ${{ inputs.from }}
           TO_INPUT: ${{ inputs.to }}
@@ -109,15 +109,15 @@ jobs:
       # step output that later steps gate on.
       - name: Check data-repo credentials
         id: creds
-        if: vars.DOCKET_DATA_REPO != ''
+        if: vars.ALT_DATASETS_REPO != ''
         env:
-          DOCKET_DATA_TOKEN: ${{ secrets.DOCKET_DATA_TOKEN }}
+          ALT_DATASETS_TOKEN: ${{ secrets.ALT_DATASETS_TOKEN }}
         run: |
-          if [ -n "$DOCKET_DATA_TOKEN" ]; then
+          if [ -n "$ALT_DATASETS_TOKEN" ]; then
             echo "publish=true" >> "$GITHUB_OUTPUT"
           else
             echo "publish=false" >> "$GITHUB_OUTPUT"
-            echo "DOCKET_DATA_TOKEN not configured; skipping the archive-release publish step."
+            echo "ALT_DATASETS_TOKEN not configured; skipping the archive-release publish step."
           fi
 
       # Publishes this run's year-shard snapshot-*.json.gz files as assets on
@@ -129,10 +129,10 @@ jobs:
         if: steps.creds.outputs.publish == 'true'
         uses: actions/github-script@v7
         env:
-          DATA_REPO: ${{ vars.DOCKET_DATA_REPO }}
+          DATA_REPO: ${{ vars.ALT_DATASETS_REPO }}
           SOURCE: ${{ inputs.source }}
         with:
-          github-token: ${{ secrets.DOCKET_DATA_TOKEN }}
+          github-token: ${{ secrets.ALT_DATASETS_TOKEN }}
           script: |
             const fs = require("fs");
             const path = require("path");
@@ -172,9 +172,9 @@ jobs:
                   name: tag,
                   body:
                     `Deep-history archive for **${source}**, event window ${summary.from}..${summary.to}.\n\n` +
-                    "Snapshot files are sharded by event year. Restore with `docket import` " +
+                    "Snapshot files are sharded by event year. Restore with `alt-data import` " +
                     "against a downloaded asset, or a full checkout of this repo — see " +
-                    "docs/backfill.md in LuxAlgo/docket for the full restore story.",
+                    "docs/backfill.md in LuxAlgo/alt-data for the full restore story.",
                 })
               ).data;
               core.info(`Created release ${tag}`);
@@ -228,7 +228,7 @@ jobs:
       - name: Fail the run if the backfill didn't fully complete
         if: steps.backfill.outputs.exit_code != '0'
         run: |
-          echo "The backfill stopped before reaching --to (docket backfill exit code ${{ steps.backfill.outputs.exit_code }})."
+          echo "The backfill stopped before reaching --to (alt-data backfill exit code ${{ steps.backfill.outputs.exit_code }})."
           echo "Whatever WAS ingested this run was still exported and uploaded above."
           echo "Re-dispatch this workflow with the same source/from — it resumes automatically from backfill.completedThrough."
           exit 1

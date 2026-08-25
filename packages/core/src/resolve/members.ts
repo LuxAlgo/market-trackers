@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { DocketStore, MemberMapEntry } from "../store/store.js";
+import type { AltDataStore, MemberMapEntry } from "../store/store.js";
 import type { Logger } from "../lib/logger.js";
 import { hoursSince } from "../lib/dates.js";
 
@@ -50,7 +50,7 @@ export function legislatorToEntry(raw: z.infer<typeof legislatorSchema>): Member
 }
 
 export async function refreshMemberMapIfStale(
-  store: DocketStore,
+  store: AltDataStore,
   fetchImpl: typeof fetch,
   logger: Logger,
   options: { maxAgeDays?: number; includeHistorical?: boolean } = {},

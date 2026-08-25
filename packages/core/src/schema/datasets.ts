@@ -13,7 +13,7 @@ import { fdaApprovalSchema, type FdaApproval } from "./fda-approval.js";
 import { cotReportSchema, type CotReport } from "./cot-report.js";
 
 /**
- * The dataset registry: one definition per dataset Docket ingests, stores,
+ * The dataset registry: one definition per dataset LuxAlgo Alt Data ingests, stores,
  * serves, and dumps. Storage, export, sync, and the MCP server all iterate
  * this registry instead of hard-coding dataset lists.
  */
@@ -38,7 +38,7 @@ export type DatasetId = (typeof DATASET_IDS)[number];
 /**
  * Bump when a PUBLISHED record shape changes. Adding whole new datasets is
  * additive and does not bump (existing consumers keep parsing untouched
- * shapes) — see docs/docket-data.md.
+ * shapes) — see docs/alt-datasets.md.
  */
 export const SCHEMA_VERSION = 1;
 

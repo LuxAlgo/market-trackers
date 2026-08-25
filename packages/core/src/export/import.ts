@@ -3,12 +3,12 @@ import { join, basename } from "node:path";
 import { gunzipSync } from "node:zlib";
 import type { DatasetId } from "../schema/datasets.js";
 import { ALL_DATASETS, datasetById, type DatasetDefinition } from "../schema/datasets.js";
-import type { DocketStore } from "../store/store.js";
+import type { AltDataStore } from "../store/store.js";
 import type { Logger } from "../lib/logger.js";
 
 /**
- * The other half of the dumps contract: everything `docket export` writes,
- * `docket import` reads back. Published dumps are therefore the durable
+ * The other half of the dumps contract: everything `alt-data export` writes,
+ * `alt-data import` reads back. Published dumps are therefore the durable
  * archive — a store can always be rebuilt from the data repo (or from a
  * backfill archive) with no access to the original sources. Upserts by
  * natural key make importing overlapping files safe.
@@ -49,7 +49,7 @@ function walkDataFiles(dir: string): string[] {
 }
 
 async function importFiles(
-  store: DocketStore,
+  store: AltDataStore,
   dataset: DatasetDefinition,
   files: string[],
   summary: ImportSummary,
@@ -73,11 +73,11 @@ export interface ImportOptions {
 }
 
 /**
- * Imports a dumps directory (the docket-data layout), a single dataset
+ * Imports a dumps directory (the alt-datasets layout), a single dataset
  * directory, or a single .json/.json.gz file into the store.
  */
 export async function importDumps(
-  store: DocketStore,
+  store: AltDataStore,
   path: string,
   options: ImportOptions = {},
 ): Promise<ImportSummary> {
@@ -113,7 +113,7 @@ export async function importDumps(
   }
   if (summary.files === 0) {
     throw new Error(
-      `No importable files found under '${path}' — expected the docket-data layout or --dataset with a dataset directory`,
+      `No importable files found under '${path}' — expected the alt-datasets layout or --dataset with a dataset directory`,
     );
   }
   return summary;

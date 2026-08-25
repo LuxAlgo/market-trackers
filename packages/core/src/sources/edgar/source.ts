@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { DocketSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
+import type { AltDataSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { InsiderTransaction } from "../../schema/insider-transaction.js";
@@ -43,7 +43,7 @@ function hashLines(lines: string[]): string {
   return createHash("sha256").update(lines.join("\n")).digest("hex").slice(0, 16);
 }
 
-export const edgarSource: DocketSource = {
+export const edgarSource: AltDataSource = {
   id: "edgar",
   title: "SEC EDGAR (Forms 3/4/5, 13F-HR)",
   datasets: ["insider-transactions", "thirteenf-holdings"],
@@ -145,7 +145,7 @@ export const edgarSource: DocketSource = {
             insiderRows.push(...parsed.rows);
           } else {
             const parsed = parseThirteenf(common);
-            // Ticker resolution for CUSIPs is cache-only here; `docket resolve`
+            // Ticker resolution for CUSIPs is cache-only here; `alt-data resolve`
             // fills the cache via OpenFIGI (see resolve/cusip.ts).
             for (const row of parsed.rows) {
               const cached = await ctx.store.getCusip(row.cusip);

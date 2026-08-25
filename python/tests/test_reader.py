@@ -1,7 +1,7 @@
-"""Offline tests for docket_data, run with plain `python3 -m unittest`.
+"""Offline tests for alt_datasets, run with plain `python3 -m unittest`.
 
 Every case reads from python/tests/fixtures/ — no network access, no live
-docket-data checkout required.
+alt-datasets checkout required.
 """
 
 from __future__ import annotations
@@ -10,13 +10,13 @@ import sys
 import unittest
 from pathlib import Path
 
-# Make `docket_data` importable without installing the package, regardless
+# Make `alt_datasets` importable without installing the package, regardless
 # of the current working directory this test is invoked from.
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]  # .../python
 if str(PACKAGE_ROOT) not in sys.path:
     sys.path.insert(0, str(PACKAGE_ROOT))
 
-from docket_data import DocketDataError, load_manifest, load_snapshot, to_dataframe  # noqa: E402
+from alt_datasets import AltDatasetsError, load_manifest, load_snapshot, to_dataframe  # noqa: E402
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
 
@@ -32,7 +32,7 @@ class LoadManifestTests(unittest.TestCase):
         self.assertEqual(manifest["schemaVersion"], 1)
 
     def test_rejects_json_that_is_not_a_manifest(self):
-        with self.assertRaises(DocketDataError) as ctx:
+        with self.assertRaises(AltDatasetsError) as ctx:
             load_manifest(str(FIXTURES / "bad-shape.json"))
         self.assertIn("manifest", str(ctx.exception))
 
@@ -49,7 +49,7 @@ class LoadSnapshotDirectFileTests(unittest.TestCase):
         self.assertEqual({r["ticker"] for r in rows}, {"ACME", "OTHR"})
 
     def test_rejects_a_json_file_that_is_not_an_array(self):
-        with self.assertRaises(DocketDataError) as ctx:
+        with self.assertRaises(AltDatasetsError) as ctx:
             load_snapshot(str(FIXTURES / "bad-shape.json"))
         self.assertIn("expected a JSON array", str(ctx.exception))
 
@@ -71,14 +71,14 @@ class LoadSnapshotViaManifestTests(unittest.TestCase):
         self.assertEqual({r["year"] for r in rows}, {2025, 2026})
 
     def test_unknown_dataset_raises_and_lists_known_ones(self):
-        with self.assertRaises(DocketDataError) as ctx:
+        with self.assertRaises(AltDatasetsError) as ctx:
             load_snapshot(str(FIXTURES), dataset="not-a-real-dataset")
         message = str(ctx.exception)
         self.assertIn("not-a-real-dataset", message)
         self.assertIn("congress-trades", message)
 
     def test_a_dataset_with_no_snapshot_files_raises_with_a_latest_json_hint(self):
-        with self.assertRaises(DocketDataError) as ctx:
+        with self.assertRaises(AltDatasetsError) as ctx:
             load_snapshot(str(FIXTURES), dataset="empty-dataset")
         message = str(ctx.exception)
         self.assertIn("empty-dataset", message)

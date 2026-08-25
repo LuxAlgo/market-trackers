@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DocketStore } from "../store/store.js";
+import { AltDataStore } from "../store/store.js";
 import { silentLogger } from "../lib/logger.js";
 import { COMPANY_TICKERS_URL, EdgarClient } from "../sources/edgar/client.js";
 import { refreshCikTickersIfStale } from "./cik-ticker.js";
@@ -44,15 +44,15 @@ function mockSecFetch(): { fetchImpl: typeof fetch; seen: SeenRequest[] } {
   return { fetchImpl, seen };
 }
 
-async function makeStore(): Promise<DocketStore> {
-  return DocketStore.open(":memory:");
+async function makeStore(): Promise<AltDataStore> {
+  return AltDataStore.open(":memory:");
 }
 
 function makeClient(fetchImpl: typeof fetch): EdgarClient {
-  return new EdgarClient({ userAgent: "docket-test/0.0 (test@example.com)", fetchImpl });
+  return new EdgarClient({ userAgent: "alt-data-test/0.0 (test@example.com)", fetchImpl });
 }
 
-async function markStale(store: DocketStore): Promise<void> {
+async function markStale(store: AltDataStore): Promise<void> {
   await store.driver.run(`UPDATE "cik_tickers" SET "refreshed_at" = ?`, [
     "2020-01-01T00:00:00.000Z",
   ]);

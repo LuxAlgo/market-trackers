@@ -1,4 +1,4 @@
-# Contributing to Docket
+# Contributing to LuxAlgo Alt Data
 
 ## Setup
 
@@ -39,7 +39,7 @@ source URL and verification status.
 
 ## Adding or extending a source
 
-Each source lives in `packages/core/src/sources/<source-id>/` and implements the `DocketSource`
+Each source lives in `packages/core/src/sources/<source-id>/` and implements the `AltDataSource`
 contract (`sync` + `canary`) from `sources/types.ts`. The registry, CLI, sync engine, canaries,
 status output, and health board pick it up automatically. A complete source ships:
 
@@ -70,7 +70,7 @@ fail until all three agree — that's them doing their job. A changed published 
 CI, the daily canaries, dump publishing, and releases are documented in
 [`docs/operations.md`](docs/operations.md) — including every repository variable/secret and
 what stays off without it. The contract of the published dumps (layout, delta semantics,
-manifest, `SCHEMA_VERSION` policy) is in [`docs/docket-data.md`](docs/docket-data.md).
+manifest, `SCHEMA_VERSION` policy) is in [`docs/alt-datasets.md`](docs/alt-datasets.md).
 
 ## Security
 

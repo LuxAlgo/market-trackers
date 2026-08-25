@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * Every record Docket stores or publishes carries provenance: which primary
+ * Every record LuxAlgo Alt Data stores or publishes carries provenance: which primary
  * source it came from, a deep link to the primary document, when it was
  * retrieved, which parser produced it, and how much that parser is trusted.
  *

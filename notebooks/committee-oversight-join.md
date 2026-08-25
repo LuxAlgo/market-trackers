@@ -1,6 +1,6 @@
 # Committee oversight join: receipts-first storytelling
 
-What this walkthrough does: joins three of Docket's datasets — **committee assignments**,
+What this walkthrough does: joins three of LuxAlgo Alt Data's datasets — **committee assignments**,
 **congressional trades**, and **government contract awards** — to surface a specific, legal,
 already-disclosed fact pattern: members of a committee, personally trading the same tickers
 that receive contracts from agencies in that committee's general orbit. It presents the facts
@@ -15,9 +15,9 @@ interpreted for you.
 ## 1. Get the data
 
 ```python
-from docket_data import load_snapshot, to_dataframe
+from alt_datasets import load_snapshot, to_dataframe
 
-ROOT = "https://raw.githubusercontent.com/LuxAlgo/docket-data/main"
+ROOT = "https://raw.githubusercontent.com/LuxAlgo/alt-datasets/main"
 
 committees = to_dataframe(load_snapshot(ROOT, dataset="committee-assignments"))
 trades = to_dataframe(load_snapshot(ROOT, dataset="congress-trades"))
@@ -104,18 +104,18 @@ anything into it.
 
 ## Via MCP
 
-If you're driving Docket through its MCP server (`docket serve`) instead of the published
+If you're driving LuxAlgo Alt Data through its MCP server (`alt-data serve`) instead of the published
 dumps, the same join is a handful of tool calls, each returning the same citations used above:
 
-1. **`docket_committees`** with `{ "q": "armed services" }` — the roster: every member, their
+1. **`alt_data_committees`** with `{ "q": "armed services" }` — the roster: every member, their
    leadership title, subcommittee seats, and disclosed-trade count.
-2. **`docket_congress_trades`** with `{ "member": "<name>" }` for each roster member (or pull
+2. **`alt_data_congress_trades`** with `{ "member": "<name>" }` for each roster member (or pull
    the full trade set once and filter client-side by the roster's names) — their disclosed
    trades, each with a `citation`.
-3. **`docket_gov_contracts`** with `{ "ticker": "<ticker>" }` for each ticker that turned up in
+3. **`alt_data_gov_contracts`** with `{ "ticker": "<ticker>" }` for each ticker that turned up in
    step 2 — contract awards to that ticker's recipient, each with a `citation`.
 
-`docket_member_profile` with `{ "q": "<name>" }` is a shortcut for steps 1–2 for a single
+`alt_data_member_profile` with `{ "q": "<name>" }` is a shortcut for steps 1–2 for a single
 member: it returns their committee seats and trades already joined. None of these tools score
 or rank anything — they return rows, and every row cites its filing.
 
@@ -136,9 +136,9 @@ or rank anything — they return rows, and every row cites its filing.
   follow long, publicly disclosed procurement processes that predate the award date itself by
   months.
 - **Coverage gaps are gaps, not absence.** `recipient.tickers` on a contract is empty when
-  Docket's recipient→ticker map hasn't resolved that recipient to a public company — a mapping
+  LuxAlgo Alt Data's recipient→ticker map hasn't resolved that recipient to a public company — a mapping
   gap, not evidence the recipient has no public tickers. Likewise, a member's trade with
   `ticker: None` is an unresolved asset description, not a trade that didn't happen.
-- **No score, rank, or "watch list" is computed** — here or anywhere in Docket. If you build
+- **No score, rank, or "watch list" is computed** — here or anywhere in LuxAlgo Alt Data. If you build
   one on top of this, that is your model, on your assumptions; keep it clearly separate from
   the primary-source facts above.

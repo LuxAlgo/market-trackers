@@ -1,5 +1,5 @@
 /**
- * The one seam between Docket and its databases. SQL in the store layer is
+ * The one seam between LuxAlgo Alt Data and its databases. SQL in the store layer is
  * written once against `?` placeholders and standard SQL that SQLite and
  * Postgres share (including `INSERT … ON CONFLICT … DO UPDATE`); each driver
  * adapts placeholders and value coercions. SQLite is the default backend,
@@ -152,7 +152,7 @@ export interface ParsedDbUrl {
 
 /**
  * One flag, two backends:
- *   - "docket.db", "./data/docket.db", ":memory:", "sqlite:path" → SQLite
+ *   - "alt-data.db", "./data/alt-data.db", ":memory:", "sqlite:path" → SQLite
  *   - "postgres://…", "postgresql://…" → Postgres
  */
 export function parseDbUrl(url: string): ParsedDbUrl {

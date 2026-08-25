@@ -17,7 +17,7 @@ const BIN = join(PKG_ROOT, "dist", "index.js");
 
 let tmp: string;
 
-function docket(args: string[], env: Record<string, string> = {}): string {
+function altData(args: string[], env: Record<string, string> = {}): string {
   return execFileSync(process.execPath, [BIN, ...args], {
     encoding: "utf8",
     env: { ...process.env, ...env },
@@ -44,20 +44,20 @@ afterAll(() => {
   rmSync(tmp, { recursive: true, force: true });
 });
 
-describe("docket CLI", () => {
+describe("alt-data CLI", () => {
   it("--version prints the version", () => {
-    expect(docket(["--version"]).trim()).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(altData(["--version"]).trim()).toMatch(/^\d+\.\d+\.\d+$/);
   });
 
   it("--help lists all five commands", () => {
-    const help = docket(["--help"]);
+    const help = altData(["--help"]);
     for (const cmd of ["sync", "status", "export", "canary", "serve"]) {
       expect(help).toContain(cmd);
     }
   });
 
   it("status --json creates the store, migrates, and reports all datasets empty", () => {
-    const out = docket(["status", "--json", "--db", "cli-test.db"]);
+    const out = altData(["status", "--json", "--db", "cli-test.db"]);
     const report = JSON.parse(out);
     expect(report.datasets).toHaveLength(12);
     expect(report.datasets.every((d: { rowCount: number }) => d.rowCount === 0)).toBe(true);
@@ -67,7 +67,7 @@ describe("docket CLI", () => {
   it("sync with a dataset filter a source doesn't produce is an offline no-op", () => {
     // finra only produces short-volume; the filter short-circuits before any
     // network access, so this exercises the CLI sync path fully offline.
-    const out = docket([
+    const out = altData([
       "sync",
       "--source",
       "finra",
@@ -86,8 +86,8 @@ describe("docket CLI", () => {
   it("sync --source edgar without a contact email fails with the fair-access explanation", () => {
     let failed = false;
     try {
-      docket(["sync", "--source", "edgar", "--json", "--db", "cli-test.db"], {
-        DOCKET_CONTACT: "",
+      altData(["sync", "--source", "edgar", "--json", "--db", "cli-test.db"], {
+        ALT_DATA_CONTACT: "",
       });
     } catch (error) {
       failed = true;
@@ -99,7 +99,7 @@ describe("docket CLI", () => {
   });
 
   it("export writes a manifest even for an empty store", () => {
-    const out = docket(["export", "--json", "--db", "cli-test.db", "--out", join(tmp, "dumps")]);
+    const out = altData(["export", "--json", "--db", "cli-test.db", "--out", join(tmp, "dumps")]);
     const summary = JSON.parse(out);
     expect(summary.filesWritten.some((f: string) => f.endsWith("manifest.json"))).toBe(true);
     const manifest = JSON.parse(readFileSync(join(tmp, "dumps", "manifest.json"), "utf8"));
@@ -108,13 +108,13 @@ describe("docket CLI", () => {
   });
 
   it("rejects unknown sources and datasets by name", () => {
-    expect(() => docket(["sync", "--source", "not-a-source", "--db", "cli-test.db"])).toThrow();
-    expect(() => docket(["export", "--dataset", "nope", "--db", "cli-test.db"])).toThrow();
+    expect(() => altData(["sync", "--source", "not-a-source", "--db", "cli-test.db"])).toThrow();
+    expect(() => altData(["export", "--dataset", "nope", "--db", "cli-test.db"])).toThrow();
   });
 
   it("resolve cusips --json reports all zeros on a store with nothing unresolved", () => {
     // Fully offline: with no unresolved CUSIPs the command never calls OpenFIGI.
-    const out = docket(["resolve", "cusips", "--json", "--db", "resolve-test.db"]);
+    const out = altData(["resolve", "cusips", "--json", "--db", "resolve-test.db"]);
     expect(JSON.parse(out)).toEqual({
       unresolvedCusips: 0,
       resolved: 0,
@@ -124,14 +124,14 @@ describe("docket CLI", () => {
   });
 
   it("resolve rejects unknown targets and bad limits", () => {
-    expect(() => docket(["resolve", "tickers", "--db", "resolve-test.db"])).toThrow();
+    expect(() => altData(["resolve", "tickers", "--db", "resolve-test.db"])).toThrow();
     expect(() =>
-      docket(["resolve", "cusips", "--limit", "zero", "--db", "resolve-test.db"]),
+      altData(["resolve", "cusips", "--limit", "zero", "--db", "resolve-test.db"]),
     ).toThrow();
   });
 
   it("--help lists the resolve command", () => {
-    expect(docket(["--help"])).toContain("resolve");
+    expect(altData(["--help"])).toContain("resolve");
   });
 
   // Backfill's chunking/resume/limit behavior is covered at the engine
@@ -141,7 +141,7 @@ describe("docket CLI", () => {
   it("backfill requires --from", () => {
     let failed = false;
     try {
-      docket(["backfill", "--source", "finra", "--db", "cli-test.db"]);
+      altData(["backfill", "--source", "finra", "--db", "cli-test.db"]);
     } catch (error) {
       failed = true;
       const err = error as { status: number; stderr: string };
@@ -153,7 +153,7 @@ describe("docket CLI", () => {
 
   it("backfill rejects an unknown source", () => {
     expect(() =>
-      docket([
+      altData([
         "backfill",
         "--source",
         "not-a-source",
@@ -167,10 +167,10 @@ describe("docket CLI", () => {
 
   it("backfill rejects a malformed --from/--to date and a --to before --from", () => {
     expect(() =>
-      docket(["backfill", "--source", "finra", "--from", "not-a-date", "--db", "cli-test.db"]),
+      altData(["backfill", "--source", "finra", "--from", "not-a-date", "--db", "cli-test.db"]),
     ).toThrow();
     expect(() =>
-      docket([
+      altData([
         "backfill",
         "--source",
         "finra",
@@ -185,19 +185,19 @@ describe("docket CLI", () => {
   });
 
   it("--help lists the backfill command", () => {
-    expect(docket(["--help"])).toContain("backfill");
+    expect(altData(["--help"])).toContain("backfill");
   });
 });
 
-describe("docket analyze", () => {
+describe("alt-data analyze", () => {
   it("rejects an unknown analyze target", () => {
-    expect(() => docket(["analyze", "not-a-target", "--db", "analyze-validation.db"])).toThrow();
+    expect(() => altData(["analyze", "not-a-target", "--db", "analyze-validation.db"])).toThrow();
   });
 
   it("requires --prices and names the expected CSV shape", () => {
     let failed = false;
     try {
-      docket(["analyze", "congress", "--db", "analyze-validation.db"]);
+      altData(["analyze", "congress", "--db", "analyze-validation.db"]);
     } catch (error) {
       failed = true;
       const err = error as { status: number; stderr: string };
@@ -210,7 +210,7 @@ describe("docket analyze", () => {
   it("rejects a non-positive --window", () => {
     writeFileSync(join(tmp, "any-prices.csv"), "date,ticker,close\n2026-08-18,ACME,10\n");
     expect(() =>
-      docket([
+      altData([
         "analyze",
         "congress",
         "--prices",
@@ -252,7 +252,7 @@ describe("docket analyze", () => {
     ];
     const deltaPath = join(tmp, "congress-delta.json");
     writeFileSync(deltaPath, JSON.stringify(delta));
-    docket(["import", deltaPath, "--dataset", "congress-trades", "--db", "analyze-e2e.db"]);
+    altData(["import", deltaPath, "--dataset", "congress-trades", "--db", "analyze-e2e.db"]);
 
     const pricesPath = join(tmp, "prices.csv");
     writeFileSync(
@@ -260,7 +260,7 @@ describe("docket analyze", () => {
       ["date,ticker,close", "2026-08-18,ACME,40.00", "2026-09-17,ACME,44.00", ""].join("\n"),
     );
 
-    const out = docket([
+    const out = altData([
       "analyze",
       "congress",
       "--prices",
@@ -273,7 +273,7 @@ describe("docket analyze", () => {
     expect(out).toContain("Descriptive arithmetic over public records");
     expect(out).toContain("10.00%");
 
-    const jsonOut = docket([
+    const jsonOut = altData([
       "analyze",
       "congress",
       "--prices",
@@ -291,7 +291,7 @@ describe("docket analyze", () => {
     expect(result.rows[0].event.citation).toBe("https://example.gov/primary/cli-test-doc");
 
     const outPath = join(tmp, "analyze-result.json");
-    docket([
+    altData([
       "analyze",
       "congress",
       "--prices",
@@ -310,6 +310,6 @@ describe("docket analyze", () => {
   });
 
   it("--help lists the analyze command", () => {
-    expect(docket(["--help"])).toContain("analyze");
+    expect(altData(["--help"])).toContain("analyze");
   });
 });

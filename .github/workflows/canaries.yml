@@ -39,21 +39,21 @@ jobs:
         run: pnpm build
 
       # A shallow sync gives the canaries real parse-rate stats to judge.
-      # DOCKET_CONTACT is a repo variable (Settings → Variables); without it
+      # ALT_DATA_CONTACT is a repo variable (Settings → Variables); without it
       # the EDGAR sync is skipped and its canary reports the gap honestly.
       - name: Sync (shallow)
         env:
-          DOCKET_CONTACT: ${{ vars.DOCKET_CONTACT }}
+          ALT_DATA_CONTACT: ${{ vars.ALT_DATA_CONTACT }}
         run: |
           node packages/cli/dist/index.js sync --source finra --db canary.db --json || true
-          if [ -n "$DOCKET_CONTACT" ]; then
+          if [ -n "$ALT_DATA_CONTACT" ]; then
             node packages/cli/dist/index.js sync --source edgar --db canary.db --limit 300 --json || true
           fi
 
       - name: Run canaries
         id: canary
         env:
-          DOCKET_CONTACT: ${{ vars.DOCKET_CONTACT }}
+          ALT_DATA_CONTACT: ${{ vars.ALT_DATA_CONTACT }}
         run: |
           set +e
           node packages/cli/dist/index.js canary --db canary.db --out canary-report.json --json

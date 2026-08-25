@@ -1,4 +1,4 @@
-import { freshnessReport, ALL_SOURCES } from "@luxalgo/docket-core";
+import { freshnessReport, ALL_SOURCES } from "@luxalgo/alt-data-core";
 import { openContext, printJson, printTable, type GlobalFlags } from "../context.js";
 
 export async function statusCommand(flags: GlobalFlags): Promise<number> {

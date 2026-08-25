@@ -4,7 +4,7 @@ import {
   isDatasetId,
   type DatasetId,
   type SourceId,
-} from "@luxalgo/docket-core";
+} from "@luxalgo/alt-data-core";
 import { openContext, printJson, type GlobalFlags } from "../context.js";
 
 export interface SyncFlags extends GlobalFlags {

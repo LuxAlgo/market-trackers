@@ -1,24 +1,24 @@
 import {
   createLogger,
-  DocketStore,
+  AltDataStore,
   resolveConfig,
   type ConfigOverrides,
-  type DocketConfig,
+  type AltDataConfig,
   type Logger,
   type SourceContext,
-} from "@luxalgo/docket-core";
+} from "@luxalgo/alt-data-core";
 
 /** Flags shared by every command. */
 export interface GlobalFlags {
   db?: string;
   contact?: string;
-  log?: DocketConfig["logLevel"];
+  log?: AltDataConfig["logLevel"];
   json?: boolean;
 }
 
 export interface CliContext extends SourceContext {
-  store: DocketStore;
-  config: DocketConfig;
+  store: AltDataStore;
+  config: AltDataConfig;
   logger: Logger;
   close: () => Promise<void>;
 }
@@ -32,7 +32,7 @@ export async function openContext(flags: GlobalFlags): Promise<CliContext> {
   if (flags.json && !flags.log) overrides.logLevel = "warn";
 
   const config = resolveConfig(overrides);
-  const store = await DocketStore.open(config.db);
+  const store = await AltDataStore.open(config.db);
   const logger = createLogger(config.logLevel);
   return {
     store,

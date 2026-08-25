@@ -5,7 +5,7 @@ import { provenanceSchema } from "./provenance.js";
  * A single transaction row from a congressional Periodic Transaction Report
  * (Senate eFD or House Clerk financial disclosures).
  *
- * Disclosed amounts are ranges, not exact values. Docket stores the range
+ * Disclosed amounts are ranges, not exact values. LuxAlgo Alt Data stores the range
  * bounds verbatim and never fabricates a midpoint — `amountMax` is null for
  * open-ended top ranges ("Over $50,000,000").
  */

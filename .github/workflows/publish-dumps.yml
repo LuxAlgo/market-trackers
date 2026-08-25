@@ -1,14 +1,14 @@
 name: Publish dumps
 
 # Daily: sync all implemented sources into a cached store, export the
-# docket-data layout (daily deltas + snapshots + manifest), and push it to
+# alt-datasets layout (daily deltas + snapshots + manifest), and push it to
 # the data repository. Humans never hand-edit data — only this workflow
-# writes to docket-data.
+# writes to alt-datasets.
 #
 # No-ops until configured:
-#   vars.DOCKET_CONTACT       — contact email for the SEC EDGAR User-Agent
-#   vars.DOCKET_DATA_REPO     — e.g. "LuxAlgo/docket-data" (job skipped without it)
-#   secrets.DOCKET_DATA_TOKEN — token with push access to the data repo
+#   vars.ALT_DATA_CONTACT       — contact email for the SEC EDGAR User-Agent
+#   vars.ALT_DATASETS_REPO     — e.g. "LuxAlgo/alt-datasets" (job skipped without it)
+#   secrets.ALT_DATASETS_TOKEN — token with push access to the data repo
 #                               (without it, dumps build but nothing is pushed)
 on:
   schedule:
@@ -27,7 +27,7 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    if: vars.DOCKET_DATA_REPO != ''
+    if: vars.ALT_DATASETS_REPO != ''
     steps:
       - uses: actions/checkout@v4
 
@@ -49,13 +49,13 @@ jobs:
       - name: Check data-repo credentials
         id: creds
         env:
-          DOCKET_DATA_TOKEN: ${{ secrets.DOCKET_DATA_TOKEN }}
+          ALT_DATASETS_TOKEN: ${{ secrets.ALT_DATASETS_TOKEN }}
         run: |
-          if [ -n "$DOCKET_DATA_TOKEN" ]; then
+          if [ -n "$ALT_DATASETS_TOKEN" ]; then
             echo "push=true" >> "$GITHUB_OUTPUT"
           else
             echo "push=false" >> "$GITHUB_OUTPUT"
-            echo "DOCKET_DATA_TOKEN not configured; dumps will be built but not published."
+            echo "ALT_DATASETS_TOKEN not configured; dumps will be built but not published."
           fi
 
       # The store accumulates across runs so exports carry full history.
@@ -65,13 +65,13 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: publish.db
-          key: docket-store-v1-${{ github.run_id }}
+          key: alt-data-store-v1-${{ github.run_id }}
           restore-keys: |
-            docket-store-v1-
+            alt-data-store-v1-
 
       - name: Sync
         env:
-          DOCKET_CONTACT: ${{ vars.DOCKET_CONTACT }}
+          ALT_DATA_CONTACT: ${{ vars.ALT_DATA_CONTACT }}
         run: node packages/cli/dist/index.js sync --db publish.db --json
 
       - name: Export
@@ -92,19 +92,19 @@ jobs:
         if: steps.creds.outputs.push == 'true'
         uses: actions/checkout@v4
         with:
-          repository: ${{ vars.DOCKET_DATA_REPO }}
-          token: ${{ secrets.DOCKET_DATA_TOKEN }}
+          repository: ${{ vars.ALT_DATASETS_REPO }}
+          token: ${{ secrets.ALT_DATASETS_TOKEN }}
           path: data-repo
 
       # First-publish bootstrap: install the data repo's landing README and
-      # CC0 LICENSE from templates/docket-data/ — only when missing, so a
+      # CC0 LICENSE from templates/alt-datasets/ — only when missing, so a
       # maintainer's later edits in the data repo are never overwritten.
       - name: Install data-repo README/LICENSE when missing
         if: steps.creds.outputs.push == 'true'
         run: |
           for f in README.md LICENSE; do
             if [ ! -f "data-repo/$f" ]; then
-              cp "templates/docket-data/$f" "data-repo/$f"
+              cp "templates/alt-datasets/$f" "data-repo/$f"
               echo "Installed $f into the data repo (first publish)."
             fi
           done
@@ -117,8 +117,8 @@ jobs:
         run: |
           rsync -a --delete --exclude ".git" --exclude "README.md" --exclude "LICENSE" --exclude "/explorer" dumps/ data-repo/
           cd data-repo
-          git config user.name "docket-publish[bot]"
-          git config user.email "docket-publish@users.noreply.github.com"
+          git config user.name "alt-data-publish[bot]"
+          git config user.email "alt-data-publish@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then
             echo "No data changes today."
@@ -129,20 +129,20 @@ jobs:
 
       # Installs/refreshes the static data explorer at explorer/index.html in
       # the data repo (a self-contained page that reads ../manifest.json and
-      # the dataset files next to it — see docs/docket-data.md). Its own
+      # the dataset files next to it — see docs/alt-datasets.md). Its own
       # commit, separate from the dumps push; the dumps rsync above excludes
       # "/explorer" so its --delete can never wipe this between refreshes.
       - name: Install data-repo explorer when present
         if: steps.creds.outputs.push == 'true'
         run: |
-          if [ ! -d "templates/docket-data/explorer" ]; then
-            echo "No explorer template (templates/docket-data/explorer/ not present); skipping."
+          if [ ! -d "templates/alt-datasets/explorer" ]; then
+            echo "No explorer template (templates/alt-datasets/explorer/ not present); skipping."
             exit 0
           fi
-          rsync -a templates/docket-data/explorer/ data-repo/explorer/
+          rsync -a templates/alt-datasets/explorer/ data-repo/explorer/
           cd data-repo
-          git config user.name "docket-publish[bot]"
-          git config user.email "docket-publish@users.noreply.github.com"
+          git config user.name "alt-data-publish[bot]"
+          git config user.email "alt-data-publish@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then
             echo "No explorer changes today."
@@ -153,13 +153,13 @@ jobs:
 
       - name: Update README health board
         env:
-          DOCKET_CONTACT: ${{ vars.DOCKET_CONTACT }}
+          ALT_DATA_CONTACT: ${{ vars.ALT_DATA_CONTACT }}
         run: |
           node packages/cli/dist/index.js canary --db publish.db --out canary-report.json --json || true
           node scripts/update-health-board.mjs canary-report.json README.md
           if ! git diff --quiet README.md; then
-            git config user.name "docket-publish[bot]"
-            git config user.email "docket-publish@users.noreply.github.com"
+            git config user.name "alt-data-publish[bot]"
+            git config user.email "alt-data-publish@users.noreply.github.com"
             git add README.md
             git commit -m "docs: refresh health board [skip ci]"
             git push
@@ -173,4 +173,4 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: publish.db
-          key: docket-store-v1-${{ github.run_id }}
+          key: alt-data-store-v1-${{ github.run_id }}

@@ -1,6 +1,6 @@
-export { registerDocketTools } from "./tools.js";
+export { registerAltDataTools } from "./tools.js";
 export {
-  createDocketMcpServer,
+  createAltDataMcpServer,
   resolveDbUrl,
   serveHttp,
   serveStdio,

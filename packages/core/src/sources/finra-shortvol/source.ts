@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { DocketSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
+import type { AltDataSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import { createPoliteFetch, type PoliteFetch } from "../../lib/http.js";
@@ -13,7 +13,7 @@ import {
   isWeekend,
   toDateString,
 } from "../../lib/dates.js";
-import { DOCKET_VERSION } from "../../config.js";
+import { ALT_DATA_VERSION } from "../../config.js";
 import { parseShortVolumeFile } from "./parser.js";
 
 /**
@@ -34,14 +34,14 @@ function watermarkKey(market: string): string {
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createPoliteFetch({
-    userAgent: ctx.config.userAgent ?? `docket/${DOCKET_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
     limiter: new RateLimiter({ limit: 5, windowMs: 1_000 }),
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("finra"),
   });
 }
 
-export const finraSource: DocketSource = {
+export const finraSource: AltDataSource = {
   id: "finra",
   title: "FINRA Reg SHO daily short-sale volume",
   datasets: ["short-volume"],

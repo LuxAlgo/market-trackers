@@ -187,8 +187,8 @@ export function requirePatentsviewApiKey(config: PatentsviewApiKeyConfig): strin
   if (config.patentsviewApiKey) return config.patentsviewApiKey;
   throw new Error(
     "PatentsView requires a free API key for its PatentSearch API (no anonymous tier). " +
-      "Set one with DOCKET_PATENTSVIEW_KEY=your-key, or " +
-      '{"patentsviewApiKey": "your-key"} in docket.config.json. ' +
+      "Set one with ALT_DATA_PATENTSVIEW_KEY=your-key, or " +
+      '{"patentsviewApiKey": "your-key"} in alt-data.config.json. ' +
       "Request a free key at https://patentsview.org/apis/keyrequest — " +
       "it is only ever sent as the X-Api-Key request header.",
   );

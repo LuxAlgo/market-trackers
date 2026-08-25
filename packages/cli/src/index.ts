@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /*
-  The Docket CLI: sync the public record of US markets into a local
+  The LuxAlgo Alt Data CLI: sync the public record of US markets into a local
   database, inspect it, serve it over MCP, and export it as JSON dumps.
   Keyless by design — the only identity ever sent is the contact email the
   SEC requires in the EDGAR User-Agent. No telemetry.
 */
 import { Command } from "commander";
-import { DOCKET_VERSION } from "@luxalgo/docket-core";
+import { ALT_DATA_VERSION } from "@luxalgo/alt-data-core";
 import { syncCommand } from "./commands/sync.js";
 import { statusCommand } from "./commands/status.js";
 import { exportCommand } from "./commands/export.js";
@@ -21,24 +21,24 @@ const program = new Command();
 
 function fail(error: unknown): never {
   const message = error instanceof Error ? error.message : String(error);
-  process.stderr.write(`docket: ${message}\n`);
+  process.stderr.write(`alt-data: ${message}\n`);
   process.exit(1);
 }
 
 function globalOptions(cmd: Command): Command {
   return cmd
-    .option("--db <url>", "SQLite path or postgres:// url (default: DOCKET_DB or ./docket.db)")
-    .option("--contact <email>", "contact email for the SEC EDGAR User-Agent (or DOCKET_CONTACT)")
+    .option("--db <url>", "SQLite path or postgres:// url (default: ALT_DATA_DB or ./alt-data.db)")
+    .option("--contact <email>", "contact email for the SEC EDGAR User-Agent (or ALT_DATA_CONTACT)")
     .option("--log <level>", "log level: debug|info|warn|error|silent")
     .option("--json", "machine-readable JSON on stdout");
 }
 
 program
-  .name("docket")
+  .name("alt-data")
   .description(
     "The public record of US markets — congress trades, insider filings, 13F holdings, government contracts, lobbying, short-sale volume — synced from primary sources to a local database.",
   )
-  .version(DOCKET_VERSION);
+  .version(ALT_DATA_VERSION);
 
 globalOptions(
   program
@@ -72,7 +72,7 @@ globalOptions(
 globalOptions(
   program
     .command("export")
-    .description("Write daily JSON deltas, snapshots, and a manifest (the docket-data layout)")
+    .description("Write daily JSON deltas, snapshots, and a manifest (the alt-datasets layout)")
     .option("--out <dir>", "output directory (default: ./dumps)")
     .option("--dataset <ids>", "comma-separated datasets to export")
     .option("--no-snapshot", "skip full snapshot files"),
@@ -118,7 +118,7 @@ globalOptions(
   program
     .command("import <path>")
     .description(
-      "Rebuild or top up the store from published dumps (a docket-data checkout, a dataset directory, or a single delta/snapshot file) — the mirror image of export",
+      "Rebuild or top up the store from published dumps (an alt-datasets checkout, a dataset directory, or a single delta/snapshot file) — the mirror image of export",
     )
     .option("--dataset <id>", "dataset id when it can't be inferred from the path"),
 ).action(async (path, flags) => {
@@ -153,7 +153,7 @@ globalOptions(
   program
     .command("analyze <what>")
     .description(
-      "Bring-your-own-prices factual joins over stored rows (Docket ships no price data and computes no scores; see docs/analytics.md)",
+      "Bring-your-own-prices factual joins over stored rows (LuxAlgo Alt Data ships no price data and computes no scores; see docs/analytics.md)",
     )
     .option("--prices <file>", "user-supplied price series (CSV: date,ticker,close)")
     .option("--dataset <id>", "dataset to join against")

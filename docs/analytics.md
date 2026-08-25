@@ -1,19 +1,19 @@
 # Analytics: bring-your-own-prices
 
-This is the design doc for `packages/core/src/analytics/` and the `docket analyze` CLI
-command — the one place in Docket where a public-record row is combined with a number that
+This is the design doc for `packages/core/src/analytics/` and the `alt-data analyze` CLI
+command — the one place in LuxAlgo Alt Data where a public-record row is combined with a number that
 isn't a public record: a price series **you** supply.
 
 ## What this is, and isn't
 
-- **Docket ships no price data.** Nothing in this module fetches, stores, or bundles a price.
+- **LuxAlgo Alt Data ships no price data.** Nothing in this module fetches, stores, or bundles a price.
   Every price used anywhere here came from a CSV the caller passed in.
-- **Docket computes no scores, signals, ratings, or predictions — here or anywhere.** This
+- **LuxAlgo Alt Data computes no scores, signals, ratings, or predictions — here or anywhere.** This
   module does exactly one kind of thing: a deterministic arithmetic join between a stored
   public-record row and a price the caller supplied. `changePct = (later - base) / base`. That
   is the entire model.
 - **Disclosed amount ranges stay ranges.** Congressional trade amounts are printed as ranges
-  ("$1,001 - $15,000"); Docket never fabricates a midpoint. Because of that, this module never
+  ("$1,001 - $15,000"); LuxAlgo Alt Data never fabricates a midpoint. Because of that, this module never
   computes a dollar return or a position size — only a per-event **price** percentage change.
   If a computation would need a trade size, it isn't implemented.
 - **Every output carries the disclaimer.** `ANALYTICS_DISCLAIMER` — "Descriptive arithmetic
@@ -74,8 +74,8 @@ descriptive statistics over whatever priced successfully, explicitly not a forec
 ### `adapters.ts` — building events from stored rows
 
 ```ts
-congressTradeEvents(store: DocketStore, filters?: CongressTradeFilters): Promise<AnalyticsEvent[]>
-insiderTradeEvents(store: DocketStore, filters?: InsiderTransactionFilters): Promise<AnalyticsEvent[]>
+congressTradeEvents(store: AltDataStore, filters?: CongressTradeFilters): Promise<AnalyticsEvent[]>
+insiderTradeEvents(store: AltDataStore, filters?: InsiderTransactionFilters): Promise<AnalyticsEvent[]>
 ```
 
 Thin wrappers over the existing query layer (`queryCongressTrades` / `queryInsiderTransactions`
@@ -87,10 +87,10 @@ until filed, non-public. `citation` is `provenance.sourceUrl`. Rows with no reso
 excluded — there's nothing to join a price series to — which is a coverage limit of the join,
 distinct from a price-lookup miss (which `eventPriceChange` reports per row, with a reason).
 
-## `docket analyze`
+## `alt-data analyze`
 
 ```
-docket analyze congress|insider --prices prices.csv [--ticker <t>] [--member <name>]
+alt-data analyze congress|insider --prices prices.csv [--ticker <t>] [--member <name>]
   [--since <date>] [--window <days>] [--json] [--out <file>]
 ```
 
@@ -110,7 +110,7 @@ docket analyze congress|insider --prices prices.csv [--ticker <t>] [--member <na
 Example:
 
 ```
-$ docket analyze congress --prices prices.csv --window 30 --ticker ACME
+$ alt-data analyze congress --prices prices.csv --window 30 --ticker ACME
 label                          eventDate   base           later          changePct  status
 ------------------------------ ----------- -------------- -------------- ---------- ------
 Jane Example (senate) buy ACME 2026-08-18  40 (2026-08-18) 44 (2026-09-17) 10.00%    ok
@@ -128,5 +128,5 @@ Descriptive arithmetic over public records and user-supplied prices. Not investm
   NOT tell you" section.
 - [`notebooks/committee-oversight-join.md`](../notebooks/committee-oversight-join.md) — a
   facts-only join across committees, trades, and contracts (no prices involved).
-- [`python/README.md`](../python/README.md) — the `docket-data` Python package used by both
+- [`python/README.md`](../python/README.md) — the `alt-datasets` Python package used by both
   notebooks to read the published dumps.

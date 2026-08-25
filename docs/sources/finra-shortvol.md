@@ -17,7 +17,7 @@
 
 - **Two volume eras**: integer volumes historically; decimal volumes effective 2026-02-23.
   `parseShortVolumeFile` accepts both so backfills normalize identically.
-- The `Market` column inside CNMS rows lists reporting venues (`B,Q,N`); Docket's `market`
+- The `Market` column inside CNMS rows lists reporting venues (`B,Q,N`); LuxAlgo Alt Data's `market`
   field is the **file's** market code (part of the natural key `date:ticker:market`).
 - `shortRatio` = shortVolume / totalVolume (null when total is 0). Descriptive arithmetic; this
   is daily reported short-sale volume, **not** short interest — the MCP tool says so in its

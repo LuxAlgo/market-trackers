@@ -3,7 +3,7 @@
 **Datasets:** `patents`
 **Status:** implemented
 **Auth:** free API key required by the provider (config `patentsviewApiKey` /
-`DOCKET_PATENTSVIEW_KEY`), sent as the `X-Api-Key` header. There is no anonymous tier: `sync`
+`ALT_DATA_PATENTSVIEW_KEY`), sent as the `X-Api-Key` header. There is no anonymous tier: `sync`
 fails fast with a friendly, actionable error when no key is configured, and the canary reports a
 soft skipped-no-key note instead of probing anonymously.
 

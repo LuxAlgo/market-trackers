@@ -1,13 +1,13 @@
 import { beforeAll, afterAll, describe, expect, it } from "vitest";
 import { DATASETS } from "../schema/datasets.js";
-import { DocketStore } from "../store/store.js";
+import { AltDataStore } from "../store/store.js";
 import { makeCongressTrade, makeInsiderTransaction } from "../test-helpers.js";
 import { congressTradeEvents, insiderTradeEvents } from "./adapters.js";
 
-let store: DocketStore;
+let store: AltDataStore;
 
 beforeAll(async () => {
-  store = await DocketStore.open(":memory:");
+  store = await AltDataStore.open(":memory:");
 
   await store.upsert(DATASETS["congress-trades"], [
     makeCongressTrade({

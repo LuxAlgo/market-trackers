@@ -32,10 +32,10 @@ importers:
 
   packages/cli:
     dependencies:
-      '@luxalgo/docket-core':
+      '@luxalgo/alt-data-core':
         specifier: workspace:^
         version: link:../core
-      '@luxalgo/docket-mcp':
+      '@luxalgo/alt-data-mcp':
         specifier: workspace:^
         version: link:../mcp
       commander:
@@ -97,7 +97,7 @@ importers:
 
   packages/mcp:
     dependencies:
-      '@luxalgo/docket-core':
+      '@luxalgo/alt-data-core':
         specifier: workspace:^
         version: link:../core
       '@modelcontextprotocol/sdk':

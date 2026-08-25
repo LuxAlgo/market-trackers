@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runCanaries } from "./runner.js";
-import { DocketStore } from "../store/store.js";
+import { AltDataStore } from "../store/store.js";
 import { resolveConfig } from "../config.js";
 import { silentLogger } from "../lib/logger.js";
 import type { SourceContext } from "../sources/types.js";
@@ -24,7 +24,7 @@ describe("deriveCanaryStatus", () => {
 
 describe("runCanaries", () => {
   it("derives per-source statuses, records them, and rolls up the worst overall", async () => {
-    const store = await DocketStore.open(":memory:");
+    const store = await AltDataStore.open(":memory:");
     const ctx: SourceContext = {
       store,
       config: resolveConfig({ logLevel: "silent" }, { cwd: "/nonexistent", env: {} }),

@@ -1,5 +1,5 @@
 {
-  "name": "@luxalgo/docket-core",
+  "name": "@luxalgo/alt-data-core",
   "version": "0.1.0",
   "description": "Ingestors, parsers, normalizers, entity resolution, and storage for the public record of US markets — congress trades, insider filings, 13F holdings, government contracts, lobbying, and short-sale volume. Primary sources only; every row carries provenance.",
   "license": "MIT",
@@ -19,11 +19,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LuxAlgo/docket.git",
+    "url": "git+https://github.com/LuxAlgo/alt-data.git",
     "directory": "packages/core"
   },
-  "homepage": "https://github.com/LuxAlgo/docket#readme",
-  "bugs": "https://github.com/LuxAlgo/docket/issues",
+  "homepage": "https://github.com/LuxAlgo/alt-data#readme",
+  "bugs": "https://github.com/LuxAlgo/alt-data/issues",
   "keywords": [
     "sec",
     "edgar",

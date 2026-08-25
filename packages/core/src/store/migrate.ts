@@ -7,7 +7,7 @@ import { isoNow } from "../lib/dates.js";
  * Versioned, idempotent migrations. Migration 0001 is generated from the
  * table specs so DDL can never drift from them; later migrations are written
  * as explicit SQL per dialect and appended here. Opening a store always
- * migrates first, so `docket sync` works on a fresh file with zero setup.
+ * migrates first, so `alt-data sync` works on a fresh file with zero setup.
  */
 
 const TYPE_MAP: Record<Dialect, Record<ColumnType, string>> = {

@@ -7,7 +7,7 @@ import {
   extractPartialDate,
   lastUpdatePostedRangeTerm,
 } from "./client.js";
-import { DocketStore } from "../../store/store.js";
+import { AltDataStore } from "../../store/store.js";
 import { DATASETS } from "../../schema/datasets.js";
 import { resolveConfig, type ConfigOverrides } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
@@ -80,8 +80,8 @@ function mockFetch(captured: CapturedRequest[]): typeof fetch {
 async function makeCtx(
   overrides: ConfigOverrides = {},
   nowIso = NOW,
-): Promise<{ ctx: SourceContext; store: DocketStore; captured: CapturedRequest[] }> {
-  const store = await DocketStore.open(":memory:");
+): Promise<{ ctx: SourceContext; store: AltDataStore; captured: CapturedRequest[] }> {
+  const store = await AltDataStore.open(":memory:");
   const captured: CapturedRequest[] = [];
   const ctx: SourceContext = {
     store,

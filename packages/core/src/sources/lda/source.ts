@@ -1,8 +1,8 @@
-import type { DocketSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
+import type { AltDataSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { LobbyingFiling } from "../../schema/lobbying-filing.js";
-import { DOCKET_VERSION } from "../../config.js";
+import { ALT_DATA_VERSION } from "../../config.js";
 import { addDays, hoursSince } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
 import { resolveEntityTickers } from "../../resolve/recipients.js";
@@ -34,7 +34,7 @@ const REWALK_DAYS = 7;
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createLdaFetch({
-    userAgent: ctx.config.userAgent ?? `docket/${DOCKET_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
     apiKey: ctx.config.ldaApiKey,
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("lda"),
@@ -103,7 +103,7 @@ export function normalizeFilingRow(
   };
 }
 
-export const ldaSource: DocketSource = {
+export const ldaSource: AltDataSource = {
   id: "lda",
   title: "Senate LDA (lobbying filings)",
   datasets: ["lobbying-filings"],

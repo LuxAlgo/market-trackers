@@ -1,6 +1,6 @@
 /*
-  The Docket MCP tool surface — the public record of US markets for AI
-  agents. All read-only, keyless, and served from a local (or hosted) Docket
+  The LuxAlgo Alt Data MCP tool surface — the public record of US markets for AI
+  agents. All read-only, keyless, and served from a local (or hosted) LuxAlgo Alt Data
   store. Every payload carries primary-source citation URLs: agents can (and
   should) show the receipt. Amounts that are disclosed as ranges stay ranges.
 */
@@ -26,8 +26,8 @@ import {
   queryThirteenfHolders,
   queryThirteenfManager,
   searchEntities,
-  type DocketStore,
-} from "@luxalgo/docket-core";
+  type AltDataStore,
+} from "@luxalgo/alt-data-core";
 
 function json(payload: unknown) {
   return { content: [{ type: "text" as const, text: JSON.stringify(payload) }] };
@@ -58,9 +58,9 @@ function withCitation<T extends { provenance: { sourceUrl: string } }>(rows: T[]
   return rows.map((row) => ({ ...row, citation: row.provenance.sourceUrl }));
 }
 
-export function registerDocketTools(server: McpServer, store: DocketStore): void {
+export function registerAltDataTools(server: McpServer, store: AltDataStore): void {
   server.registerTool(
-    "docket_congress_trades",
+    "alt_data_congress_trades",
     {
       title: "Congressional trades",
       description:
@@ -94,11 +94,11 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_congress_members",
+    "alt_data_congress_members",
     {
       title: "Congress members with trade activity",
       description:
-        "Members of Congress that appear in the trades dataset, with trade counts and last-transaction dates. Use to resolve a fuzzy name ('whitehouse') before calling docket_congress_trades, or to see who trades most. bioguideId is the canonical member identifier (null when unresolved).",
+        "Members of Congress that appear in the trades dataset, with trade counts and last-transaction dates. Use to resolve a fuzzy name ('whitehouse') before calling alt_data_congress_trades, or to see who trades most. bioguideId is the canonical member identifier (null when unresolved).",
       inputSchema: {
         q: z.string().optional().describe("Name filter (substring); omit to list by trade count"),
         limit: LIMIT,
@@ -111,7 +111,7 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_insider_trades",
+    "alt_data_insider_trades",
     {
       title: "Insider transactions (SEC Forms 3/4/5)",
       description:
@@ -158,11 +158,11 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_insider_summary",
+    "alt_data_insider_summary",
     {
       title: "Insider activity summary for a ticker",
       description:
-        "Aggregates insider activity for one ticker over a window: counts and share totals per raw transaction code, open-market buys vs sells (codes P and S) with net shares, and the insiders with the largest transaction value. Pure arithmetic over the filings — no scores, no signals. For row-level detail call docket_insider_trades.",
+        "Aggregates insider activity for one ticker over a window: counts and share totals per raw transaction code, open-market buys vs sells (codes P and S) with net shares, and the insiders with the largest transaction value. Pure arithmetic over the filings — no scores, no signals. For row-level detail call alt_data_insider_trades.",
       inputSchema: {
         ticker: z.string().min(1),
         window_days: z
@@ -192,7 +192,7 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_13f_holders",
+    "alt_data_13f_holders",
     {
       title: "13F holders of a security",
       description:
@@ -219,7 +219,7 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_13f_manager",
+    "alt_data_13f_manager",
     {
       title: "A 13F manager's holdings",
       description:
@@ -251,7 +251,7 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_gov_contracts",
+    "alt_data_gov_contracts",
     {
       title: "Government contract awards",
       description:
@@ -279,7 +279,7 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_lobbying",
+    "alt_data_lobbying",
     {
       title: "Lobbying filings",
       description:
@@ -305,7 +305,7 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_short_volume",
+    "alt_data_short_volume",
     {
       title: "Daily short-sale volume",
       description:
@@ -331,11 +331,11 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_gov_grants",
+    "alt_data_gov_grants",
     {
       title: "Government grant awards",
       description:
-        "Federal GRANT awards from USAspending (the non-contract award universe: research grants, subsidies, program funding), filterable exactly like docket_gov_contracts — recipient ticker (curated public-company subsidiary map), recipient name, awarding agency, date, and amount floor. recipient.tickers is empty when unmapped; absence of a ticker is not absence of the award. Each row cites its USAspending record.",
+        "Federal GRANT awards from USAspending (the non-contract award universe: research grants, subsidies, program funding), filterable exactly like alt_data_gov_contracts — recipient ticker (curated public-company subsidiary map), recipient name, awarding agency, date, and amount floor. recipient.tickers is empty when unmapped; absence of a ticker is not absence of the award. Each row cites its USAspending record.",
       inputSchema: {
         ticker: z.string().optional(),
         recipient: z.string().optional().describe("Recipient name (substring match)"),
@@ -359,7 +359,7 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_member_profile",
+    "alt_data_member_profile",
     {
       title: "Member of Congress — full profile",
       description:
@@ -381,11 +381,11 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_committees",
+    "alt_data_committees",
     {
       title: "Committee roster with trade activity",
       description:
-        "Resolve a congressional committee by name or thomas id ('armed services', 'SSAS', 'energy and commerce') and get its full roster: every member with their leadership title, subcommittee seats, disclosed-trade count, and last trade date. Pair with docket_congress_trades (filter by the member names returned here) to pull the underlying filings. Facts only — the join between oversight and trading is presented, never scored.",
+        "Resolve a congressional committee by name or thomas id ('armed services', 'SSAS', 'energy and commerce') and get its full roster: every member with their leadership title, subcommittee seats, disclosed-trade count, and last trade date. Pair with alt_data_congress_trades (filter by the member names returned here) to pull the underlying filings. Facts only — the join between oversight and trading is presented, never scored.",
       inputSchema: {
         q: z.string().min(1).describe("Committee name or thomas id (substring match)"),
       },
@@ -398,7 +398,7 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_patents",
+    "alt_data_patents",
     {
       title: "Granted patents",
       description:
@@ -426,7 +426,7 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_clinical_trials",
+    "alt_data_clinical_trials",
     {
       title: "Clinical trial registrations",
       description:
@@ -456,7 +456,7 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_fda_approvals",
+    "alt_data_fda_approvals",
     {
       title: "FDA drug application events",
       description:
@@ -476,7 +476,7 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_cot",
+    "alt_data_cot",
     {
       title: "CFTC Commitments of Traders",
       description:
@@ -502,11 +502,11 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_search",
+    "alt_data_search",
     {
       title: "Search entities across all datasets",
       description:
-        "Cross-dataset entity search: one query over tickers/companies, members of Congress, 13F managers, and insiders, with per-dataset row counts for each hit. The natural first call when you have a name and don't yet know which dataset holds it — results tell you which docket_* tool to call next.",
+        "Cross-dataset entity search: one query over tickers/companies, members of Congress, 13F managers, and insiders, with per-dataset row counts for each hit. The natural first call when you have a name and don't yet know which dataset holds it — results tell you which alt_data_* tool to call next.",
       inputSchema: {
         q: z.string().min(1).describe("Ticker, company, member, manager, or insider name"),
         limit: LIMIT,
@@ -519,7 +519,7 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
   );
 
   server.registerTool(
-    "docket_freshness",
+    "alt_data_freshness",
     {
       title: "Data freshness & pipeline health",
       description:

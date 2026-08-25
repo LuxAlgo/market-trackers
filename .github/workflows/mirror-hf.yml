@@ -2,14 +2,14 @@ name: Mirror to Hugging Face
 
 # Weekly best-effort mirror of the published data repo onto a Hugging Face
 # dataset repo, for people who'd rather `datasets.load_dataset(...)` or
-# browse the HF Hub than clone GitHub. GitHub (LuxAlgo/docket-data) stays
+# browse the HF Hub than clone GitHub. GitHub (LuxAlgo/alt-datasets) stays
 # the source of truth; this is a read-only-on-our-side convenience copy of
 # it, not a second writer.
 #
 # No-op until configured:
-#   vars.DOCKET_DATA_REPO    — the repo to mirror, e.g. "LuxAlgo/docket-data"
-#   secrets.DOCKET_DATA_TOKEN — read access to check it out
-#   vars.HF_DATASET_REPO     — target HF dataset repo, e.g. "LuxAlgo/docket-data"
+#   vars.ALT_DATASETS_REPO    — the repo to mirror, e.g. "LuxAlgo/alt-datasets"
+#   secrets.ALT_DATASETS_TOKEN — read access to check it out
+#   vars.HF_DATASET_REPO     — target HF dataset repo, e.g. "LuxAlgo/alt-datasets"
 #   secrets.HF_TOKEN         — a Hugging Face token with write access to it
 #
 # Bootstrapping: create the target dataset repo on huggingface.co first
@@ -21,13 +21,13 @@ on:
   workflow_dispatch:
 
 # Only ever reads this repo's own checkout; every write goes to the two
-# *other* repos (docket-data, the HF dataset repo) via their own tokens.
+# *other* repos (alt-datasets, the HF dataset repo) via their own tokens.
 permissions:
   contents: read
 
 # Guards against two mirror runs overlapping and racing each other for the
 # same Hugging Face ref. Independent of publish-dumps' group: this workflow
-# never touches the shared store cache or pushes to docket-data, so it has
+# never touches the shared store cache or pushes to alt-datasets, so it has
 # nothing to race there.
 concurrency:
   group: mirror-hf
@@ -36,7 +36,7 @@ concurrency:
 jobs:
   mirror:
     runs-on: ubuntu-latest
-    if: vars.DOCKET_DATA_REPO != '' && vars.HF_DATASET_REPO != ''
+    if: vars.ALT_DATASETS_REPO != '' && vars.HF_DATASET_REPO != ''
     steps:
       # Secrets are not allowed in job-level `if`, so both tokens are
       # checked here (env-mapped, never printed) and every later step keys
@@ -44,22 +44,22 @@ jobs:
       - name: Check mirror credentials
         id: creds
         env:
-          DOCKET_DATA_TOKEN: ${{ secrets.DOCKET_DATA_TOKEN }}
+          ALT_DATASETS_TOKEN: ${{ secrets.ALT_DATASETS_TOKEN }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          if [ -n "$DOCKET_DATA_TOKEN" ] && [ -n "$HF_TOKEN" ]; then
+          if [ -n "$ALT_DATASETS_TOKEN" ] && [ -n "$HF_TOKEN" ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "DOCKET_DATA_TOKEN and/or HF_TOKEN not configured; skipping the HF mirror."
+            echo "ALT_DATASETS_TOKEN and/or HF_TOKEN not configured; skipping the HF mirror."
           fi
 
       - name: Checkout data repo
         if: steps.creds.outputs.ready == 'true'
         uses: actions/checkout@v4
         with:
-          repository: ${{ vars.DOCKET_DATA_REPO }}
-          token: ${{ secrets.DOCKET_DATA_TOKEN }}
+          repository: ${{ vars.ALT_DATASETS_REPO }}
+          token: ${{ secrets.ALT_DATASETS_TOKEN }}
           path: data-repo
           fetch-depth: 1
 
@@ -88,18 +88,18 @@ jobs:
 
           # --delete (unlike sync-fast.yml's rsync): this checks out the
           # *whole* data repo every run, not a narrow per-dataset subset, so
-          # an exact mirror — including files docket-data has since removed
+          # an exact mirror — including files alt-datasets has since removed
           # — is the correct target here, with no risk of wiping something
           # this run didn't touch.
           rsync -a --delete --exclude ".git" data-repo/ hf-repo/
 
           cd hf-repo
-          git config user.name "docket-publish[bot]"
-          git config user.email "docket-publish@users.noreply.github.com"
+          git config user.name "alt-data-publish[bot]"
+          git config user.email "alt-data-publish@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then
             echo "No changes to mirror to Hugging Face this run."
           else
-            git commit -m "data: $(date -u +%F) mirror from LuxAlgo/docket-data"
+            git commit -m "data: $(date -u +%F) mirror from LuxAlgo/alt-datasets"
             git -c http.extraHeader="$AUTH_HEADER" push
           fi

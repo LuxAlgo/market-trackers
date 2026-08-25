@@ -7,7 +7,7 @@ import {
 } from "./source.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { Patent } from "../../schema/patent.js";
-import { DocketStore } from "../../store/store.js";
+import { AltDataStore } from "../../store/store.js";
 import { resolveConfig, type ConfigOverrides } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
 import { readFixture, readFixtureJson } from "../../test-helpers.js";
@@ -53,8 +53,8 @@ function mockFetch(captured: CapturedRequest[]): typeof fetch {
 async function makeCtx(
   overrides: ConfigOverrides = {},
   nowIso = NOW,
-): Promise<{ ctx: SourceContext; store: DocketStore; captured: CapturedRequest[] }> {
-  const store = await DocketStore.open(":memory:");
+): Promise<{ ctx: SourceContext; store: AltDataStore; captured: CapturedRequest[] }> {
+  const store = await AltDataStore.open(":memory:");
   const captured: CapturedRequest[] = [];
   const ctx: SourceContext = {
     store,
@@ -71,8 +71,8 @@ async function makeCtx(
 
 async function makeCtxNoKey(
   nowIso = NOW,
-): Promise<{ ctx: SourceContext; store: DocketStore; captured: CapturedRequest[] }> {
-  const store = await DocketStore.open(":memory:");
+): Promise<{ ctx: SourceContext; store: AltDataStore; captured: CapturedRequest[] }> {
+  const store = await AltDataStore.open(":memory:");
   const captured: CapturedRequest[] = [];
   const ctx: SourceContext = {
     store,
@@ -169,7 +169,7 @@ describe("patentsviewSource.sync", () => {
     await expect(patentsviewSource.sync(ctx)).rejects.toThrow(
       /PatentsView requires a free API key/,
     );
-    await expect(patentsviewSource.sync(ctx)).rejects.toThrow(/DOCKET_PATENTSVIEW_KEY/);
+    await expect(patentsviewSource.sync(ctx)).rejects.toThrow(/ALT_DATA_PATENTSVIEW_KEY/);
     expect(captured).toHaveLength(0); // fails fast, before any fetch
     await store.close();
   });

@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { gunzipSync } from "node:zlib";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { exportDumps, buildManifest } from "./writer.js";
-import { DocketStore } from "../store/store.js";
+import { AltDataStore } from "../store/store.js";
 import { DATASETS, SCHEMA_VERSION } from "../schema/datasets.js";
 import {
   makeShortVolumeDay,
@@ -13,11 +13,11 @@ import {
 } from "../test-helpers.js";
 import type { ShortVolumeDay } from "../schema/short-volume-day.js";
 
-let store: DocketStore;
+let store: AltDataStore;
 let tmp: { dir: string; cleanup: () => void };
 
 beforeAll(async () => {
-  store = await DocketStore.open(":memory:");
+  store = await AltDataStore.open(":memory:");
   tmp = makeTmpDir("export");
 
   await store.upsert(DATASETS["short-volume"], [
@@ -71,7 +71,7 @@ describe("exportDumps", () => {
     ).toString("utf8");
     const records = JSON.parse(snapshot) as ShortVolumeDay[];
 
-    const fresh = await DocketStore.open(":memory:");
+    const fresh = await AltDataStore.open(":memory:");
     await fresh.upsert(DATASETS["short-volume"], records);
     expect(await fresh.count("short-volume")).toBe(2);
 
@@ -89,7 +89,7 @@ describe("exportDumps", () => {
 
     const feed = readFileSync(join(shortVolDir, "feed.xml"), "utf8");
     expect(feed).toContain('<rss version="2.0">');
-    expect(feed).toContain("Docket — Short-sale volume");
+    expect(feed).toContain("LuxAlgo Alt Data — Short-sale volume");
     expect(feed).toContain("<link>https://example.gov/primary/document/1</link>");
     expect(feed).toContain('guid isPermaLink="false"');
 

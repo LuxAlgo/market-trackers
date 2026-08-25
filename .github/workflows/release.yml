@@ -1,6 +1,6 @@
 name: Release
 
-# Manual npm publish of the workspace packages (@luxalgo/docket-core, -mcp,
+# Manual npm publish of the workspace packages (@luxalgo/alt-data-core, -mcp,
 # -cli). Runs the full gate (build, lint, test) first, then publishes with
 # npm provenance.
 #

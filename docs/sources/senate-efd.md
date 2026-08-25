@@ -54,7 +54,7 @@ against fixtures (`fixtures/senate-efd/`) and a mocked handshake instead.
 - Both `filedAt` (disclosure date) and `transactedAt` (trade date) are tracked separately.
 - Amendments file under a fresh UUID rather than updating the original — the 7-day re-walk plus
   natural-key upserts pick them up without special-casing.
-- Politeness: a shared rate limiter caps the client at 2 requests/second plus a declared docket
+- Politeness: a shared rate limiter caps the client at 2 requests/second plus a declared alt-data
   User-Agent on every request, in the same spirit as the EDGAR and FINRA clients.
 
 ## Canary

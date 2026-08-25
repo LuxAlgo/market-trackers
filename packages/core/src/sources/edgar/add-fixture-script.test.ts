@@ -83,14 +83,14 @@ describe("scripts/add-fixture.mjs --file", () => {
     }
   });
 
-  it("refuses --url without DOCKET_CONTACT (fair access) and rejects bad parsers", () => {
+  it("refuses --url without ALT_DATA_CONTACT (fair access) and rejects bad parsers", () => {
     expect(() =>
       execFileSync(
         process.execPath,
         [SCRIPT, "--parser", "form-ownership", "--url", "https://www.sec.gov/Archives/x.txt"],
-        { encoding: "utf8", env: { ...process.env, DOCKET_CONTACT: "" } },
+        { encoding: "utf8", env: { ...process.env, ALT_DATA_CONTACT: "" } },
       ),
-    ).toThrow(/DOCKET_CONTACT/);
+    ).toThrow(/ALT_DATA_CONTACT/);
     expect(() => run(["--parser", "form-13g", "--file", "whatever.txt"])).toThrow();
   });
 });

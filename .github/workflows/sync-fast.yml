@@ -8,9 +8,9 @@ name: Sync fast lane
 #
 # No-ops until configured (identical requirements to publish-dumps.yml —
 # see docs/operations.md):
-#   vars.DOCKET_CONTACT       — contact email for the SEC EDGAR User-Agent
-#   vars.DOCKET_DATA_REPO     — e.g. "LuxAlgo/docket-data" (job skipped without it)
-#   secrets.DOCKET_DATA_TOKEN — token with push access to the data repo
+#   vars.ALT_DATA_CONTACT       — contact email for the SEC EDGAR User-Agent
+#   vars.ALT_DATASETS_REPO     — e.g. "LuxAlgo/alt-datasets" (job skipped without it)
+#   secrets.ALT_DATASETS_TOKEN — token with push access to the data repo
 #                               (without it, the store still syncs but nothing is pushed)
 #
 # Cron reasoning: SEC EDGAR accepts filings roughly 6am-10pm ET on business
@@ -33,7 +33,7 @@ on:
   workflow_dispatch:
 
 # Never pushes to this repo (only to the external data repo via
-# secrets.DOCKET_DATA_TOKEN), so contents:write is not needed here.
+# secrets.ALT_DATASETS_TOKEN), so contents:write is not needed here.
 permissions:
   contents: read
 
@@ -48,7 +48,7 @@ concurrency:
 jobs:
   sync-fast:
     runs-on: ubuntu-latest
-    if: vars.DOCKET_DATA_REPO != ''
+    if: vars.ALT_DATASETS_REPO != ''
     steps:
       - uses: actions/checkout@v4
 
@@ -71,26 +71,26 @@ jobs:
       - name: Check data-repo credentials
         id: creds
         env:
-          DOCKET_DATA_TOKEN: ${{ secrets.DOCKET_DATA_TOKEN }}
+          ALT_DATASETS_TOKEN: ${{ secrets.ALT_DATASETS_TOKEN }}
         run: |
-          if [ -n "$DOCKET_DATA_TOKEN" ]; then
+          if [ -n "$ALT_DATASETS_TOKEN" ]; then
             echo "push=true" >> "$GITHUB_OUTPUT"
           else
             echo "push=false" >> "$GITHUB_OUTPUT"
-            echo "DOCKET_DATA_TOKEN not configured; the fast lane will sync but not publish."
+            echo "ALT_DATASETS_TOKEN not configured; the fast lane will sync but not publish."
           fi
 
       # Same store, same cache-key family as publish-dumps.yml
-      # (docket-store-v1-) — restoring by prefix picks up whichever of the
+      # (alt-data-store-v1-) — restoring by prefix picks up whichever of the
       # two workflows saved most recently, so watermarks advance
       # continuously across both instead of each keeping a separate store.
       - name: Restore store
         uses: actions/cache/restore@v4
         with:
           path: publish.db
-          key: docket-store-v1-${{ github.run_id }}
+          key: alt-data-store-v1-${{ github.run_id }}
           restore-keys: |
-            docket-store-v1-
+            alt-data-store-v1-
 
       # Only the sources that back the two fast datasets, with a soft
       # document cap since this runs often and is meant to be quick.
@@ -100,7 +100,7 @@ jobs:
       # a flaky source must never fail this job before Export/Save-store run.
       - name: Sync (fast sources)
         env:
-          DOCKET_CONTACT: ${{ vars.DOCKET_CONTACT }}
+          ALT_DATA_CONTACT: ${{ vars.ALT_DATA_CONTACT }}
         run: |
           node packages/cli/dist/index.js sync --db publish.db --source senate-efd,house-clerk,edgar --limit 2000 --json || true
 
@@ -116,15 +116,15 @@ jobs:
         if: steps.creds.outputs.push == 'true'
         uses: actions/checkout@v4
         with:
-          repository: ${{ vars.DOCKET_DATA_REPO }}
-          token: ${{ secrets.DOCKET_DATA_TOKEN }}
+          repository: ${{ vars.ALT_DATASETS_REPO }}
+          token: ${{ secrets.ALT_DATASETS_TOKEN }}
           path: data-repo
 
       # rsync WITHOUT --delete (unlike publish-dumps.yml's daily rsync) so a
       # fast-lane run can only ever add or update files — it never removes
       # anything, so it can never wipe a dataset directory this run didn't
       # touch. manifest.json is additionally excluded outright: it's written
-      # unconditionally by every `docket export` run from a whole-store
+      # unconditionally by every `alt-data export` run from a whole-store
       # freshness report (see buildManifest in
       # packages/core/src/export/writer.ts), regardless of --dataset, but
       # with --no-snapshot its `snapshots` listing comes back empty for
@@ -137,8 +137,8 @@ jobs:
         run: |
           rsync -a --exclude ".git" --exclude "README.md" --exclude "LICENSE" --exclude "manifest.json" dumps/ data-repo/
           cd data-repo
-          git config user.name "docket-publish[bot]"
-          git config user.email "docket-publish@users.noreply.github.com"
+          git config user.name "alt-data-publish[bot]"
+          git config user.email "alt-data-publish@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then
             echo "No fast-lane data changes this run."
@@ -156,4 +156,4 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: publish.db
-          key: docket-store-v1-${{ github.run_id }}
+          key: alt-data-store-v1-${{ github.run_id }}

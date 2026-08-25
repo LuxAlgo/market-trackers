@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { scaffoldSource } from "./scaffold.js";
 import { deriveCanaryStatus } from "./types.js";
-import { DocketStore } from "../store/store.js";
+import { AltDataStore } from "../store/store.js";
 import { resolveConfig } from "../config.js";
 import { silentLogger } from "../lib/logger.js";
 
@@ -13,7 +13,7 @@ import { silentLogger } from "../lib/logger.js";
 
 describe("scaffoldSource", () => {
   it("syncs as an explicit no-op that says so, and canaries as skip", async () => {
-    const store = await DocketStore.open(":memory:");
+    const store = await AltDataStore.open(":memory:");
     const source = scaffoldSource({
       id: "senate-efd", // any valid SourceId; the factory doesn't consult the registry
       title: "Example future source",

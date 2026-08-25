@@ -12,7 +12,7 @@ import type { ClinicalTrial } from "../schema/clinical-trial.js";
 import type { FdaApproval } from "../schema/fda-approval.js";
 import type { CotReport } from "../schema/cot-report.js";
 import { hoursSince } from "../lib/dates.js";
-import type { CanaryRunRecord, DocketStore, SyncRunRecord } from "./store.js";
+import type { CanaryRunRecord, AltDataStore, SyncRunRecord } from "./store.js";
 import { mapperFor } from "./rows.js";
 
 /**
@@ -52,7 +52,7 @@ function sql(b: WhereBuilder): string {
 }
 
 async function run<T>(
-  store: DocketStore,
+  store: AltDataStore,
   datasetId: DatasetId,
   b: WhereBuilder,
   orderBy: string,
@@ -81,7 +81,7 @@ export interface CongressTradeFilters {
 }
 
 export async function queryCongressTrades(
-  store: DocketStore,
+  store: AltDataStore,
   f: CongressTradeFilters = {},
 ): Promise<CongressTrade[]> {
   const b = where();
@@ -106,7 +106,7 @@ export interface CongressMemberSummary {
 }
 
 export async function queryCongressMembers(
-  store: DocketStore,
+  store: AltDataStore,
   q?: string,
   limit?: number,
 ): Promise<CongressMemberSummary[]> {
@@ -145,7 +145,7 @@ export interface InsiderTransactionFilters {
 }
 
 export async function queryInsiderTransactions(
-  store: DocketStore,
+  store: AltDataStore,
   f: InsiderTransactionFilters = {},
 ): Promise<InsiderTransaction[]> {
   const b = where();
@@ -194,7 +194,7 @@ export interface InsiderSummary {
 }
 
 export async function insiderSummary(
-  store: DocketStore,
+  store: AltDataStore,
   ticker: string,
   since: string,
 ): Promise<InsiderSummary> {
@@ -256,7 +256,7 @@ export interface ThirteenfHolderRow {
 
 /** Available reporting periods for a ticker or cusip, newest first. */
 async function thirteenfPeriods(
-  store: DocketStore,
+  store: AltDataStore,
   key: { ticker?: string; cusip?: string; managerCik?: string },
 ): Promise<string[]> {
   const b = where();
@@ -271,7 +271,7 @@ async function thirteenfPeriods(
 }
 
 export async function queryThirteenfHolders(
-  store: DocketStore,
+  store: AltDataStore,
   key: { ticker?: string; cusip?: string },
   periodEnd?: string,
   limit?: number,
@@ -336,7 +336,7 @@ export async function queryThirteenfHolders(
 }
 
 export async function queryThirteenfManager(
-  store: DocketStore,
+  store: AltDataStore,
   key: { managerCik?: string; q?: string },
   periodEnd?: string,
   limit?: number,
@@ -395,7 +395,7 @@ export interface GovContractFilters {
 }
 
 async function queryFederalAwards(
-  store: DocketStore,
+  store: AltDataStore,
   datasetId: "gov-contracts" | "gov-grants",
   f: GovContractFilters = {},
 ): Promise<GovContractAward[]> {
@@ -411,14 +411,14 @@ async function queryFederalAwards(
 }
 
 export async function queryGovContracts(
-  store: DocketStore,
+  store: AltDataStore,
   f: GovContractFilters = {},
 ): Promise<GovContractAward[]> {
   return queryFederalAwards(store, "gov-contracts", f);
 }
 
 export async function queryGovGrants(
-  store: DocketStore,
+  store: AltDataStore,
   f: GovContractFilters = {},
 ): Promise<GovContractAward[]> {
   return queryFederalAwards(store, "gov-grants", f);
@@ -433,7 +433,7 @@ export interface LobbyingFilters {
 }
 
 export async function queryLobbying(
-  store: DocketStore,
+  store: AltDataStore,
   f: LobbyingFilters = {},
 ): Promise<LobbyingFiling[]> {
   const b = where();
@@ -447,7 +447,7 @@ export async function queryLobbying(
 // ── Short volume ──────────────────────────────────────────────────────────
 
 export async function queryShortVolume(
-  store: DocketStore,
+  store: AltDataStore,
   ticker: string,
   from: string,
   to: string,
@@ -515,7 +515,7 @@ export interface EntitySearchResult {
 }
 
 export async function searchEntities(
-  store: DocketStore,
+  store: AltDataStore,
   q: string,
   limit = 10,
 ): Promise<EntitySearchResult[]> {
@@ -595,7 +595,7 @@ export interface CommitteeAssignmentFilters {
 }
 
 export async function queryCommitteeAssignments(
-  store: DocketStore,
+  store: AltDataStore,
   f: CommitteeAssignmentFilters = {},
 ): Promise<CommitteeAssignment[]> {
   const b = where();
@@ -625,7 +625,7 @@ export interface CommitteeRoster {
 }
 
 /** Roster of a committee plus each member's trade activity (facts, joined). */
-export async function committeeRoster(store: DocketStore, q: string): Promise<CommitteeRoster> {
+export async function committeeRoster(store: AltDataStore, q: string): Promise<CommitteeRoster> {
   const needle = `%${q.toLowerCase()}%`;
   const committeeRow = await store.driver.get<Record<string, unknown>>(
     `SELECT "committee_thomas_id", "committee_name", "committee_type", COUNT(*) AS n FROM "committee_assignments" ` +
@@ -706,7 +706,7 @@ export interface MemberProfile {
  * trading activity — the receipts for "who oversees what, and what do they
  * trade". Facts only; the reader draws conclusions.
  */
-export async function memberProfile(store: DocketStore, q: string): Promise<MemberProfile> {
+export async function memberProfile(store: AltDataStore, q: string): Promise<MemberProfile> {
   const summaries = await queryCongressMembers(store, q, 1);
   const fromTrades = summaries[0] ?? null;
 
@@ -808,7 +808,7 @@ export interface PatentFilters {
   limit?: number;
 }
 
-export async function queryPatents(store: DocketStore, f: PatentFilters = {}): Promise<Patent[]> {
+export async function queryPatents(store: AltDataStore, f: PatentFilters = {}): Promise<Patent[]> {
   const b = where();
   if (f.ticker) add(b, `"assignee_tickers" LIKE ?`, `%"${f.ticker.toUpperCase()}"%`);
   if (f.assignee) contains(b, `"assignee_name"`, f.assignee);
@@ -830,7 +830,7 @@ export interface ClinicalTrialFilters {
 }
 
 export async function queryClinicalTrials(
-  store: DocketStore,
+  store: AltDataStore,
   f: ClinicalTrialFilters = {},
 ): Promise<ClinicalTrial[]> {
   const b = where();
@@ -852,7 +852,7 @@ export interface FdaApprovalFilters {
 }
 
 export async function queryFdaApprovals(
-  store: DocketStore,
+  store: AltDataStore,
   f: FdaApprovalFilters = {},
 ): Promise<FdaApproval[]> {
   const b = where();
@@ -873,7 +873,7 @@ export interface CotFilters {
 }
 
 export async function queryCotReports(
-  store: DocketStore,
+  store: AltDataStore,
   f: CotFilters = {},
 ): Promise<CotReport[]> {
   const b = where();
@@ -909,7 +909,7 @@ export interface FreshnessReport {
 }
 
 export async function freshnessReport(
-  store: DocketStore,
+  store: AltDataStore,
   now = new Date(),
 ): Promise<FreshnessReport> {
   const datasets: DatasetFreshness[] = [];

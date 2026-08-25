@@ -1,4 +1,4 @@
-import type { DocketStore } from "../store/store.js";
+import type { AltDataStore } from "../store/store.js";
 import {
   queryCongressTrades,
   queryInsiderTransactions,
@@ -28,7 +28,7 @@ import type { AnalyticsEvent } from "./event-returns.js";
 const DEFAULT_EVENT_LIMIT = 500;
 
 export async function congressTradeEvents(
-  store: DocketStore,
+  store: AltDataStore,
   filters: CongressTradeFilters = {},
 ): Promise<AnalyticsEvent[]> {
   const trades = await queryCongressTrades(store, {
@@ -49,7 +49,7 @@ export async function congressTradeEvents(
 }
 
 export async function insiderTradeEvents(
-  store: DocketStore,
+  store: AltDataStore,
   filters: InsiderTransactionFilters = {},
 ): Promise<AnalyticsEvent[]> {
   const transactions = await queryInsiderTransactions(store, {

@@ -8,7 +8,7 @@ import type { Logger } from "../../lib/logger.js";
 /**
  * openFDA Drugs@FDA REST client. Keyless access works within openFDA's
  * published per-IP ceiling; a free registered key (config `openfdaApiKey` /
- * DOCKET_OPENFDA_KEY) raises it — both tiers here stay conservatively under
+ * ALT_DATA_OPENFDA_KEY) raises it — both tiers here stay conservatively under
  * the documented ceilings, see `[verify-live]` in docs/sources/openfda.md.
  *
  * The `search` query filters on the nested `submissions.submission_status_date`

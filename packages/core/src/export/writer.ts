@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { gzipSync } from "node:zlib";
 import type { DatasetId } from "../schema/datasets.js";
 import { ALL_DATASETS, SCHEMA_VERSION, type DatasetDefinition } from "../schema/datasets.js";
-import type { DocketStore } from "../store/store.js";
+import type { AltDataStore } from "../store/store.js";
 import { freshnessReport } from "../store/queries.js";
 import { addDays, todayUtc } from "../lib/dates.js";
 import type { Logger } from "../lib/logger.js";
@@ -20,7 +20,7 @@ import { buildRssFeed, type FeedRow } from "./feeds.js";
  * days are immutable once written; only recent days are rewritten, because
  * late rows can still land on the current day. Year shards keep every file
  * well under git/CDN limits even at full-history depth — and because
- * `docket import` reads them back, the published dumps are the durable
+ * `alt-data import` reads them back, the published dumps are the durable
  * archive a store can always be rebuilt from.
  */
 
@@ -55,7 +55,7 @@ function stableJson(rows: unknown[]): string {
 }
 
 export async function exportDumps(
-  store: DocketStore,
+  store: AltDataStore,
   options: ExportOptions,
 ): Promise<ExportSummary> {
   const datasets: DatasetDefinition[] = (options.datasets ?? ALL_DATASETS.map((d) => d.id)).map(
@@ -175,7 +175,7 @@ export interface DumpManifest {
 }
 
 export async function buildManifest(
-  store: DocketStore,
+  store: AltDataStore,
   snapshotIndex: Map<DatasetId, { file: string; rows: number }[]> = new Map(),
 ): Promise<DumpManifest> {
   const report = await freshnessReport(store);

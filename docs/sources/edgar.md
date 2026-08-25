@@ -30,19 +30,19 @@ Violations earn ~10-minute IP blocks; the client backs off automatically on 403/
    ETag/Last-Modified validators are replayed and a 304 just bumps the cache's freshness
    instead of re-downloading ~1MB of JSON). 13F tickers resolve from the CUSIP cache
    (`resolve/cusip.ts`, OpenFIGI-backed); rows whose CUSIP isn't cached yet stay
-   `ticker: null` until `docket resolve cusips` runs.
+   `ticker: null` until `alt-data resolve cusips` runs.
 
-## CUSIP→ticker resolution (`docket resolve cusips`)
+## CUSIP→ticker resolution (`alt-data resolve cusips`)
 
 13F filings identify holdings by CUSIP only. The enrichment loop is explicit:
 
 ```
-docket resolve cusips [--retry-misses] [--limit <n>] [--json]
+alt-data resolve cusips [--retry-misses] [--limit <n>] [--json]
 ```
 
 - Collects `SELECT DISTINCT cusip … WHERE ticker IS NULL` from `thirteenf_holdings`, resolves
   through the OpenFIGI mapping API (keyless works at ~25 req/min; a free key via
-  `DOCKET_OPENFIGI_KEY` raises limits and batch size), then back-fills tickers onto holding
+  `ALT_DATA_OPENFIGI_KEY` raises limits and batch size), then back-fills tickers onto holding
   rows — never overwriting an already-resolved row.
 - Mappings are cached in `cusip_map` (they almost never change), **misses included**, so
   unresolvable CUSIPs aren't re-queried every run. `--retry-misses` asks OpenFIGI again for
@@ -53,7 +53,7 @@ docket resolve cusips [--retry-misses] [--limit <n>] [--json]
 
 `scripts/add-fixture.mjs` turns a real filing into a fixture case on a machine with network
 access (`--file` works offline): it fetches the full-submission `.txt` (User-Agent from
-`DOCKET_CONTACT`, refused without it), derives accession/filedAt from the SEC header, runs the
+`ALT_DATA_CONTACT`, refused without it), derives accession/filedAt from the SEC header, runs the
 real parser from `packages/core/dist`, and writes `input.txt` + `expected.json` + `meta.json`
 with `"synthetic": false, "verified": false`. A human verifies `expected.json` against the
 primary document and flips `verified` — unverified cases are a review queue, not a green light.

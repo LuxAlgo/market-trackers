@@ -3,15 +3,15 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "docket-data"
+name = "alt-datasets"
 version = "0.1.0"
-description = "A small, dependency-light reader for Docket's published JSON dumps — the public record of US markets (congress trades, insider filings, 13F holdings, government contracts, lobbying, short-sale volume, and more), free CC0 data with per-row primary-source provenance."
+description = "A small, dependency-light reader for LuxAlgo Alt Data's published JSON dumps — the public record of US markets (congress trades, insider filings, 13F holdings, government contracts, lobbying, short-sale volume, and more), free CC0 data with per-row primary-source provenance."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [{ name = "LuxAlgo" }]
 keywords = [
-  "docket",
+  "alt-data",
   "sec",
   "edgar",
   "congress-trades",
@@ -35,10 +35,10 @@ dependencies = []
 pandas = ["pandas>=1.5"]
 
 [project.urls]
-Homepage = "https://github.com/LuxAlgo/docket"
-Repository = "https://github.com/LuxAlgo/docket"
-Data = "https://github.com/LuxAlgo/docket-data"
+Homepage = "https://github.com/LuxAlgo/alt-data"
+Repository = "https://github.com/LuxAlgo/alt-data"
+Data = "https://github.com/LuxAlgo/alt-datasets"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["docket_data*"]
+include = ["alt_datasets*"]

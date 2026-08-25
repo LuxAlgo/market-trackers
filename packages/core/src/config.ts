@@ -4,22 +4,22 @@ import { z } from "zod";
 
 /**
  * Runtime configuration. Precedence: explicit overrides (CLI flags) > env
- * vars > docket.config.json in the working directory > defaults.
+ * vars > alt-data.config.json in the working directory > defaults.
  *
- * There are no required API keys anywhere in v0.1 — the only identity Docket
+ * There are no required API keys anywhere in v0.1 — the only identity LuxAlgo Alt Data
  * ever sends is a contact email inside the SEC-required User-Agent header.
  * No telemetry: nothing here configures any callback to anyone.
  */
 
-export const docketConfigSchema = z.object({
+export const altDataConfigSchema = z.object({
   /** SQLite path (default) or postgres:// connection string. */
-  db: z.string().default("docket.db"),
+  db: z.string().default("alt-data.db"),
   /**
    * Contact email declared in the User-Agent for SEC EDGAR requests, per
    * SEC fair-access policy. Required only when syncing the `edgar` source.
    */
   contactEmail: z.string().email().optional(),
-  /** Full User-Agent override; defaults to `docket/<version> (<contactEmail>)`. */
+  /** Full User-Agent override; defaults to `alt-data/<version> (<contactEmail>)`. */
   userAgent: z.string().optional(),
   /** Optional OpenFIGI API key — raises CUSIP-resolution rate limits. Still free. */
   openfigiApiKey: z.string().optional(),
@@ -38,7 +38,7 @@ export const docketConfigSchema = z.object({
   logLevel: z.enum(["debug", "info", "warn", "error", "silent"]).default("info"),
 });
 
-export type DocketConfig = z.infer<typeof docketConfigSchema>;
+export type AltDataConfig = z.infer<typeof altDataConfigSchema>;
 
 export interface ConfigOverrides {
   db?: string;
@@ -51,12 +51,12 @@ export interface ConfigOverrides {
   edgarMaxRps?: number;
   backfillDays?: number;
   finraMarkets?: string[];
-  logLevel?: DocketConfig["logLevel"];
+  logLevel?: AltDataConfig["logLevel"];
 }
 
 function readConfigFile(cwd: string): Partial<ConfigOverrides> {
   try {
-    const raw = readFileSync(resolve(cwd, "docket.config.json"), "utf8");
+    const raw = readFileSync(resolve(cwd, "alt-data.config.json"), "utf8");
     return JSON.parse(raw) as Partial<ConfigOverrides>;
   } catch {
     return {};
@@ -65,16 +65,16 @@ function readConfigFile(cwd: string): Partial<ConfigOverrides> {
 
 function fromEnv(env: NodeJS.ProcessEnv): Partial<ConfigOverrides> {
   const out: Partial<ConfigOverrides> = {};
-  if (env.DOCKET_DB) out.db = env.DOCKET_DB;
-  if (env.DOCKET_CONTACT) out.contactEmail = env.DOCKET_CONTACT;
-  if (env.DOCKET_USER_AGENT) out.userAgent = env.DOCKET_USER_AGENT;
-  if (env.DOCKET_OPENFIGI_KEY) out.openfigiApiKey = env.DOCKET_OPENFIGI_KEY;
-  if (env.DOCKET_LDA_KEY) out.ldaApiKey = env.DOCKET_LDA_KEY;
-  if (env.DOCKET_PATENTSVIEW_KEY) out.patentsviewApiKey = env.DOCKET_PATENTSVIEW_KEY;
-  if (env.DOCKET_OPENFDA_KEY) out.openfdaApiKey = env.DOCKET_OPENFDA_KEY;
-  if (env.DOCKET_BACKFILL_DAYS) out.backfillDays = Number(env.DOCKET_BACKFILL_DAYS);
-  if (env.DOCKET_FINRA_MARKETS) out.finraMarkets = env.DOCKET_FINRA_MARKETS.split(",");
-  if (env.DOCKET_LOG) out.logLevel = env.DOCKET_LOG as DocketConfig["logLevel"];
+  if (env.ALT_DATA_DB) out.db = env.ALT_DATA_DB;
+  if (env.ALT_DATA_CONTACT) out.contactEmail = env.ALT_DATA_CONTACT;
+  if (env.ALT_DATA_USER_AGENT) out.userAgent = env.ALT_DATA_USER_AGENT;
+  if (env.ALT_DATA_OPENFIGI_KEY) out.openfigiApiKey = env.ALT_DATA_OPENFIGI_KEY;
+  if (env.ALT_DATA_LDA_KEY) out.ldaApiKey = env.ALT_DATA_LDA_KEY;
+  if (env.ALT_DATA_PATENTSVIEW_KEY) out.patentsviewApiKey = env.ALT_DATA_PATENTSVIEW_KEY;
+  if (env.ALT_DATA_OPENFDA_KEY) out.openfdaApiKey = env.ALT_DATA_OPENFDA_KEY;
+  if (env.ALT_DATA_BACKFILL_DAYS) out.backfillDays = Number(env.ALT_DATA_BACKFILL_DAYS);
+  if (env.ALT_DATA_FINRA_MARKETS) out.finraMarkets = env.ALT_DATA_FINRA_MARKETS.split(",");
+  if (env.ALT_DATA_LOG) out.logLevel = env.ALT_DATA_LOG as AltDataConfig["logLevel"];
   return out;
 }
 
@@ -85,7 +85,7 @@ function stripUndefined<T extends object>(obj: T): Partial<T> {
 export function resolveConfig(
   overrides: ConfigOverrides = {},
   options: { cwd?: string; env?: NodeJS.ProcessEnv } = {},
-): DocketConfig {
+): AltDataConfig {
   const cwd = options.cwd ?? process.cwd();
   const env = options.env ?? process.env;
   const merged = {
@@ -93,24 +93,24 @@ export function resolveConfig(
     ...stripUndefined(fromEnv(env)),
     ...stripUndefined(overrides),
   };
-  return docketConfigSchema.parse(merged);
+  return altDataConfigSchema.parse(merged);
 }
 
-export const DOCKET_VERSION = "0.1.0";
+export const ALT_DATA_VERSION = "0.1.0";
 
 /**
  * SEC fair access requires a User-Agent that identifies the client and a
  * contact. Refusing to sync EDGAR without one is a feature, not friction.
  */
-export function buildUserAgent(config: DocketConfig): string {
+export function buildUserAgent(config: AltDataConfig): string {
   if (config.userAgent) return config.userAgent;
   if (!config.contactEmail) {
     throw new Error(
       "SEC EDGAR requires a declared contact in the User-Agent (fair-access policy). " +
-        "Set one with --contact you@example.com, DOCKET_CONTACT=you@example.com, " +
-        'or {"contactEmail": "you@example.com"} in docket.config.json. ' +
-        "It is only ever sent as part of the User-Agent header — Docket has no telemetry.",
+        "Set one with --contact you@example.com, ALT_DATA_CONTACT=you@example.com, " +
+        'or {"contactEmail": "you@example.com"} in alt-data.config.json. ' +
+        "It is only ever sent as part of the User-Agent header — LuxAlgo Alt Data has no telemetry.",
     );
   }
-  return `docket/${DOCKET_VERSION} (${config.contactEmail})`;
+  return `alt-data/${ALT_DATA_VERSION} (${config.contactEmail})`;
 }

@@ -1,11 +1,11 @@
 {
-  "name": "@luxalgo/docket-cli",
+  "name": "@luxalgo/alt-data-cli",
   "version": "0.1.0",
-  "description": "The Docket CLI — sync the public record of US markets to a local database, serve it over MCP, and export it as JSON dumps. `docket sync | serve | export | status | canary`.",
+  "description": "The LuxAlgo Alt Data CLI — sync the public record of US markets to a local database, serve it over MCP, and export it as JSON dumps. `alt-data sync | serve | export | status | canary`.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "docket": "dist/index.js"
+    "alt-data": "dist/index.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,11 +15,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LuxAlgo/docket.git",
+    "url": "git+https://github.com/LuxAlgo/alt-data.git",
     "directory": "packages/cli"
   },
-  "homepage": "https://github.com/LuxAlgo/docket#readme",
-  "bugs": "https://github.com/LuxAlgo/docket/issues",
+  "homepage": "https://github.com/LuxAlgo/alt-data#readme",
+  "bugs": "https://github.com/LuxAlgo/alt-data/issues",
   "keywords": [
     "cli",
     "congress-trades",
@@ -33,8 +33,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@luxalgo/docket-core": "workspace:^",
-    "@luxalgo/docket-mcp": "workspace:^",
+    "@luxalgo/alt-data-core": "workspace:^",
+    "@luxalgo/alt-data-mcp": "workspace:^",
     "commander": "^13.1.0"
   },
   "devDependencies": {

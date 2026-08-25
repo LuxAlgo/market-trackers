@@ -1,9 +1,9 @@
-# docket-data: the published-dump contract
+# alt-datasets: the published-dump contract
 
 This is the producer-side design doc for
-[LuxAlgo/docket-data](https://github.com/LuxAlgo/docket-data) — the public repository the daily
-publish workflow writes Docket's JSON dumps into. The consumer-facing landing page lives in the
-data repo itself (installed from [`templates/docket-data/`](../templates/docket-data/) on first
+[LuxAlgo/alt-datasets](https://github.com/LuxAlgo/alt-datasets) — the public repository the daily
+publish workflow writes LuxAlgo Alt Data's JSON dumps into. The consumer-facing landing page lives in the
+data repo itself (installed from [`templates/alt-datasets/`](../templates/alt-datasets/) on first
 publish); this document pins down the contract the exporter
 (`packages/core/src/export/writer.ts`) and the publish workflow guarantee.
 
@@ -47,7 +47,7 @@ a crashed export never leaves a half-written file behind.
 
 ## Delta semantics
 
-- Deltas are bucketed by **ingestion day** — the UTC day Docket ingested the row — not by the
+- Deltas are bucketed by **ingestion day** — the UTC day LuxAlgo Alt Data ingested the row — not by the
   event or filing date. `2026/2026-08-24.json` answers "what did the pipeline learn on
   2026-08-24", which is the right unit for consumers tailing the feed; event-time queries
   belong on the snapshot.
@@ -69,7 +69,7 @@ schedule — there is no separate weekly/monthly cadence. It's sharded by event 
 dataset under the exporter's combined-snapshot row cap (200k rows by default) additionally gets
 one convenience `snapshot.json.gz` with every year concatenated, for consumers who'd rather fetch
 one URL than reassemble shards. Deltas serve the tail, snapshots serve cold starts, and the
-manifest says how fresh both are. (`docket export --no-snapshot` exists for local delta-only
+manifest says how fresh both are. (`alt-data export --no-snapshot` exists for local delta-only
 runs, and is what the intraday fast lane uses — see `docs/operations.md`; the daily publish
 workflow always writes snapshots.)
 
@@ -136,7 +136,7 @@ not bump it.
 
 ## The bundled explorer
 
-[`templates/docket-data/explorer/index.html`](../templates/docket-data/explorer/index.html) is
+[`templates/alt-datasets/explorer/index.html`](../templates/alt-datasets/explorer/index.html) is
 a single, self-contained static page (no build step, no external assets) that browses the
 published dumps client-side: it fetches `manifest.json`, renders a table of every dataset with
 links to its `latest.json`/`feed.xml`/snapshots, and lets a visitor pick a dataset and filter
@@ -158,9 +158,9 @@ alongside the raw data files it reads.
 ## Only CI writes
 
 The data repository has exactly one writer: the `publish-dumps.yml` workflow in this repo,
-committing as `docket-publish[bot]`. It rsyncs the export output with `--delete` (so files
+committing as `alt-data-publish[bot]`. It rsyncs the export output with `--delete` (so files
 removed from the layout disappear) while excluding `.git`, `README.md`, `LICENSE`, and
-`/explorer` — the first two are installed from `templates/docket-data/` only when missing and
+`/explorer` — the first two are installed from `templates/alt-datasets/` only when missing and
 then left to humans; the explorer is installed and refreshed from the same templates directory
 and stays owned by this repo (see The bundled explorer above).
 Human pull requests to data files in the data repo are closed on principle: a wrong row is a
@@ -169,7 +169,7 @@ keeps every published row backed by a parser, a golden test, and a provenance li
 a hand edit nobody can audit.
 
 `sync-fast.yml` (see `docs/operations.md`) also writes to the data repo between daily publishes,
-under the same `docket-publish[bot]` identity and the same no-human-edits principle — it is not a
+under the same `alt-data-publish[bot]` identity and the same no-human-edits principle — it is not a
 second, independent writer so much as this same CI pipeline running a narrower slice of itself
 more often. It never uses `--delete` and never touches `manifest.json`, so it can only add or
 update the two fast datasets' delta/feed files; retiring files from the layout, snapshots, the

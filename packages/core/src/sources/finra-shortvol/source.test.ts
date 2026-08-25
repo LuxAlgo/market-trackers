@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { finraSource, shortVolumeFileUrl } from "./source.js";
-import { DocketStore } from "../../store/store.js";
+import { AltDataStore } from "../../store/store.js";
 import { resolveConfig } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
 import { readFixture } from "../../test-helpers.js";
@@ -26,8 +26,8 @@ function mockFetch(): typeof fetch {
   }) as typeof fetch;
 }
 
-async function makeCtx(): Promise<{ ctx: SourceContext; store: DocketStore }> {
-  const store = await DocketStore.open(":memory:");
+async function makeCtx(): Promise<{ ctx: SourceContext; store: AltDataStore }> {
+  const store = await AltDataStore.open(":memory:");
   const ctx: SourceContext = {
     store,
     config: resolveConfig({ logLevel: "silent" }, { cwd: "/nonexistent", env: {} }),

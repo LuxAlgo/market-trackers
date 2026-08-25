@@ -3,7 +3,7 @@ import { openfdaSource, OPENFDA_DRUGSFDA_URL } from "./source.js";
 import { OPENFDA_SKIP_CEILING, splitDateWindow, statusDateRangeSearch } from "./client.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { FdaApproval } from "../../schema/fda-approval.js";
-import { DocketStore } from "../../store/store.js";
+import { AltDataStore } from "../../store/store.js";
 import { resolveConfig, type ConfigOverrides } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
 import { readFixture, readFixtureJson } from "../../test-helpers.js";
@@ -61,8 +61,8 @@ function mockFetch(captured: CapturedRequest[]): typeof fetch {
 
 async function makeCtx(
   overrides: ConfigOverrides = {},
-): Promise<{ ctx: SourceContext; store: DocketStore; captured: CapturedRequest[] }> {
-  const store = await DocketStore.open(":memory:");
+): Promise<{ ctx: SourceContext; store: AltDataStore; captured: CapturedRequest[] }> {
+  const store = await AltDataStore.open(":memory:");
   const captured: CapturedRequest[] = [];
   const ctx: SourceContext = {
     store,
@@ -223,7 +223,7 @@ describe("openfdaSource.sync — skip-ceiling narrowing", () => {
       return new Response("not found", { status: 404 });
     }) as typeof fetch;
 
-    const store = await DocketStore.open(":memory:");
+    const store = await AltDataStore.open(":memory:");
     const ctx: SourceContext = {
       store,
       config: resolveConfig({ logLevel: "silent" }, { cwd: "/nonexistent", env: {} }),

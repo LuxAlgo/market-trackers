@@ -30,7 +30,7 @@ export function createLogger(level: LogLevel = "info", prefix = ""): Logger {
     extra?: Record<string, unknown>,
   ) {
     if (LEVEL_ORDER[kind] < threshold) return;
-    const parts = [`[docket]${prefix ? ` [${prefix}]` : ""} ${kind}: ${message}`];
+    const parts = [`[alt-data]${prefix ? ` [${prefix}]` : ""} ${kind}: ${message}`];
     if (extra && Object.keys(extra).length > 0) parts.push(JSON.stringify(extra));
     process.stderr.write(parts.join(" ") + "\n");
   }

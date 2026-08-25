@@ -1,8 +1,8 @@
 {
-  "name": "@luxalgo/docket-workspace",
+  "name": "@luxalgo/alt-data-workspace",
   "private": true,
   "version": "0.1.0",
-  "description": "Docket — the public record of US markets, as open infrastructure. Workspace root.",
+  "description": "LuxAlgo Alt Data — the public record of US markets, as open infrastructure. Workspace root.",
   "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@10.33.0",

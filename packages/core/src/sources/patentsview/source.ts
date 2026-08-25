@@ -1,8 +1,8 @@
-import type { DocketSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
+import type { AltDataSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { Patent } from "../../schema/patent.js";
-import { DOCKET_VERSION } from "../../config.js";
+import { ALT_DATA_VERSION } from "../../config.js";
 import { addDays, hoursSince, toDateString } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
 import { resolveEntityTickers } from "../../resolve/recipients.js";
@@ -58,7 +58,7 @@ const CANARY_PROBE_SIZE = 5;
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createPatentsviewFetch({
-    userAgent: ctx.config.userAgent ?? `docket/${DOCKET_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("patentsview"),
   });
@@ -130,7 +130,7 @@ function lastPatentId(response: PatentsviewListResponse): string | null {
   return typeof id === "string" && id.length > 0 ? id : null;
 }
 
-export const patentsviewSource: DocketSource = {
+export const patentsviewSource: AltDataSource = {
   id: "patentsview",
   title: "PatentsView (granted US patents)",
   datasets: ["patents"],
@@ -254,8 +254,8 @@ export const patentsviewSource: DocketSource = {
         ok: false,
         severity: "soft",
         note:
-          "skipped: no PatentsView API key configured (DOCKET_PATENTSVIEW_KEY, or " +
-          "patentsviewApiKey in docket.config.json — the key is free)",
+          "skipped: no PatentsView API key configured (ALT_DATA_PATENTSVIEW_KEY, or " +
+          "patentsviewApiKey in alt-data.config.json — the key is free)",
       });
     } else {
       const politeFetch = buildFetch(ctx);

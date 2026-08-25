@@ -15,7 +15,7 @@ seam (`store/sql-driver.ts`):
 - Type mapping handled at the seam (booleans ↔ 0/1 on SQLite; JSON as TEXT on both).
 - Migrations are versioned, idempotent, and **generated from the table specs** for both dialects
   (`store/migrate.ts`), recorded in `schema_migrations`; opening a store always migrates, so a
-  fresh `docket sync` needs zero setup.
+  fresh `alt-data sync` needs zero setup.
 
 Why not an ORM: every dual-dialect ORM route required either duplicated per-dialect table
 definitions or dialect-generic type gymnastics — more code and more drift surface than the SQL
@@ -23,5 +23,5 @@ it would generate, for a store with a dozen tables and deliberately simple queri
 tests (ADR 0001) give us the safety an ORM's types would have, anchored to the zod source of
 truth instead.
 
-Consequence for consumers: `@luxalgo/docket-core` exposes a typed query layer
+Consequence for consumers: `@luxalgo/alt-data-core` exposes a typed query layer
 (`store/queries.ts`) — callers never see SQL or the driver seam.

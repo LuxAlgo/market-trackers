@@ -1,5 +1,5 @@
 import type {
-  DocketSource,
+  AltDataSource,
   ParseStats,
   SourceContext,
   SourceSyncResult,
@@ -8,7 +8,7 @@ import type {
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS, type DatasetId } from "../../schema/datasets.js";
 import type { GovContractAward } from "../../schema/gov-contract-award.js";
-import { DOCKET_VERSION } from "../../config.js";
+import { ALT_DATA_VERSION } from "../../config.js";
 import { addDays, hoursSince, toDateString } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
 import { resolveEntityTickers } from "../../resolve/recipients.js";
@@ -78,7 +78,7 @@ const ALL_UNIVERSES: readonly AwardUniverse[] = [CONTRACT_UNIVERSE, GRANT_UNIVER
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createUsaspendingFetch({
-    userAgent: ctx.config.userAgent ?? `docket/${DOCKET_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("usaspending"),
   });
@@ -260,7 +260,7 @@ async function syncUniverse(
   return out;
 }
 
-export const usaspendingSource: DocketSource = {
+export const usaspendingSource: AltDataSource = {
   id: "usaspending",
   title: "USAspending (federal contract and grant awards)",
   datasets: ["gov-contracts", "gov-grants"],

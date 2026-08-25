@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { parse as parseYaml } from "yaml";
-import type { DocketSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
+import type { AltDataSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import {
@@ -11,7 +11,7 @@ import {
 import { createPoliteFetch, expectOk, type PoliteFetch } from "../../lib/http.js";
 import { RateLimiter } from "../../lib/rate-limiter.js";
 import { hoursSince, isoNow } from "../../lib/dates.js";
-import { DOCKET_VERSION } from "../../config.js";
+import { ALT_DATA_VERSION } from "../../config.js";
 import { refreshMemberMapIfStale } from "../../resolve/members.js";
 
 /**
@@ -134,7 +134,7 @@ export function parseCommitteeData(input: CommitteeParseInput): CommitteeParseRe
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createPoliteFetch({
-    userAgent: ctx.config.userAgent ?? `docket/${DOCKET_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
     limiter: new RateLimiter({ limit: 2, windowMs: 1_000 }),
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("congress-legislators"),
@@ -149,7 +149,7 @@ async function fetchBoth(
   return { committees: await committeesRes.text(), membership: await membershipRes.text() };
 }
 
-export const congressLegislatorsSource: DocketSource = {
+export const congressLegislatorsSource: AltDataSource = {
   id: "congress-legislators",
   title: "Congressional committee assignments (unitedstates/congress-legislators)",
   datasets: ["committee-assignments"],

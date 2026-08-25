@@ -8,7 +8,7 @@ import {
 } from "./source.js";
 import { extractPositionedText } from "./pdf-text.js";
 import type { PositionedTextItem } from "./pdf-text.js";
-import { DocketStore } from "../../store/store.js";
+import { AltDataStore } from "../../store/store.js";
 import { resolveConfig } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
 import { readFixture, readFixtureJson } from "../../test-helpers.js";
@@ -83,10 +83,10 @@ function mockFetch(counters: { index: number; pdf: number }): typeof fetch {
 
 async function makeCtx(): Promise<{
   ctx: SourceContext;
-  store: DocketStore;
+  store: AltDataStore;
   counters: { index: number; pdf: number };
 }> {
-  const store = await DocketStore.open(":memory:");
+  const store = await AltDataStore.open(":memory:");
   const counters = { index: 0, pdf: 0 };
   const ctx: SourceContext = {
     store,

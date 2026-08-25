@@ -10,7 +10,7 @@ import { tableSpecByName } from "./table-specs.js";
 import { mapperFor } from "./rows.js";
 
 /**
- * The Docket store: idempotent upserts by natural key, per-source
+ * The LuxAlgo Alt Data store: idempotent upserts by natural key, per-source
  * watermarks, sync/canary bookkeeping, and entity-resolution caches. All
  * writes validate through the dataset's zod schema first — nothing enters
  * the database that the published schema doesn't describe.
@@ -75,7 +75,7 @@ export interface MemberMapEntry {
 
 const boolFrom = (v: unknown): boolean => v === true || v === 1;
 
-export class DocketStore {
+export class AltDataStore {
   private constructor(
     public readonly driver: SqlDriver,
     public readonly url: string,
@@ -85,10 +85,10 @@ export class DocketStore {
    * Opens (and migrates) a store. `url` accepts a SQLite path (default),
    * "sqlite:path", ":memory:", or a postgres:// connection string.
    */
-  static async open(url: string): Promise<DocketStore> {
+  static async open(url: string): Promise<AltDataStore> {
     const driver = await createDriver(url);
     await migrate(driver);
-    return new DocketStore(driver, url);
+    return new AltDataStore(driver, url);
   }
 
   async close(): Promise<void> {
@@ -475,7 +475,7 @@ export class DocketStore {
     await this.driver.run(`UPDATE "cik_tickers" SET "refreshed_at" = ?`, [isoNow()]);
   }
 
-  // ── CUSIP→ticker enrichment (the `docket resolve cusips` loop) ─────────
+  // ── CUSIP→ticker enrichment (the `alt-data resolve cusips` loop) ─────────
 
   /** Distinct CUSIPs on 13F holding rows whose ticker is still unresolved. */
   async distinctUnresolvedCusips(limit?: number): Promise<string[]> {

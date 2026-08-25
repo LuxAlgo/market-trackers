@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { runSync, selectSources } from "./engine.js";
-import { DocketStore } from "../store/store.js";
+import { AltDataStore } from "../store/store.js";
 import { resolveConfig } from "../config.js";
 import { silentLogger } from "../lib/logger.js";
 import type { SourceContext } from "../sources/types.js";
 import { ALL_SOURCES, sourceById } from "../sources/registry.js";
 
-async function makeCtx(): Promise<{ ctx: SourceContext; store: DocketStore }> {
-  const store = await DocketStore.open(":memory:");
+async function makeCtx(): Promise<{ ctx: SourceContext; store: AltDataStore }> {
+  const store = await AltDataStore.open(":memory:");
   return {
     store,
     ctx: {

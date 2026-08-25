@@ -1,14 +1,14 @@
-"""docket_data — a small, dependency-light reader for Docket's published dumps.
+"""alt_datasets — a small, dependency-light reader for LuxAlgo Alt Data's published dumps.
 
-Docket (https://github.com/LuxAlgo/docket) publishes the public record of US
+LuxAlgo Alt Data (https://github.com/LuxAlgo/alt-data) publishes the public record of US
 markets — congressional trades, insider filings, 13F holdings, government
 contracts and grants, lobbying, short-sale volume, committee assignments,
 patents, clinical trials, FDA events, and CFTC positioning — as free, CC0
 JSON dumps with per-row primary-source provenance, published at
-https://github.com/LuxAlgo/docket-data.
+https://github.com/LuxAlgo/alt-datasets.
 
 This package only reads those dumps. It computes nothing: no scores, no
-signals, no predictions — Docket doesn't ship those, and neither does this
+signals, no predictions — LuxAlgo Alt Data doesn't ship those, and neither does this
 reader. It is stdlib-only; pandas is an optional extra, imported lazily only
 by `to_dataframe`.
 """
@@ -21,13 +21,13 @@ import urllib.request
 from typing import Any, Sequence
 from urllib.parse import urlparse
 
-__all__ = ["load_snapshot", "load_manifest", "to_dataframe", "DocketDataError"]
+__all__ = ["load_snapshot", "load_manifest", "to_dataframe", "AltDatasetsError"]
 
 __version__ = "0.1.0"
 
 
-class DocketDataError(Exception):
-    """Raised for problems reading or interpreting a Docket dump."""
+class AltDatasetsError(Exception):
+    """Raised for problems reading or interpreting a LuxAlgo Alt Data dump."""
 
 
 def _is_url(path_or_url: str) -> bool:
@@ -58,14 +58,14 @@ def _read_json(path_or_url: str) -> Any:
     try:
         return json.loads(raw.decode("utf-8"))
     except json.JSONDecodeError as exc:
-        raise DocketDataError(f"{path_or_url}: not valid JSON ({exc})") from exc
+        raise AltDatasetsError(f"{path_or_url}: not valid JSON ({exc})") from exc
 
 
 def load_manifest(path_or_url: str) -> dict[str, Any]:
     """Loads a dumps manifest.json.
 
     `path_or_url` may point directly at a manifest file (anything ending in
-    `.json`), or at the dumps repo root (e.g. a local docket-data checkout,
+    `.json`), or at the dumps repo root (e.g. a local alt-datasets checkout,
     or a raw.githubusercontent.com tree URL) — a `manifest.json` is then
     assumed to sit at that root.
     """
@@ -74,7 +74,7 @@ def load_manifest(path_or_url: str) -> dict[str, Any]:
     )
     manifest = _read_json(target)
     if not isinstance(manifest, dict) or "datasets" not in manifest:
-        raise DocketDataError(f"{target}: does not look like a Docket manifest.json (missing 'datasets')")
+        raise AltDatasetsError(f"{target}: does not look like a LuxAlgo Alt Data manifest.json (missing 'datasets')")
     return manifest
 
 
@@ -84,21 +84,21 @@ def _snapshot_files(manifest: dict[str, Any], dataset: str) -> tuple[str, list[s
 
     The exporter writes year-sharded `snapshot-YYYY.json.gz` files always,
     plus a combined `snapshot.json.gz` only when the dataset is small enough
-    (see docs/docket-data.md) — and when it exists, the combined file
+    (see docs/alt-datasets.md) — and when it exists, the combined file
     duplicates every shard's rows. So: prefer the combined file alone when
     the manifest lists one; otherwise every listed shard is needed.
     """
     datasets = manifest.get("datasets", {})
     info = datasets.get(dataset)
     if info is None:
-        raise DocketDataError(f"unknown dataset {dataset!r} — known datasets: {sorted(datasets)}")
+        raise AltDatasetsError(f"unknown dataset {dataset!r} — known datasets: {sorted(datasets)}")
     export_dir = info.get("exportDir")
     snapshots = info.get("snapshots") or []
     files = [s["file"] for s in snapshots]
     if "snapshot.json.gz" in files:
         return export_dir, ["snapshot.json.gz"]
     if not files:
-        raise DocketDataError(
+        raise AltDatasetsError(
             f"dataset {dataset!r} has no snapshot files in this manifest (rows={info.get('rows', 0)}); "
             f"try load_snapshot(f'{{root}}/{export_dir}/latest.json') for the newest delta instead"
         )
@@ -106,7 +106,7 @@ def _snapshot_files(manifest: dict[str, Any], dataset: str) -> tuple[str, list[s
 
 
 def load_snapshot(path_or_url: str, dataset: str | None = None) -> list[dict[str, Any]]:
-    """Loads a Docket dump as a list of row dicts.
+    """Loads a LuxAlgo Alt Data dump as a list of row dicts.
 
     Two ways to call it:
 
@@ -124,7 +124,7 @@ def load_snapshot(path_or_url: str, dataset: str | None = None) -> list[dict[str
     if dataset is None:
         rows = _read_json(path_or_url)
         if not isinstance(rows, list):
-            raise DocketDataError(f"{path_or_url}: expected a JSON array of rows")
+            raise AltDatasetsError(f"{path_or_url}: expected a JSON array of rows")
         return rows
 
     manifest = load_manifest(path_or_url)
@@ -133,7 +133,7 @@ def load_snapshot(path_or_url: str, dataset: str | None = None) -> list[dict[str
     for file in files:
         chunk = _read_json(_join(path_or_url, export_dir, file))
         if not isinstance(chunk, list):
-            raise DocketDataError(f"{file}: expected a JSON array of rows")
+            raise AltDatasetsError(f"{file}: expected a JSON array of rows")
         rows.extend(chunk)
     return rows
 
@@ -142,7 +142,7 @@ def to_dataframe(rows: Sequence[dict[str, Any]]) -> Any:
     """Converts a list of row dicts (as returned by `load_snapshot`) into a
     pandas DataFrame.
 
-    Requires pandas — install with `pip install docket-data[pandas]` or
+    Requires pandas — install with `pip install alt-datasets[pandas]` or
     `pip install pandas` directly. Imported lazily so the base package stays
     dependency-free for callers who don't need a DataFrame.
     """
@@ -150,7 +150,7 @@ def to_dataframe(rows: Sequence[dict[str, Any]]) -> Any:
         import pandas as pd
     except ImportError as exc:
         raise ImportError(
-            "to_dataframe() requires pandas. Install it with `pip install docket-data[pandas]` "
+            "to_dataframe() requires pandas. Install it with `pip install alt-datasets[pandas]` "
             "or `pip install pandas`."
         ) from exc
     return pd.DataFrame(list(rows))

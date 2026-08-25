@@ -1,11 +1,11 @@
 {
-  "name": "@luxalgo/docket-mcp",
+  "name": "@luxalgo/alt-data-mcp",
   "version": "0.1.0",
-  "description": "MCP server for Docket — congress trades, insider filings, 13F holdings, government contracts, lobbying, and short-sale volume for AI agents. Local stdio + stateless streamable HTTP; every answer carries primary-source citations.",
+  "description": "MCP server for LuxAlgo Alt Data — congress trades, insider filings, 13F holdings, government contracts, lobbying, and short-sale volume for AI agents. Local stdio + stateless streamable HTTP; every answer carries primary-source citations.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "docket-mcp": "dist/stdio.js"
+    "alt-data-mcp": "dist/stdio.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -21,11 +21,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LuxAlgo/docket.git",
+    "url": "git+https://github.com/LuxAlgo/alt-data.git",
     "directory": "packages/mcp"
   },
-  "homepage": "https://github.com/LuxAlgo/docket#readme",
-  "bugs": "https://github.com/LuxAlgo/docket/issues",
+  "homepage": "https://github.com/LuxAlgo/alt-data#readme",
+  "bugs": "https://github.com/LuxAlgo/alt-data/issues",
   "keywords": [
     "mcp",
     "model-context-protocol",
@@ -42,7 +42,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@luxalgo/docket-core": "workspace:^",
+    "@luxalgo/alt-data-core": "workspace:^",
     "@modelcontextprotocol/sdk": "^1.12.0",
     "zod": "^3.24.0"
   },

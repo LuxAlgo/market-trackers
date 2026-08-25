@@ -1,8 +1,8 @@
-import type { DocketSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
+import type { AltDataSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { ClinicalTrial } from "../../schema/clinical-trial.js";
-import { DOCKET_VERSION } from "../../config.js";
+import { ALT_DATA_VERSION } from "../../config.js";
 import { addDays, hoursSince, toDateString } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
 import { resolveEntityTickers } from "../../resolve/recipients.js";
@@ -53,7 +53,7 @@ const CANARY_PROBE_DAYS = 30;
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createClinicalTrialsFetch({
-    userAgent: ctx.config.userAgent ?? `docket/${DOCKET_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("clinicaltrials"),
   });
@@ -107,7 +107,7 @@ export function normalizeStudy(raw: Record<string, unknown>, retrievedAt: string
   };
 }
 
-export const clinicaltrialsSource: DocketSource = {
+export const clinicaltrialsSource: AltDataSource = {
   id: "clinicaltrials",
   title: "ClinicalTrials.gov (study registrations)",
   datasets: ["clinical-trials"],
