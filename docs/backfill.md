@@ -31,6 +31,7 @@ Flags (see `alt-data backfill --help`):
 | `--to <date>`      | End of the window, inclusive. Defaults to today.                                           |
 | `--chunk-days <n>` | Calendar days per resumable chunk. Defaults to 30.                                         |
 | `--limit <n>`      | Soft cap on documents fetched **per source** this run (demos/smoke tests).                 |
+| `--full`           | Ignore the `backfill.completedThrough` resume watermark and re-walk the whole window.      |
 
 Exit code is `0` when every requested source walked all the way through `--to`, `1` when any
 source stopped early (a chunk hit `--limit`, or errored) — the process also prints a resume
@@ -59,10 +60,9 @@ limit: <remaining budget> })` call — the exact same sync path `alt-data sync` 
    advancing past it — so the next run retries that same chunk instead of skipping it.
 5. Re-running `alt-data backfill` with the same (or an earlier) `--from` skips ahead to the day
    after `backfill.completedThrough` automatically. Pass a `--from` that's already fully
-   covered and the source reports zero chunks — a safe, cheap no-op. There's no `--full` flag
-   wired on the CLI in this release (see "Known gaps" below); the engine itself supports it —
-   restart a source from scratch by clearing its `backfill.completedThrough` watermark, or by
-   calling `runBackfill` programmatically with `full: true`.
+   covered and the source reports zero chunks — a safe, cheap no-op. To re-walk covered ground
+   anyway, pass `--full`: it ignores the `backfill.completedThrough` resume watermark for this
+   run (idempotent upserts make the re-walk duplicate-free).
 6. **One source failing never stops the others.** Sources are walked one at a time and each
    source's own chunk loop is isolated — an error on `edgar`'s third chunk still lets `finra`
    and `usaspending` run their full windows in the same invocation.
@@ -95,19 +95,24 @@ against the source itself before relying on it for a real archive; these are wor
 estimates, not guarantees, and some sources thin out (or change shape) well before their
 earliest technically-available record:
 
-| Source            | Free history depth (approx.)     | Notes                                                                                                             |
-| ----------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `edgar`           | Daily index back to ~1994        | EDGAR's full-text/daily index starts with EDGAR itself; forms and coverage thinned in the earliest years.         |
-| `lda`             | ~1999                            | Senate LDA filings are electronic from the database's start; pre-1999 paper filings aren't in the API.            |
-| `usaspending`     | ~2000s (contracts and grants)    | USAspending's own historical coverage improves markedly after ~2008; earlier award records exist but are sparser. |
-| `finra`           | ~2009                            | Reg SHO daily short-sale volume files begin in the late 2000s.                                                    |
-| `senate-efd`      | ~2012                            | Senate electronic Periodic Transaction Report filing began in 2012; paper-era trades aren't covered.              |
-| `house-clerk`     | ~2008                            | House financial disclosure e-filing (and the Clerk's online index) is reliable from roughly this point.           |
-| `cftc` (scaffold) | Decades (Commitments of Traders) | The legacy COT report itself runs back decades once implemented; not yet an ingestor in this release.             |
+| Source           | Free history depth (approx.)     | Notes                                                                                                                        |
+| ---------------- | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `edgar`          | Daily index back to ~1994        | EDGAR's full-text/daily index starts with EDGAR itself; forms and coverage thinned in the earliest years.                    |
+| `lda`            | ~1999                            | Senate LDA filings are electronic from the database's start; pre-1999 paper filings aren't in the API.                       |
+| `usaspending`    | ~2000s (contracts and grants)    | USAspending's own historical coverage improves markedly after ~2008; earlier award records exist but are sparser.            |
+| `finra`          | ~2009                            | Reg SHO daily short-sale volume files begin in the late 2000s.                                                               |
+| `senate-efd`     | ~2012                            | Senate electronic Periodic Transaction Report filing began in 2012; paper-era trades aren't covered.                         |
+| `house-clerk`    | ~2008                            | House financial disclosure e-filing (and the Clerk's online index) is reliable from roughly this point.                      |
+| `cftc`           | Decades (Commitments of Traders) | The CFTC's public reporting API serves the legacy futures-only report far back; earliest decades are [verify-live].          |
+| `patentsview`    | ~1976 (grants)                   | PatentsView's grant coverage runs to the mid-1970s; assignee disambiguation quality varies with era.                         |
+| `clinicaltrials` | ~2000 (registrations)            | ClinicalTrials.gov registrations begin with the registry itself (2000); early records are sparse and unevenly maintained.    |
+| `openfda`        | ~1939 (Drugs@FDA records)        | Drugs@FDA carries approval records for very old applications; completeness and dating conventions vary widely by era.        |
+| `wikimedia`      | 2015-07-01 (pageviews API)       | The per-article pageviews API starts 2015-07-01; there is no earlier per-article daily data in this API.                     |
+| `govinfo`        | 113th congress (2013)            | Bulk BILLSTATUS coverage begins with the 113th congress; older congresses need a not-yet-existing config knob to target.     |
+| `fec`            | Cycles back to 1980              | Bulk files exist per two-year cycle; the source currently syncs the current cycle only (per-cycle history is future config). |
 
-Sources not listed here (`congress-legislators`, `patentsview`, `clinicaltrials`, `openfda`)
-are either current-state (see above) or scaffolds without a backfill-relevant history depth
-yet.
+`congress-legislators` is current-state (the dataset is replaced on each sync) and has no
+backfill-relevant history depth.
 
 ## Running it in CI
 
@@ -195,9 +200,6 @@ published dumps contract guarantees.
 
 ## Known gaps
 
-- No `--full` flag on the `alt-data backfill` CLI (the engine supports it; see step 5 above for
-  the workaround). Adding it is a small, backwards-compatible follow-up if it turns out to be
-  needed often.
 - EDGAR backfill here still walks the daily index one day at a time, same as incremental sync
   — there's no bulk-file (`Archives/edgar/full-index/*.zip`) fast path (see the note in
   `docs/sources/edgar.md`). It works, and is resumable, but a deep EDGAR backfill makes
