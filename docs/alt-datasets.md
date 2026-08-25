@@ -155,6 +155,43 @@ would delete it and re-commit it minutes later). If GitHub Pages is enabled on t
 (plain root-folder configuration, no build step), the explorer is served at `/explorer/`
 alongside the raw data files it reads.
 
+## Per-entity feeds
+
+Every dataset with a ticker concept — every dataset except `committee-assignments`,
+`cot-reports`, `bills`, `fec-candidates`, and `fec-contributions`, which have none — also
+carries a `feeds/by-ticker/` directory: one RSS feed per active ticker, at
+
+```
+<exportDir>/feeds/by-ticker/<TICKER>.xml
+```
+
+`congress-trades` additionally carries `feeds/by-member/<bioguideId>.xml`, one feed per
+active member of Congress — no other dataset has a member concept. `feed.xml` at the dataset
+root (see Feeds above) is unchanged by any of this: it still covers the whole dataset's
+newest ingestion day, exactly as before per-entity feeds existed.
+
+A ticker or member is "active" — and therefore gets a feed at all — only if at least one of
+its rows was ingested (`provenance.retrievedAt`) within the last 30 days of the export's
+`generatedAt`; a feed's items are drawn from that same 30-day window, newest-first, same as
+the whole-dataset feed. That makes this an _alerting_ feed, not a full-history one — a reader
+who wants an entity's complete history already has the dataset's snapshot files above. Each
+kind (ticker, member) is additionally capped at the 200 most-active entities per dataset —
+most rows in the window first, ties broken alphabetically. On every export,
+`feeds/by-ticker/` and `feeds/by-member/` are rewritten to exactly the current entity set: an
+entity that rolls out of the 30-day window loses its file rather than lingering.
+
+A ticker or bioguideId that isn't filesystem-safe (`[A-Z0-9.-]+` for tickers, `[A-Z0-9]+` for
+bioguideIds — the shape every curated resolution map already produces) is excluded from its
+feed and counted, never silently coerced into a filename.
+
+The manifest's `datasets.<id>.entityFeeds` field (`{ byTicker, byMember }`) is the count of
+feed files actually written for that dataset this export — `0` for a dataset with no ticker
+or member concept (never an omitted field), and pinned at 200 whenever at least that many
+entities were active. A count sitting exactly at the cap is therefore a reader's own signal
+that this dataset's active set may run larger than what's shown — the cap is never applied
+without the count reflecting it. See `packages/core/src/export/entity-feeds.ts` for the
+implementation.
+
 ## Only CI writes
 
 The data repository has exactly one writer: the `publish-dumps.yml` workflow in this repo,
