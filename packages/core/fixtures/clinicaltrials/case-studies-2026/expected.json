@@ -1,0 +1,107 @@
+[
+  {
+    "id": "NCT05512345",
+    "nctId": "NCT05512345",
+    "title": "A Study of Elzafenib in Adults With Type 2 Diabetes Mellitus",
+    "sponsor": { "name": "Pfizer", "tickers": ["PFE"] },
+    "phase": "PHASE3",
+    "overallStatus": "RECRUITING",
+    "studyType": "INTERVENTIONAL",
+    "conditions": ["Type 2 Diabetes Mellitus"],
+    "startDate": "2025-11-03",
+    "primaryCompletionDate": "2027-09",
+    "lastUpdated": "2026-08-10",
+    "provenance": {
+      "source": "clinicaltrials",
+      "sourceUrl": "https://clinicaltrials.gov/study/NCT05512345",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "clinicaltrials-v2@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "NCT05598877",
+    "nctId": "NCT05598877",
+    "title": "Venetoclax Plus Azacitidine Maintenance in Older Adults With Acute Myeloid Leukemia",
+    "sponsor": { "name": "Fred Hutchinson Cancer Center", "tickers": [] },
+    "phase": "PHASE2",
+    "overallStatus": "ACTIVE_NOT_RECRUITING",
+    "studyType": "INTERVENTIONAL",
+    "conditions": ["Acute Myeloid Leukemia"],
+    "startDate": "2024-06-01",
+    "primaryCompletionDate": "2026-07-01",
+    "lastUpdated": "2026-08-01",
+    "provenance": {
+      "source": "clinicaltrials",
+      "sourceUrl": "https://clinicaltrials.gov/study/NCT05598877",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "clinicaltrials-v2@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "NCT05633221",
+    "nctId": "NCT05633221",
+    "title": "A Study of mRNA-1230 Seasonal Influenza Vaccine in Healthy Adults",
+    "sponsor": { "name": "ModernaTX, Inc.", "tickers": ["MRNA"] },
+    "phase": "PHASE1",
+    "overallStatus": "NOT_YET_RECRUITING",
+    "studyType": "INTERVENTIONAL",
+    "conditions": ["Seasonal Influenza"],
+    "startDate": "2026-05",
+    "primaryCompletionDate": "2027",
+    "lastUpdated": "2026-08-05",
+    "provenance": {
+      "source": "clinicaltrials",
+      "sourceUrl": "https://clinicaltrials.gov/study/NCT05633221",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "clinicaltrials-v2@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "NCT05677654",
+    "nctId": "NCT05677654",
+    "title": "Long-Term Cardiopulmonary Outcomes After Post-Acute COVID-19 Syndrome",
+    "sponsor": { "name": "Massachusetts General Hospital", "tickers": [] },
+    "phase": null,
+    "overallStatus": "RECRUITING",
+    "studyType": "OBSERVATIONAL",
+    "conditions": ["Post-Acute COVID-19 Syndrome"],
+    "startDate": "2026-01-12",
+    "primaryCompletionDate": "2029-01",
+    "lastUpdated": "2026-08-08",
+    "provenance": {
+      "source": "clinicaltrials",
+      "sourceUrl": "https://clinicaltrials.gov/study/NCT05677654",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "clinicaltrials-v2@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "NCT05699998",
+    "nctId": "NCT05699998",
+    "title": "A Study of Topical Ruxolitinib for Refractory Chronic Hand Eczema",
+    "sponsor": { "name": "Cleveland Clinic Foundation", "tickers": [] },
+    "phase": "PHASE2",
+    "overallStatus": "TERMINATED",
+    "studyType": "INTERVENTIONAL",
+    "conditions": [],
+    "startDate": "2025-03",
+    "primaryCompletionDate": null,
+    "lastUpdated": "2026-07-30",
+    "provenance": {
+      "source": "clinicaltrials",
+      "sourceUrl": "https://clinicaltrials.gov/study/NCT05699998",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "clinicaltrials-v2@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  }
+]

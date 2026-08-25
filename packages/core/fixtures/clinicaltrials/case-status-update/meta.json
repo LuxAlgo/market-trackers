@@ -1,0 +1,17 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic single-page response representing the same NCT id as case-studies-2026 (NCT05512345, Pfizer) after the registry moved it from RECRUITING to COMPLETED — overallStatus, primaryCompletionDate (now day-precision ACTUAL instead of the earlier month-precision ESTIMATED), and lastUpdatePostDate all advance while the natural key stays the same, so a re-sync must upsert the existing row in place rather than create a second one.",
+  "sourceUrl": null,
+  "parser": "clinicaltrials-v2@1",
+  "parseInput": {
+    "request": {
+      "url": "https://clinicaltrials.gov/api/v2/studies",
+      "query.term": "AREA[LastUpdatePostDate]RANGE[2026-08-16,2026-08-24]",
+      "fields": "protocolSection.identificationModule,protocolSection.sponsorCollaboratorsModule,protocolSection.statusModule,protocolSection.designModule,protocolSection.conditionsModule",
+      "pageSize": 1000
+    },
+    "retrievedAt": "2026-08-24T12:00:00.000Z"
+  },
+  "expectedStats": { "attempted": 1, "succeeded": 1 }
+}

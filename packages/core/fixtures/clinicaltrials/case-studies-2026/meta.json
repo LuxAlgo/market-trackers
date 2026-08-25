@@ -1,0 +1,17 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic ClinicalTrials.gov API v2 /studies response pair (page 1 with nextPageToken, page 2 final), scoped to the five module fields the schema needs. Exercises a mapped industry sponsor (Pfizer -> PFE), an unmapped academic sponsor (Fred Hutchinson Cancer Center), a month-precision startDate (mRNA-1230, sponsor ModernaTX Inc. -> MRNA), a no-phase observational study (Massachusetts General Hospital; designModule.phases is absent, not empty), and a study with conditionsModule and primaryCompletionDateStruct both entirely absent (Cleveland Clinic Foundation) — mapping to their honest defaults ([] and null) rather than a guess.",
+  "sourceUrl": null,
+  "parser": "clinicaltrials-v2@1",
+  "parseInput": {
+    "request": {
+      "url": "https://clinicaltrials.gov/api/v2/studies",
+      "query.term": "AREA[LastUpdatePostDate]RANGE[2026-07-25,2026-08-24]",
+      "fields": "protocolSection.identificationModule,protocolSection.sponsorCollaboratorsModule,protocolSection.statusModule,protocolSection.designModule,protocolSection.conditionsModule",
+      "pageSize": 1000
+    },
+    "retrievedAt": "2026-08-24T12:00:00.000Z"
+  },
+  "expectedStats": { "attempted": 5, "succeeded": 5 }
+}
