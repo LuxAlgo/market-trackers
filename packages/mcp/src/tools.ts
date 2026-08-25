@@ -8,13 +8,20 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
   INSIDER_TRANSACTION_CODES,
+  committeeRoster,
   freshnessReport,
   insiderSummary,
+  memberProfile,
+  queryClinicalTrials,
   queryCongressMembers,
   queryCongressTrades,
+  queryCotReports,
+  queryFdaApprovals,
   queryGovContracts,
+  queryGovGrants,
   queryInsiderTransactions,
   queryLobbying,
+  queryPatents,
   queryShortVolume,
   queryThirteenfHolders,
   queryThirteenfManager,
@@ -320,6 +327,177 @@ export function registerDocketTools(server: McpServer, store: DocketStore): void
           "Reg SHO daily volume is not short interest; it reflects reported daily short-sale volume by market.",
         rows: withCitation(rows),
       });
+    },
+  );
+
+  server.registerTool(
+    "docket_gov_grants",
+    {
+      title: "Government grant awards",
+      description:
+        "Federal GRANT awards from USAspending (the non-contract award universe: research grants, subsidies, program funding), filterable exactly like docket_gov_contracts — recipient ticker (curated public-company subsidiary map), recipient name, awarding agency, date, and amount floor. recipient.tickers is empty when unmapped; absence of a ticker is not absence of the award. Each row cites its USAspending record.",
+      inputSchema: {
+        ticker: z.string().optional(),
+        recipient: z.string().optional().describe("Recipient name (substring match)"),
+        agency: z.string().optional().describe("Awarding agency (substring match)"),
+        since: DATE.optional().describe("Earliest action date"),
+        min_amount: z.number().optional().describe("Minimum obligated USD"),
+        limit: LIMIT,
+      },
+    },
+    async ({ ticker, recipient, agency, since, min_amount, limit }) => {
+      const rows = await queryGovGrants(store, {
+        ticker,
+        recipient,
+        agency,
+        since,
+        minAmount: min_amount,
+        limit,
+      });
+      return json({ count: rows.length, rows: withCitation(rows) });
+    },
+  );
+
+  server.registerTool(
+    "docket_member_profile",
+    {
+      title: "Member of Congress — full profile",
+      description:
+        "One member, fully joined: identity (bioguide/party/state), every committee and subcommittee seat they hold, and their disclosed trading — totals, buys vs sells, most-traded tickers, and their most recent trades with per-filing citations. This is the receipts view for questions like 'what does the Armed Services chair trade?' — the tool reports the facts side by side and leaves interpretation to you. Committee data comes from the public-domain congress-legislators dataset; trades from official disclosures.",
+      inputSchema: {
+        q: z.string().min(1).describe("Member name (substring) — e.g. 'whitehouse'"),
+      },
+    },
+    async ({ q }) => {
+      const profile = await memberProfile(store, q);
+      if (!profile.member) return toolError(`No member found matching '${q}'`);
+      return json({
+        ...profile,
+        trades: { ...profile.trades, recent: withCitation(profile.trades.recent) },
+        data_notes:
+          "Facts joined from public records: committee seats + disclosed trades. Amounts are ranges; no scores or inferences are computed.",
+      });
+    },
+  );
+
+  server.registerTool(
+    "docket_committees",
+    {
+      title: "Committee roster with trade activity",
+      description:
+        "Resolve a congressional committee by name or thomas id ('armed services', 'SSAS', 'energy and commerce') and get its full roster: every member with their leadership title, subcommittee seats, disclosed-trade count, and last trade date. Pair with docket_congress_trades (filter by the member names returned here) to pull the underlying filings. Facts only — the join between oversight and trading is presented, never scored.",
+      inputSchema: {
+        q: z.string().min(1).describe("Committee name or thomas id (substring match)"),
+      },
+    },
+    async ({ q }) => {
+      const roster = await committeeRoster(store, q);
+      if (!roster.committee) return toolError(`No committee found matching '${q}'`);
+      return json(roster);
+    },
+  );
+
+  server.registerTool(
+    "docket_patents",
+    {
+      title: "Granted patents",
+      description:
+        "US patents granted (USPTO data via PatentsView), filterable by assignee ticker (curated mapping), assignee name, grant-date range, and CPC class. Useful for questions like 'what did this company patent recently?'. assignee.tickers is empty when the assignee isn't mapped to a public company. Each row cites its primary record.",
+      inputSchema: {
+        ticker: z.string().optional(),
+        assignee: z.string().optional().describe("Assignee organization (substring match)"),
+        since: DATE.optional().describe("Earliest grant date"),
+        until: DATE.optional().describe("Latest grant date"),
+        cpc_class: z.string().optional().describe("CPC class prefix, e.g. 'G06'"),
+        limit: LIMIT,
+      },
+    },
+    async ({ ticker, assignee, since, until, cpc_class, limit }) => {
+      const rows = await queryPatents(store, {
+        ticker,
+        assignee,
+        since,
+        until,
+        cpcClass: cpc_class,
+        limit,
+      });
+      return json({ count: rows.length, rows: withCitation(rows) });
+    },
+  );
+
+  server.registerTool(
+    "docket_clinical_trials",
+    {
+      title: "Clinical trial registrations",
+      description:
+        "Study registrations from ClinicalTrials.gov, filterable by sponsor ticker (curated mapping), sponsor name, registry status (e.g. RECRUITING, COMPLETED, TERMINATED), phase (e.g. PHASE3), condition, and last-update date. All fields are sponsor-declared registry facts verbatim — including primaryCompletionDate, which is a declared plan, not a decision calendar. Each row cites its ClinicalTrials.gov record.",
+      inputSchema: {
+        ticker: z.string().optional(),
+        sponsor: z.string().optional().describe("Lead sponsor name (substring match)"),
+        status: z.string().optional().describe("Registry status, e.g. 'RECRUITING'"),
+        phase: z.string().optional().describe("Registry phase, e.g. 'PHASE3'"),
+        condition: z.string().optional().describe("Condition (substring match)"),
+        since: DATE.optional().describe("Earliest last-update date"),
+        limit: LIMIT,
+      },
+    },
+    async ({ ticker, sponsor, status, phase, condition, since, limit }) => {
+      const rows = await queryClinicalTrials(store, {
+        ticker,
+        sponsor,
+        status,
+        phase,
+        condition,
+        since,
+        limit,
+      });
+      return json({ count: rows.length, rows: withCitation(rows) });
+    },
+  );
+
+  server.registerTool(
+    "docket_fda_approvals",
+    {
+      title: "FDA drug application events",
+      description:
+        "Drug-application submission events from openFDA's Drugs@FDA — original approvals and supplements with raw FDA status codes (AP approved, TA tentative approval, …), filterable by sponsor ticker (curated mapping), sponsor name, status code, and date. These are recorded regulatory events, not predictions of pending decisions. Each row cites its openFDA record.",
+      inputSchema: {
+        ticker: z.string().optional(),
+        sponsor: z.string().optional().describe("Sponsor name (substring match)"),
+        status: z.string().optional().describe("Raw FDA status code, e.g. 'AP'"),
+        since: DATE.optional().describe("Earliest status date"),
+        limit: LIMIT,
+      },
+    },
+    async ({ ticker, sponsor, status, since, limit }) => {
+      const rows = await queryFdaApprovals(store, { ticker, sponsor, status, since, limit });
+      return json({ count: rows.length, rows: withCitation(rows) });
+    },
+  );
+
+  server.registerTool(
+    "docket_cot",
+    {
+      title: "CFTC Commitments of Traders",
+      description:
+        "Weekly Commitments of Traders positioning (legacy futures-only) per contract market: open interest and commercial / non-commercial / non-reportable long+short positions, verbatim from the CFTC. Filter by market name ('crude oil', 'e-mini s&p') or contract code, over a date range — rows come back newest first, so a range query yields the series. Published numbers only; net positioning arithmetic is left to the caller.",
+      inputSchema: {
+        market: z.string().optional().describe("Market name (substring match), e.g. 'crude oil'"),
+        contract_code: z.string().optional().describe("CFTC contract market code"),
+        from: DATE.optional().describe("Earliest report date"),
+        to: DATE.optional().describe("Latest report date"),
+        limit: LIMIT,
+      },
+    },
+    async ({ market, contract_code, from, to, limit }) => {
+      const rows = await queryCotReports(store, {
+        market,
+        contractCode: contract_code,
+        from,
+        to,
+        limit,
+      });
+      return json({ count: rows.length, rows: withCitation(rows) });
     },
   );
 

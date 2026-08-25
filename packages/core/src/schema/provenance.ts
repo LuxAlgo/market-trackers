@@ -16,6 +16,11 @@ export const SOURCE_IDS = [
   "usaspending",
   "lda",
   "finra",
+  "congress-legislators",
+  "patentsview",
+  "clinicaltrials",
+  "openfda",
+  "cftc",
 ] as const;
 
 export type SourceId = (typeof SOURCE_IDS)[number];

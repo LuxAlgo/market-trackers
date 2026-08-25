@@ -20,9 +20,14 @@ const TITLES = {
   edgar: "SEC EDGAR (Forms 3/4/5, 13F-HR)",
   "senate-efd": "Senate eFD (PTRs)",
   "house-clerk": "House Clerk (PTRs)",
-  usaspending: "USAspending",
+  usaspending: "USAspending (contracts + grants)",
   lda: "Senate LDA",
   finra: "FINRA Reg SHO",
+  "congress-legislators": "Committee assignments",
+  patentsview: "PatentsView (patents)",
+  clinicaltrials: "ClinicalTrials.gov",
+  openfda: "openFDA (Drugs@FDA)",
+  cftc: "CFTC COT",
 };
 
 const BADGES = {

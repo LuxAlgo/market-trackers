@@ -508,4 +508,17 @@ export class DocketStore {
     });
     return { updated };
   }
+
+  /**
+   * Replaces a dataset's rows wholesale, atomically — for CURRENT-STATE
+   * datasets (e.g. committee assignments) where a departed row must
+   * disappear rather than linger. Event-history datasets keep using
+   * `upsert`; this is the deliberate exception, not the norm.
+   */
+  async replaceDataset<T>(dataset: DatasetDefinition<T>, records: T[]): Promise<UpsertResult> {
+    return this.driver.transaction(async () => {
+      await this.driver.run(`DELETE FROM "${dataset.table}"`);
+      return this.upsert(dataset, records);
+    });
+  }
 }

@@ -71,6 +71,11 @@ export * from "./sources/house-clerk/parse-ptr-items.js";
 export * from "./sources/house-clerk/pdf-text.js";
 export * from "./sources/usaspending/source.js";
 export * from "./sources/lda/source.js";
+export * from "./sources/congress-legislators/source.js";
+export * from "./sources/patentsview/source.js";
+export * from "./sources/clinicaltrials/source.js";
+export * from "./sources/openfda/source.js";
+export * from "./sources/cftc/source.js";
 
 export * from "./resolve/normalize.js";
 export * from "./resolve/recipients.js";
@@ -81,3 +86,5 @@ export * from "./resolve/members.js";
 export * from "./sync/engine.js";
 export * from "./canary/runner.js";
 export * from "./export/writer.js";
+export * from "./export/feeds.js";
+export * from "./export/import.js";

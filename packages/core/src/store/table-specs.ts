@@ -194,6 +194,128 @@ export const SHORT_VOLUME_DAYS_TABLE = datasetTable(
   ],
 );
 
+export const GOV_GRANT_AWARDS_TABLE = datasetTable(
+  "gov_grant_awards",
+  [
+    { name: "award_id", type: "text", nullable: true },
+    { name: "award_type", type: "text", nullable: true },
+    { name: "agency", type: "text" },
+    { name: "sub_agency", type: "text", nullable: true },
+    { name: "recipient_name", type: "text" },
+    { name: "recipient_uei", type: "text", nullable: true },
+    { name: "recipient_tickers", type: "json" },
+    { name: "amount_usd", type: "real", nullable: true },
+    { name: "action_date", type: "text" },
+    { name: "description", type: "text", nullable: true },
+    { name: "naics_code", type: "text", nullable: true },
+    { name: "naics_description", type: "text", nullable: true },
+  ],
+  [
+    { name: "idx_gov_grant_awards_action_date", columns: ["action_date"] },
+    { name: "idx_gov_grant_awards_recipient_name", columns: ["recipient_name"] },
+  ],
+);
+
+export const COMMITTEE_ASSIGNMENTS_TABLE = datasetTable(
+  "committee_assignments",
+  [
+    { name: "bioguide_id", type: "text" },
+    { name: "member_name", type: "text" },
+    { name: "chamber", type: "text" },
+    { name: "committee_thomas_id", type: "text" },
+    { name: "committee_name", type: "text" },
+    { name: "committee_type", type: "text" },
+    { name: "subcommittee_thomas_id", type: "text", nullable: true },
+    { name: "subcommittee_name", type: "text", nullable: true },
+    { name: "rank", type: "integer", nullable: true },
+    { name: "title", type: "text", nullable: true },
+  ],
+  [
+    { name: "idx_committee_assignments_bioguide_id", columns: ["bioguide_id"] },
+    { name: "idx_committee_assignments_committee", columns: ["committee_thomas_id"] },
+    { name: "idx_committee_assignments_member_name", columns: ["member_name"] },
+  ],
+);
+
+export const PATENTS_TABLE = datasetTable(
+  "patents",
+  [
+    { name: "patent_id", type: "text" },
+    { name: "title", type: "text" },
+    { name: "grant_date", type: "text" },
+    { name: "assignee_name", type: "text", nullable: true },
+    { name: "assignee_tickers", type: "json" },
+    { name: "assignee_count", type: "integer" },
+    { name: "kind", type: "text", nullable: true },
+    { name: "cpc_class", type: "text", nullable: true },
+  ],
+  [
+    { name: "idx_patents_grant_date", columns: ["grant_date"] },
+    { name: "idx_patents_assignee_name", columns: ["assignee_name"] },
+  ],
+);
+
+export const CLINICAL_TRIALS_TABLE = datasetTable(
+  "clinical_trials",
+  [
+    { name: "nct_id", type: "text" },
+    { name: "title", type: "text" },
+    { name: "sponsor_name", type: "text" },
+    { name: "sponsor_tickers", type: "json" },
+    { name: "phase", type: "text", nullable: true },
+    { name: "overall_status", type: "text" },
+    { name: "study_type", type: "text", nullable: true },
+    { name: "conditions", type: "json" },
+    { name: "start_date", type: "text", nullable: true },
+    { name: "primary_completion_date", type: "text", nullable: true },
+    { name: "last_updated", type: "text" },
+  ],
+  [
+    { name: "idx_clinical_trials_sponsor_name", columns: ["sponsor_name"] },
+    { name: "idx_clinical_trials_last_updated", columns: ["last_updated"] },
+    { name: "idx_clinical_trials_status", columns: ["overall_status"] },
+  ],
+);
+
+export const FDA_APPROVALS_TABLE = datasetTable(
+  "fda_approvals",
+  [
+    { name: "application_number", type: "text" },
+    { name: "sponsor_name", type: "text" },
+    { name: "sponsor_tickers", type: "json" },
+    { name: "brand_name", type: "text", nullable: true },
+    { name: "submission_type", type: "text" },
+    { name: "submission_number", type: "text" },
+    { name: "submission_status", type: "text", nullable: true },
+    { name: "status_date", type: "text" },
+  ],
+  [
+    { name: "idx_fda_approvals_status_date", columns: ["status_date"] },
+    { name: "idx_fda_approvals_sponsor_name", columns: ["sponsor_name"] },
+  ],
+);
+
+export const COT_REPORTS_TABLE = datasetTable(
+  "cot_reports",
+  [
+    { name: "report_date", type: "text" },
+    { name: "contract_code", type: "text" },
+    { name: "market_name", type: "text" },
+    { name: "open_interest", type: "real" },
+    { name: "commercial_long", type: "real" },
+    { name: "commercial_short", type: "real" },
+    { name: "non_commercial_long", type: "real" },
+    { name: "non_commercial_short", type: "real" },
+    { name: "non_reportable_long", type: "real" },
+    { name: "non_reportable_short", type: "real" },
+  ],
+  [
+    { name: "idx_cot_reports_report_date", columns: ["report_date"] },
+    { name: "idx_cot_reports_contract_code", columns: ["contract_code"] },
+    { name: "idx_cot_reports_market_name", columns: ["market_name"] },
+  ],
+);
+
 /** Meta tables: sync bookkeeping, canaries, entity-resolution caches. */
 
 export const WATERMARKS_TABLE: TableSpec = {
@@ -305,15 +427,6 @@ export const MEMBER_MAP_TABLE: TableSpec = {
   indexes: [{ name: "idx_member_map_last_name", columns: ["last_name"] }],
 };
 
-export const DATASET_TABLES: TableSpec[] = [
-  CONGRESS_TRADES_TABLE,
-  INSIDER_TRANSACTIONS_TABLE,
-  THIRTEENF_HOLDINGS_TABLE,
-  GOV_CONTRACT_AWARDS_TABLE,
-  LOBBYING_FILINGS_TABLE,
-  SHORT_VOLUME_DAYS_TABLE,
-];
-
 export const META_TABLES: TableSpec[] = [
   WATERMARKS_TABLE,
   SYNC_RUNS_TABLE,
@@ -325,7 +438,46 @@ export const META_TABLES: TableSpec[] = [
   MEMBER_MAP_TABLE,
 ];
 
-export const ALL_TABLES: TableSpec[] = [...DATASET_TABLES, ...META_TABLES];
+/**
+ * Migration cohorts. V1 is FROZEN — it is exactly what migration 0001
+ * created on existing stores; never add to it. New tables join a new cohort
+ * with a new migration (see store/migrate.ts).
+ */
+export const V1_TABLES: TableSpec[] = [
+  CONGRESS_TRADES_TABLE,
+  INSIDER_TRANSACTIONS_TABLE,
+  THIRTEENF_HOLDINGS_TABLE,
+  GOV_CONTRACT_AWARDS_TABLE,
+  LOBBYING_FILINGS_TABLE,
+  SHORT_VOLUME_DAYS_TABLE,
+  ...META_TABLES,
+];
+
+export const V2_TABLES: TableSpec[] = [
+  GOV_GRANT_AWARDS_TABLE,
+  COMMITTEE_ASSIGNMENTS_TABLE,
+  PATENTS_TABLE,
+  CLINICAL_TRIALS_TABLE,
+  FDA_APPROVALS_TABLE,
+  COT_REPORTS_TABLE,
+];
+
+export const DATASET_TABLES: TableSpec[] = [
+  CONGRESS_TRADES_TABLE,
+  INSIDER_TRANSACTIONS_TABLE,
+  THIRTEENF_HOLDINGS_TABLE,
+  GOV_CONTRACT_AWARDS_TABLE,
+  GOV_GRANT_AWARDS_TABLE,
+  LOBBYING_FILINGS_TABLE,
+  SHORT_VOLUME_DAYS_TABLE,
+  COMMITTEE_ASSIGNMENTS_TABLE,
+  PATENTS_TABLE,
+  CLINICAL_TRIALS_TABLE,
+  FDA_APPROVALS_TABLE,
+  COT_REPORTS_TABLE,
+];
+
+export const ALL_TABLES: TableSpec[] = [...V1_TABLES, ...V2_TABLES];
 
 export function tableSpecByName(name: string): TableSpec {
   const spec = ALL_TABLES.find((t) => t.name === name);

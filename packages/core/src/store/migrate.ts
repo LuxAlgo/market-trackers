@@ -1,5 +1,5 @@
 import type { ColumnType, TableSpec } from "./table-specs.js";
-import { ALL_TABLES } from "./table-specs.js";
+import { V1_TABLES, V2_TABLES } from "./table-specs.js";
 import type { Dialect, SqlDriver } from "./sql-driver.js";
 import { isoNow } from "../lib/dates.js";
 
@@ -53,9 +53,17 @@ export interface Migration {
 
 export const MIGRATIONS: Migration[] = [
   {
+    // FROZEN: exactly the v1 cohort. Stores that already applied 0001 only
+    // run later migrations, so this list must never change.
     id: "0001-init",
     statements(dialect) {
-      return ALL_TABLES.flatMap((spec) => [createTableSql(spec, dialect), ...createIndexSql(spec)]);
+      return V1_TABLES.flatMap((spec) => [createTableSql(spec, dialect), ...createIndexSql(spec)]);
+    },
+  },
+  {
+    id: "0002-new-datasets",
+    statements(dialect) {
+      return V2_TABLES.flatMap((spec) => [createTableSql(spec, dialect), ...createIndexSql(spec)]);
     },
   },
 ];

@@ -1,0 +1,119 @@
+HSIF:
+- name: Brett Guthrie
+  party: majority
+  rank: 1
+  title: Chair
+  bioguide: G000558
+- name: Frank Pallone, Jr.
+  party: minority
+  rank: 1
+  title: Ranking Member
+  bioguide: P000034
+- name: Robert E. Latta
+  party: majority
+  rank: 2
+  bioguide: L000566
+- name: Diana DeGette
+  party: minority
+  rank: 2
+  bioguide: D000197
+HSIF17:
+- name: Gus M. Bilirakis
+  party: majority
+  rank: 1
+  title: Chair
+  bioguide: B001257
+- name: Janice D. Schakowsky
+  party: minority
+  rank: 1
+  title: Ranking Member
+  bioguide: S001145
+- name: Russ Fulcher
+  party: majority
+  rank: 2
+  title: Vice Chair
+  bioguide: F000469
+HSIF16:
+- name: Richard Hudson
+  party: majority
+  rank: 1
+  title: Chair
+  bioguide: H001067
+- name: Doris O. Matsui
+  party: minority
+  rank: 1
+  title: Ranking Member
+  bioguide: M001163
+- name: Rick W. Allen
+  party: majority
+  rank: 2
+  title: Vice Chair
+  bioguide: A000372
+JCSE:
+- name: Roger F. Wicker
+  party: majority
+  rank: 1
+  title: Cochairman
+  bioguide: W000437
+  chamber: senate
+- name: John Boozman
+  party: majority
+  rank: 2
+  bioguide: B001236
+  chamber: senate
+- name: Thom Tillis
+  party: majority
+  rank: 3
+  bioguide: T000476
+  chamber: senate
+- name: Mike Rounds
+  party: majority
+  rank: 4
+  bioguide: R000605
+  chamber: senate
+SSAS:
+- name: Roger F. Wicker
+  party: majority
+  rank: 1
+  title: Chairman
+  bioguide: W000437
+- name: Deb Fischer
+  party: majority
+  rank: 2
+  bioguide: F000463
+- name: Tom Cotton
+  party: majority
+  rank: 3
+  bioguide: C001095
+- name: Mike Rounds
+  party: majority
+  rank: 4
+  bioguide: R000605
+SSAS14:
+- name: Kevin Cramer
+  party: majority
+  rank: 1
+  title: Chairman
+  bioguide: C001096
+- name: Deb Fischer
+  party: majority
+  rank: 2
+  bioguide: F000463
+- name: Tom Cotton
+  party: majority
+  rank: 3
+  bioguide: C001095
+SSAS20:
+- name: Joni Ernst
+  party: majority
+  rank: 1
+  title: Chairman
+  bioguide: E000295
+- name: Tom Cotton
+  party: majority
+  rank: 2
+  bioguide: C001095
+- name: Mike Rounds
+  party: majority
+  rank: 3
+  bioguide: R000605

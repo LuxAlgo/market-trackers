@@ -126,6 +126,79 @@ beforeAll(async () => {
 
   await store.replaceCikTickers([{ cik: "0000123456", ticker: "EXCO", name: "EXAMPLECORP INC" }]);
 
+  await store.upsert(DATASETS["committee-assignments"], [
+    {
+      id: "E000001:SSAS",
+      bioguideId: "E000001",
+      memberName: "Jane Example",
+      chamber: "senate" as const,
+      committee: {
+        thomasId: "SSAS",
+        name: "Senate Committee on Armed Services",
+        type: "senate" as const,
+      },
+      subcommittee: null,
+      rank: 3,
+      title: null,
+      provenance: prov(
+        "congress-legislators",
+        "https://raw.githubusercontent.com/unitedstates/congress-legislators/main/committee-membership-current.yaml",
+      ),
+    },
+    {
+      id: "E000001:SSAS:14",
+      bioguideId: "E000001",
+      memberName: "Jane Example",
+      chamber: "senate" as const,
+      committee: {
+        thomasId: "SSAS",
+        name: "Senate Committee on Armed Services",
+        type: "senate" as const,
+      },
+      subcommittee: { thomasId: "14", name: "Airland" },
+      rank: 2,
+      title: null,
+      provenance: prov(
+        "congress-legislators",
+        "https://raw.githubusercontent.com/unitedstates/congress-legislators/main/committee-membership-current.yaml",
+      ),
+    },
+  ]);
+
+  await store.upsert(DATASETS["cot-reports"], [
+    {
+      id: "2026-08-18:067651",
+      reportDate: "2026-08-18",
+      contractCode: "067651",
+      marketName: "CRUDE OIL, LIGHT SWEET - NEW YORK MERCANTILE EXCHANGE",
+      openInterest: 1_500_000,
+      commercialLong: 600_000,
+      commercialShort: 700_000,
+      nonCommercialLong: 500_000,
+      nonCommercialShort: 380_000,
+      nonReportableLong: 90_000,
+      nonReportableShort: 110_000,
+      provenance: prov("cftc", "https://publicreporting.cftc.gov/resource/6dca-aqww.json"),
+    },
+  ]);
+
+  await store.upsert(DATASETS["gov-grants"], [
+    {
+      id: "ASST_NON_EXAMPLE_0001",
+      awardId: "R01EX000001",
+      awardType: "grant",
+      agency: "Department of Health and Human Services",
+      subAgency: "National Institutes of Health",
+      recipient: { name: "EXAMPLECORP INC", uei: "EXAMPLEUEI01", tickers: ["EXCO"] },
+      amountUsd: 2_400_000,
+      actionDate: "2026-08-10",
+      description: "Example research grant",
+      naicsCode: null,
+      naicsDescription: null,
+      provenance: prov("usaspending", "https://www.usaspending.gov/award/ASST_NON_EXAMPLE_0001"),
+    },
+  ]);
+
   const server = createDocketMcpServer(store);
   client = new Client({ name: "docket-test-client", version: "0.0.0" });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
@@ -138,19 +211,26 @@ afterAll(async () => {
 });
 
 describe("docket-mcp tool surface", () => {
-  it("registers all 11 tools", async () => {
+  it("registers all 18 tools", async () => {
     const { tools } = await client.listTools();
     const names = tools.map((t) => t.name).sort();
     expect(names).toEqual([
       "docket_13f_holders",
       "docket_13f_manager",
+      "docket_clinical_trials",
+      "docket_committees",
       "docket_congress_members",
       "docket_congress_trades",
+      "docket_cot",
+      "docket_fda_approvals",
       "docket_freshness",
       "docket_gov_contracts",
+      "docket_gov_grants",
       "docket_insider_summary",
       "docket_insider_trades",
       "docket_lobbying",
+      "docket_member_profile",
+      "docket_patents",
       "docket_search",
       "docket_short_volume",
     ]);
@@ -251,13 +331,81 @@ describe("docket-mcp tool surface", () => {
     expect(kinds.has("manager")).toBe(true);
   });
 
+  it("docket_member_profile joins identity, committee seats, and trades", async () => {
+    const payload = await callTool<{
+      member: { name: string; bioguideId: string };
+      committees: { thomasId: string; subcommittees: string[] }[];
+      trades: { total: number; buys: number; topTickers: { ticker: string }[]; recent: unknown[] };
+    }>("docket_member_profile", { q: "jane example" });
+    expect(payload.member.bioguideId).toBe("E000001");
+    expect(payload.committees).toHaveLength(1);
+    expect(payload.committees[0]?.thomasId).toBe("SSAS");
+    expect(payload.committees[0]?.subcommittees).toContain("Airland");
+    expect(payload.trades.total).toBe(1);
+    expect(payload.trades.buys).toBe(1);
+    expect(payload.trades.topTickers[0]?.ticker).toBe("EXCO");
+    expect(payload.trades.recent).toHaveLength(1);
+  });
+
+  it("docket_committees returns the roster with trade activity", async () => {
+    const payload = await callTool<{
+      committee: { thomasId: string };
+      members: { name: string; tradeCount: number; subcommittees: string[] }[];
+    }>("docket_committees", { q: "armed services" });
+    expect(payload.committee.thomasId).toBe("SSAS");
+    expect(payload.members[0]?.name).toBe("Jane Example");
+    expect(payload.members[0]?.tradeCount).toBe(1);
+    expect(payload.members[0]?.subcommittees).toContain("Airland");
+  });
+
+  it("docket_gov_grants queries the grant universe separately from contracts", async () => {
+    const grants = await callTool<{ count: number; rows: { citation: string }[] }>(
+      "docket_gov_grants",
+      { ticker: "EXCO" },
+    );
+    expect(grants.count).toBe(1);
+    expect(grants.rows[0]?.citation).toContain("usaspending.gov");
+    const contracts = await callTool<{ count: number }>("docket_gov_contracts", {
+      ticker: "EXCO",
+    });
+    expect(contracts.count).toBe(0);
+  });
+
+  it("docket_cot returns positioning verbatim", async () => {
+    const payload = await callTool<{
+      count: number;
+      rows: { commercialLong: number; citation: string }[];
+    }>("docket_cot", { market: "crude oil" });
+    expect(payload.count).toBe(1);
+    expect(payload.rows[0]?.commercialLong).toBe(600_000);
+    expect(payload.rows[0]?.citation).toContain("cftc.gov");
+  });
+
+  it("patents / clinical trials / fda tools answer cleanly on empty stores", async () => {
+    expect((await callTool<{ count: number }>("docket_patents", { ticker: "EXCO" })).count).toBe(0);
+    expect(
+      (await callTool<{ count: number }>("docket_clinical_trials", { ticker: "EXCO" })).count,
+    ).toBe(0);
+    expect(
+      (await callTool<{ count: number }>("docket_fda_approvals", { ticker: "EXCO" })).count,
+    ).toBe(0);
+  });
+
+  it("docket_member_profile errors cleanly on no match", async () => {
+    const result = await client.callTool({
+      name: "docket_member_profile",
+      arguments: { q: "zzz-nobody" },
+    });
+    expect(result.isError).toBe(true);
+  });
+
   it("docket_freshness reports staleness per dataset and health per source", async () => {
     const payload = await callTool<{
       datasets: { dataset: string; rowCount: number; stale: boolean }[];
       sources: { source: string }[];
     }>("docket_freshness");
-    expect(payload.datasets).toHaveLength(6);
-    expect(payload.sources).toHaveLength(6);
+    expect(payload.datasets).toHaveLength(12);
+    expect(payload.sources).toHaveLength(11);
     const congress = payload.datasets.find((d) => d.dataset === "congress-trades");
     expect(congress?.rowCount).toBe(1);
     const contracts = payload.datasets.find((d) => d.dataset === "gov-contracts");

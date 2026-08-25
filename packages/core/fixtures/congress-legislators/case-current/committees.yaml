@@ -1,0 +1,19 @@
+- type: house
+  name: House Committee on Energy and Commerce
+  thomas_id: HSIF
+  subcommittees:
+  - name: Commerce, Manufacturing, and Trade
+    thomas_id: '17'
+  - name: Communications and Technology
+    thomas_id: '16'
+- type: joint
+  name: Commission on Security and Cooperation in Europe
+  thomas_id: JCSE
+- type: senate
+  name: Senate Committee on Armed Services
+  thomas_id: SSAS
+  subcommittees:
+  - name: Airland
+    thomas_id: '14'
+  - name: Emerging Threats and Capabilities
+    thomas_id: '20'

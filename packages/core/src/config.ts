@@ -25,6 +25,10 @@ export const docketConfigSchema = z.object({
   openfigiApiKey: z.string().optional(),
   /** Optional Senate LDA API key — raises lobbying API rate limits. Still free. */
   ldaApiKey: z.string().optional(),
+  /** PatentsView API key — required by that provider for the patents source. Free. */
+  patentsviewApiKey: z.string().optional(),
+  /** Optional openFDA API key — raises rate limits. Still free. */
+  openfdaApiKey: z.string().optional(),
   /** EDGAR request ceiling; the SEC fair-access limit is 10 req/s and this can never exceed it. */
   edgarMaxRps: z.number().positive().max(10).default(10),
   /** Default backfill depth (days) for a first sync with no watermark. */
@@ -42,6 +46,8 @@ export interface ConfigOverrides {
   userAgent?: string;
   openfigiApiKey?: string;
   ldaApiKey?: string;
+  patentsviewApiKey?: string;
+  openfdaApiKey?: string;
   edgarMaxRps?: number;
   backfillDays?: number;
   finraMarkets?: string[];
@@ -64,6 +70,8 @@ function fromEnv(env: NodeJS.ProcessEnv): Partial<ConfigOverrides> {
   if (env.DOCKET_USER_AGENT) out.userAgent = env.DOCKET_USER_AGENT;
   if (env.DOCKET_OPENFIGI_KEY) out.openfigiApiKey = env.DOCKET_OPENFIGI_KEY;
   if (env.DOCKET_LDA_KEY) out.ldaApiKey = env.DOCKET_LDA_KEY;
+  if (env.DOCKET_PATENTSVIEW_KEY) out.patentsviewApiKey = env.DOCKET_PATENTSVIEW_KEY;
+  if (env.DOCKET_OPENFDA_KEY) out.openfdaApiKey = env.DOCKET_OPENFDA_KEY;
   if (env.DOCKET_BACKFILL_DAYS) out.backfillDays = Number(env.DOCKET_BACKFILL_DAYS);
   if (env.DOCKET_FINRA_MARKETS) out.finraMarkets = env.DOCKET_FINRA_MARKETS.split(",");
   if (env.DOCKET_LOG) out.logLevel = env.DOCKET_LOG as DocketConfig["logLevel"];

@@ -1,0 +1,10 @@
+{
+  "synthetic": false,
+  "verified": true,
+  "notes": "Real subset of committees-current.yaml and committee-membership-current.yaml (unitedstates/congress-legislators, public domain), fetched 2026-08-25: a house committee with two subcommittees (HSIF), a senate committee with two subcommittees (SSAS), and a joint commission (JCSE) whose member entries carry explicit chambers. Entry text is verbatim from the source files.",
+  "sourceUrl": "https://raw.githubusercontent.com/unitedstates/congress-legislators/main/committee-membership-current.yaml",
+  "parser": "congress-legislators-yaml@1",
+  "parseInput": {
+    "retrievedAt": "2026-08-25T00:00:00.000Z"
+  }
+}

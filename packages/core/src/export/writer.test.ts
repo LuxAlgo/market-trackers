@@ -83,9 +83,27 @@ describe("exportDumps", () => {
     await fresh.close();
   });
 
+  it("writes year-sharded snapshots and an RSS feed with primary-source links", async () => {
+    const shortVolDir = join(tmp.dir, "short-volume", "daily");
+    expect(existsSync(join(shortVolDir, "snapshot-2026.json.gz"))).toBe(true);
+
+    const feed = readFileSync(join(shortVolDir, "feed.xml"), "utf8");
+    expect(feed).toContain('<rss version="2.0">');
+    expect(feed).toContain("Docket — Short-sale volume");
+    expect(feed).toContain("<link>https://example.gov/primary/document/1</link>");
+    expect(feed).toContain('guid isPermaLink="false"');
+
+    const manifest = JSON.parse(readFileSync(join(tmp.dir, "manifest.json"), "utf8"));
+    const files = manifest.datasets["short-volume"].snapshots.map((s: { file: string }) => s.file);
+    expect(files).toContain("snapshot-2026.json.gz");
+    expect(files).toContain("snapshot.json.gz");
+    expect(manifest.datasets["short-volume"].feed).toBe("short-volume/daily/feed.xml");
+  });
+
   it("builds a manifest with per-source health fields", async () => {
     const manifest = await buildManifest(store);
-    expect(Object.keys(manifest.sources)).toHaveLength(6);
+    expect(Object.keys(manifest.sources)).toHaveLength(11);
+    expect(Object.keys(manifest.datasets)).toHaveLength(12);
     expect(manifest.sources.finra?.implementedDatasets).toContain("short-volume");
   });
 });

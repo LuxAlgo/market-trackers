@@ -6,6 +6,11 @@ import type { ThirteenfHolding } from "../schema/thirteenf-holding.js";
 import type { GovContractAward } from "../schema/gov-contract-award.js";
 import type { LobbyingFiling } from "../schema/lobbying-filing.js";
 import type { ShortVolumeDay } from "../schema/short-volume-day.js";
+import type { CommitteeAssignment } from "../schema/committee-assignment.js";
+import type { Patent } from "../schema/patent.js";
+import type { ClinicalTrial } from "../schema/clinical-trial.js";
+import type { FdaApproval } from "../schema/fda-approval.js";
+import type { CotReport } from "../schema/cot-report.js";
 
 /**
  * Explicit record↔row mappers per dataset. Deliberately boring: flattening
@@ -322,13 +327,199 @@ export const shortVolumeDayMapper: RowMapper<ShortVolumeDay> = {
   },
 };
 
+export const committeeAssignmentMapper: RowMapper<CommitteeAssignment> = {
+  toRow(r) {
+    return {
+      id: r.id,
+      bioguide_id: r.bioguideId,
+      member_name: r.memberName,
+      chamber: r.chamber,
+      committee_thomas_id: r.committee.thomasId,
+      committee_name: r.committee.name,
+      committee_type: r.committee.type,
+      subcommittee_thomas_id: r.subcommittee?.thomasId ?? null,
+      subcommittee_name: r.subcommittee?.name ?? null,
+      rank: r.rank,
+      title: r.title,
+      ...provToRow(r.provenance),
+    };
+  },
+  fromRow(row) {
+    return {
+      id: str(row.id),
+      bioguideId: str(row.bioguide_id),
+      memberName: str(row.member_name),
+      chamber: row.chamber,
+      committee: {
+        thomasId: str(row.committee_thomas_id),
+        name: str(row.committee_name),
+        type: row.committee_type,
+      },
+      subcommittee:
+        row.subcommittee_thomas_id === null || row.subcommittee_thomas_id === undefined
+          ? null
+          : { thomasId: str(row.subcommittee_thomas_id), name: str(row.subcommittee_name) },
+      rank: toNullableNumber(row.rank),
+      title: nullableStr(row.title),
+      provenance: provFromRow(row),
+    } as CommitteeAssignment;
+  },
+};
+
+export const patentMapper: RowMapper<Patent> = {
+  toRow(r) {
+    return {
+      id: r.id,
+      patent_id: r.patentId,
+      title: r.title,
+      grant_date: r.grantDate,
+      assignee_name: r.assignee.name,
+      assignee_tickers: toJson(r.assignee.tickers),
+      assignee_count: r.assigneeCount,
+      kind: r.kind,
+      cpc_class: r.cpcClass,
+      ...provToRow(r.provenance),
+    };
+  },
+  fromRow(row) {
+    return {
+      id: str(row.id),
+      patentId: str(row.patent_id),
+      title: str(row.title),
+      grantDate: str(row.grant_date),
+      assignee: {
+        name: nullableStr(row.assignee_name),
+        tickers: fromJson<string[]>(row.assignee_tickers),
+      },
+      assigneeCount: Number(row.assignee_count),
+      kind: nullableStr(row.kind),
+      cpcClass: nullableStr(row.cpc_class),
+      provenance: provFromRow(row),
+    } as Patent;
+  },
+};
+
+export const clinicalTrialMapper: RowMapper<ClinicalTrial> = {
+  toRow(r) {
+    return {
+      id: r.id,
+      nct_id: r.nctId,
+      title: r.title,
+      sponsor_name: r.sponsor.name,
+      sponsor_tickers: toJson(r.sponsor.tickers),
+      phase: r.phase,
+      overall_status: r.overallStatus,
+      study_type: r.studyType,
+      conditions: toJson(r.conditions),
+      start_date: r.startDate,
+      primary_completion_date: r.primaryCompletionDate,
+      last_updated: r.lastUpdated,
+      ...provToRow(r.provenance),
+    };
+  },
+  fromRow(row) {
+    return {
+      id: str(row.id),
+      nctId: str(row.nct_id),
+      title: str(row.title),
+      sponsor: {
+        name: str(row.sponsor_name),
+        tickers: fromJson<string[]>(row.sponsor_tickers),
+      },
+      phase: nullableStr(row.phase),
+      overallStatus: str(row.overall_status),
+      studyType: nullableStr(row.study_type),
+      conditions: fromJson<string[]>(row.conditions),
+      startDate: nullableStr(row.start_date),
+      primaryCompletionDate: nullableStr(row.primary_completion_date),
+      lastUpdated: str(row.last_updated),
+      provenance: provFromRow(row),
+    } as ClinicalTrial;
+  },
+};
+
+export const fdaApprovalMapper: RowMapper<FdaApproval> = {
+  toRow(r) {
+    return {
+      id: r.id,
+      application_number: r.applicationNumber,
+      sponsor_name: r.sponsor.name,
+      sponsor_tickers: toJson(r.sponsor.tickers),
+      brand_name: r.brandName,
+      submission_type: r.submissionType,
+      submission_number: r.submissionNumber,
+      submission_status: r.submissionStatus,
+      status_date: r.statusDate,
+      ...provToRow(r.provenance),
+    };
+  },
+  fromRow(row) {
+    return {
+      id: str(row.id),
+      applicationNumber: str(row.application_number),
+      sponsor: {
+        name: str(row.sponsor_name),
+        tickers: fromJson<string[]>(row.sponsor_tickers),
+      },
+      brandName: nullableStr(row.brand_name),
+      submissionType: str(row.submission_type),
+      submissionNumber: str(row.submission_number),
+      submissionStatus: nullableStr(row.submission_status),
+      statusDate: str(row.status_date),
+      provenance: provFromRow(row),
+    } as FdaApproval;
+  },
+};
+
+export const cotReportMapper: RowMapper<CotReport> = {
+  toRow(r) {
+    return {
+      id: r.id,
+      report_date: r.reportDate,
+      contract_code: r.contractCode,
+      market_name: r.marketName,
+      open_interest: r.openInterest,
+      commercial_long: r.commercialLong,
+      commercial_short: r.commercialShort,
+      non_commercial_long: r.nonCommercialLong,
+      non_commercial_short: r.nonCommercialShort,
+      non_reportable_long: r.nonReportableLong,
+      non_reportable_short: r.nonReportableShort,
+      ...provToRow(r.provenance),
+    };
+  },
+  fromRow(row) {
+    return {
+      id: str(row.id),
+      reportDate: str(row.report_date),
+      contractCode: str(row.contract_code),
+      marketName: str(row.market_name),
+      openInterest: Number(row.open_interest),
+      commercialLong: Number(row.commercial_long),
+      commercialShort: Number(row.commercial_short),
+      nonCommercialLong: Number(row.non_commercial_long),
+      nonCommercialShort: Number(row.non_commercial_short),
+      nonReportableLong: Number(row.non_reportable_long),
+      nonReportableShort: Number(row.non_reportable_short),
+      provenance: provFromRow(row),
+    } as CotReport;
+  },
+};
+
 export const ROW_MAPPERS: Record<DatasetId, RowMapper<never>> = {
   "congress-trades": congressTradeMapper as RowMapper<never>,
   "insider-transactions": insiderTransactionMapper as RowMapper<never>,
   "thirteenf-holdings": thirteenfHoldingMapper as RowMapper<never>,
   "gov-contracts": govContractAwardMapper as RowMapper<never>,
+  // Grants share the federal-award shape and therefore the mapper.
+  "gov-grants": govContractAwardMapper as RowMapper<never>,
   "lobbying-filings": lobbyingFilingMapper as RowMapper<never>,
   "short-volume": shortVolumeDayMapper as RowMapper<never>,
+  "committee-assignments": committeeAssignmentMapper as RowMapper<never>,
+  patents: patentMapper as RowMapper<never>,
+  "clinical-trials": clinicalTrialMapper as RowMapper<never>,
+  "fda-approvals": fdaApprovalMapper as RowMapper<never>,
+  "cot-reports": cotReportMapper as RowMapper<never>,
 };
 
 export function mapperFor<T>(id: DatasetId): RowMapper<T> {

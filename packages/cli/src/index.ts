@@ -13,6 +13,7 @@ import { exportCommand } from "./commands/export.js";
 import { canaryCommand } from "./commands/canary.js";
 import { serveCommand } from "./commands/serve.js";
 import { resolveCommand } from "./commands/resolve.js";
+import { importCommand } from "./commands/import.js";
 
 const program = new Command();
 
@@ -106,6 +107,21 @@ globalOptions(
 ).action(async (what, flags) => {
   try {
     process.exit(await resolveCommand(what, flags));
+  } catch (error) {
+    fail(error);
+  }
+});
+
+globalOptions(
+  program
+    .command("import <path>")
+    .description(
+      "Rebuild or top up the store from published dumps (a docket-data checkout, a dataset directory, or a single delta/snapshot file) — the mirror image of export",
+    )
+    .option("--dataset <id>", "dataset id when it can't be inferred from the path"),
+).action(async (path, flags) => {
+  try {
+    process.exit(await importCommand(path, flags));
   } catch (error) {
     fail(error);
   }

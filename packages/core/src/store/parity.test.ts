@@ -4,10 +4,15 @@ import { tableSpecByName } from "./table-specs.js";
 import { createIndexSql, createTableSql } from "./migrate.js";
 import { mapperFor } from "./rows.js";
 import {
+  makeClinicalTrial,
+  makeCommitteeAssignment,
   makeCongressTrade,
+  makeCotReport,
+  makeFdaApproval,
   makeGovContractAward,
   makeInsiderTransaction,
   makeLobbyingFiling,
+  makePatent,
   makeShortVolumeDay,
   makeThirteenfHolding,
 } from "../test-helpers.js";
@@ -24,8 +29,14 @@ const SAMPLES: Record<DatasetId, () => unknown> = {
   "insider-transactions": makeInsiderTransaction,
   "thirteenf-holdings": makeThirteenfHolding,
   "gov-contracts": makeGovContractAward,
+  "gov-grants": makeGovContractAward,
   "lobbying-filings": makeLobbyingFiling,
   "short-volume": makeShortVolumeDay,
+  "committee-assignments": makeCommitteeAssignment,
+  patents: makePatent,
+  "clinical-trials": makeClinicalTrial,
+  "fda-approvals": makeFdaApproval,
+  "cot-reports": makeCotReport,
 };
 
 describe("schema ↔ mapper ↔ table-spec parity", () => {

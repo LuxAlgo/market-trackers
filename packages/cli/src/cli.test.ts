@@ -59,7 +59,7 @@ describe("docket CLI", () => {
   it("status --json creates the store, migrates, and reports all datasets empty", () => {
     const out = docket(["status", "--json", "--db", "cli-test.db"]);
     const report = JSON.parse(out);
-    expect(report.datasets).toHaveLength(6);
+    expect(report.datasets).toHaveLength(12);
     expect(report.datasets.every((d: { rowCount: number }) => d.rowCount === 0)).toBe(true);
     expect(existsSync(join(tmp, "cli-test.db"))).toBe(true);
   });
@@ -104,7 +104,7 @@ describe("docket CLI", () => {
     expect(summary.filesWritten.some((f: string) => f.endsWith("manifest.json"))).toBe(true);
     const manifest = JSON.parse(readFileSync(join(tmp, "dumps", "manifest.json"), "utf8"));
     expect(manifest.schemaVersion).toBe(1);
-    expect(Object.keys(manifest.datasets)).toHaveLength(6);
+    expect(Object.keys(manifest.datasets)).toHaveLength(12);
   });
 
   it("rejects unknown sources and datasets by name", () => {

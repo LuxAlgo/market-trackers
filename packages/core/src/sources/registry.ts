@@ -6,6 +6,11 @@ import { houseClerkSource } from "./house-clerk/source.js";
 import { usaspendingSource } from "./usaspending/source.js";
 import { ldaSource } from "./lda/source.js";
 import { finraSource } from "./finra-shortvol/source.js";
+import { congressLegislatorsSource } from "./congress-legislators/source.js";
+import { patentsviewSource } from "./patentsview/source.js";
+import { clinicaltrialsSource } from "./clinicaltrials/source.js";
+import { openfdaSource } from "./openfda/source.js";
+import { cftcSource } from "./cftc/source.js";
 
 /**
  * Every source, implemented or scaffolded, in one place. Sync, canaries,
@@ -20,6 +25,11 @@ export const ALL_SOURCES: DocketSource[] = [
   usaspendingSource,
   ldaSource,
   finraSource,
+  congressLegislatorsSource,
+  patentsviewSource,
+  clinicaltrialsSource,
+  openfdaSource,
+  cftcSource,
 ];
 
 export function sourceById(id: string): DocketSource {

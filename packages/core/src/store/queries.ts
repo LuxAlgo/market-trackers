@@ -6,6 +6,11 @@ import type { ThirteenfHolding } from "../schema/thirteenf-holding.js";
 import type { GovContractAward } from "../schema/gov-contract-award.js";
 import type { LobbyingFiling } from "../schema/lobbying-filing.js";
 import type { ShortVolumeDay } from "../schema/short-volume-day.js";
+import type { CommitteeAssignment } from "../schema/committee-assignment.js";
+import type { Patent } from "../schema/patent.js";
+import type { ClinicalTrial } from "../schema/clinical-trial.js";
+import type { FdaApproval } from "../schema/fda-approval.js";
+import type { CotReport } from "../schema/cot-report.js";
 import { hoursSince } from "../lib/dates.js";
 import type { CanaryRunRecord, DocketStore, SyncRunRecord } from "./store.js";
 import { mapperFor } from "./rows.js";
@@ -389,8 +394,9 @@ export interface GovContractFilters {
   limit?: number;
 }
 
-export async function queryGovContracts(
+async function queryFederalAwards(
   store: DocketStore,
+  datasetId: "gov-contracts" | "gov-grants",
   f: GovContractFilters = {},
 ): Promise<GovContractAward[]> {
   const b = where();
@@ -401,7 +407,21 @@ export async function queryGovContracts(
   if (f.agency) contains(b, `"agency"`, f.agency);
   if (f.since) add(b, `"action_date" >= ?`, f.since);
   if (f.minAmount !== undefined) add(b, `"amount_usd" >= ?`, f.minAmount);
-  return run(store, "gov-contracts", b, `"action_date" DESC, "id"`, f.limit);
+  return run(store, datasetId, b, `"action_date" DESC, "id"`, f.limit);
+}
+
+export async function queryGovContracts(
+  store: DocketStore,
+  f: GovContractFilters = {},
+): Promise<GovContractAward[]> {
+  return queryFederalAwards(store, "gov-contracts", f);
+}
+
+export async function queryGovGrants(
+  store: DocketStore,
+  f: GovContractFilters = {},
+): Promise<GovContractAward[]> {
+  return queryFederalAwards(store, "gov-grants", f);
 }
 
 export interface LobbyingFilters {
@@ -447,6 +467,44 @@ export async function queryShortVolume(
 
 // ── Cross-dataset entity search ───────────────────────────────────────────
 
+/**
+ * How each dataset matches a ticker: a plain `ticker` column, a JSON
+ * string-array column matched by exact quoted containment (tickers are
+ * [A-Z0-9.-] only, so this is safe), or not at all.
+ */
+function tickerMatchClause(
+  id: DatasetId,
+): { sql: string; param: (ticker: string) => string } | null {
+  const exact = (column: string) => ({
+    sql: `"${column}" = ?`,
+    param: (ticker: string) => ticker,
+  });
+  const jsonArray = (column: string) => ({
+    sql: `"${column}" LIKE ?`,
+    param: (ticker: string) => `%"${ticker}"%`,
+  });
+  switch (id) {
+    case "congress-trades":
+    case "insider-transactions":
+    case "thirteenf-holdings":
+    case "short-volume":
+      return exact("ticker");
+    case "gov-contracts":
+    case "gov-grants":
+      return jsonArray("recipient_tickers");
+    case "lobbying-filings":
+      return jsonArray("client_tickers");
+    case "patents":
+      return jsonArray("assignee_tickers");
+    case "clinical-trials":
+    case "fda-approvals":
+      return jsonArray("sponsor_tickers");
+    case "committee-assignments":
+    case "cot-reports":
+      return null;
+  }
+}
+
 export interface EntitySearchResult {
   kind: "ticker" | "member" | "manager" | "insider";
   name: string;
@@ -473,12 +531,11 @@ export async function searchEntities(
     const ticker = String(row.ticker);
     const matches: { dataset: DatasetId; rows: number }[] = [];
     for (const dataset of ALL_DATASETS) {
-      const spec =
-        dataset.id === "gov-contracts" || dataset.id === "lobbying-filings" ? null : "ticker";
-      if (!spec) continue;
+      const clause = tickerMatchClause(dataset.id);
+      if (!clause) continue;
       const countRow = await store.driver.get<{ n: number | string }>(
-        `SELECT COUNT(*) AS n FROM "${dataset.table}" WHERE "ticker" = ?`,
-        [ticker],
+        `SELECT COUNT(*) AS n FROM "${dataset.table}" WHERE ${clause.sql}`,
+        [clause.param(ticker)],
       );
       const n = Number(countRow?.n ?? 0);
       if (n > 0) matches.push({ dataset: dataset.id, rows: n });
@@ -524,6 +581,307 @@ export async function searchEntities(
   }
 
   return results.slice(0, Math.max(limit, 10));
+}
+
+// ── Committees & member profiles ──────────────────────────────────────────
+
+export interface CommitteeAssignmentFilters {
+  bioguideId?: string;
+  member?: string;
+  /** Committee name or thomas id (substring match). */
+  committee?: string;
+  chamber?: "senate" | "house";
+  limit?: number;
+}
+
+export async function queryCommitteeAssignments(
+  store: DocketStore,
+  f: CommitteeAssignmentFilters = {},
+): Promise<CommitteeAssignment[]> {
+  const b = where();
+  if (f.bioguideId) add(b, `"bioguide_id" = ?`, f.bioguideId);
+  if (f.member) contains(b, `"member_name"`, f.member);
+  if (f.committee) {
+    b.clauses.push(`(lower("committee_name") LIKE ? OR lower("committee_thomas_id") LIKE ?)`);
+    b.params.push(`%${f.committee.toLowerCase()}%`, `%${f.committee.toLowerCase()}%`);
+  }
+  if (f.chamber) add(b, `"chamber" = ?`, f.chamber);
+  return run(store, "committee-assignments", b, `"committee_thomas_id", "id"`, f.limit);
+}
+
+export interface CommitteeRosterMember {
+  name: string;
+  bioguideId: string;
+  rank: number | null;
+  title: string | null;
+  subcommittees: string[];
+  tradeCount: number;
+  lastTransactedAt: string | null;
+}
+
+export interface CommitteeRoster {
+  committee: { thomasId: string; name: string; type: string } | null;
+  members: CommitteeRosterMember[];
+}
+
+/** Roster of a committee plus each member's trade activity (facts, joined). */
+export async function committeeRoster(store: DocketStore, q: string): Promise<CommitteeRoster> {
+  const needle = `%${q.toLowerCase()}%`;
+  const committeeRow = await store.driver.get<Record<string, unknown>>(
+    `SELECT "committee_thomas_id", "committee_name", "committee_type", COUNT(*) AS n FROM "committee_assignments" ` +
+      `WHERE lower("committee_name") LIKE ? OR lower("committee_thomas_id") LIKE ? ` +
+      `GROUP BY "committee_thomas_id", "committee_name", "committee_type" ORDER BY n DESC LIMIT 1`,
+    [needle, needle],
+  );
+  if (!committeeRow) return { committee: null, members: [] };
+  const thomasId = String(committeeRow.committee_thomas_id);
+
+  const rows = await store.driver.all<Record<string, unknown>>(
+    `SELECT ca."bioguide_id" AS bioguide_id, ca."member_name" AS member_name,
+            MIN(ca."rank") AS rank, MAX(ca."title") AS title,
+            COUNT(DISTINCT ca."subcommittee_thomas_id") AS sub_count,
+            (SELECT COUNT(*) FROM "congress_trades" ct WHERE ct."bioguide_id" = ca."bioguide_id") AS trade_count,
+            (SELECT MAX(ct."transacted_at") FROM "congress_trades" ct WHERE ct."bioguide_id" = ca."bioguide_id") AS last_transacted_at
+     FROM "committee_assignments" ca
+     WHERE ca."committee_thomas_id" = ?
+     GROUP BY ca."bioguide_id", ca."member_name"
+     ORDER BY trade_count DESC, ca."member_name"`,
+    [thomasId],
+  );
+
+  const members: CommitteeRosterMember[] = [];
+  for (const row of rows) {
+    const subRows = await store.driver.all<{ s: string | null }>(
+      `SELECT DISTINCT "subcommittee_name" AS s FROM "committee_assignments" WHERE "committee_thomas_id" = ? AND "bioguide_id" = ? AND "subcommittee_name" IS NOT NULL`,
+      [thomasId, String(row.bioguide_id)],
+    );
+    members.push({
+      name: String(row.member_name),
+      bioguideId: String(row.bioguide_id),
+      rank: row.rank === null ? null : Number(row.rank),
+      title: row.title === null ? null : String(row.title),
+      subcommittees: subRows.map((r) => String(r.s)),
+      tradeCount: Number(row.trade_count),
+      lastTransactedAt: row.last_transacted_at === null ? null : String(row.last_transacted_at),
+    });
+  }
+
+  return {
+    committee: {
+      thomasId,
+      name: String(committeeRow.committee_name),
+      type: String(committeeRow.committee_type),
+    },
+    members,
+  };
+}
+
+export interface MemberProfile {
+  member: {
+    name: string;
+    bioguideId: string | null;
+    chamber: "senate" | "house" | null;
+    party: string | null;
+    state: string | null;
+  } | null;
+  committees: {
+    thomasId: string;
+    name: string;
+    title: string | null;
+    subcommittees: string[];
+  }[];
+  trades: {
+    total: number;
+    buys: number;
+    sells: number;
+    firstTransactedAt: string | null;
+    lastTransactedAt: string | null;
+    topTickers: { ticker: string; trades: number }[];
+    recent: CongressTrade[];
+  };
+}
+
+/**
+ * One member, fully joined: identity, committee seats, and their disclosed
+ * trading activity — the receipts for "who oversees what, and what do they
+ * trade". Facts only; the reader draws conclusions.
+ */
+export async function memberProfile(store: DocketStore, q: string): Promise<MemberProfile> {
+  const summaries = await queryCongressMembers(store, q, 1);
+  const fromTrades = summaries[0] ?? null;
+
+  // Fall back to the committee table for members with no trades on record.
+  let identity: MemberProfile["member"] = fromTrades
+    ? {
+        name: fromTrades.name,
+        bioguideId: fromTrades.bioguideId,
+        chamber: fromTrades.chamber,
+        party: fromTrades.party,
+        state: fromTrades.state,
+      }
+    : null;
+  if (!identity) {
+    const row = await store.driver.get<Record<string, unknown>>(
+      `SELECT "bioguide_id", "member_name", "chamber" FROM "committee_assignments" WHERE lower("member_name") LIKE ? LIMIT 1`,
+      [`%${q.toLowerCase()}%`],
+    );
+    if (row) {
+      identity = {
+        name: String(row.member_name),
+        bioguideId: String(row.bioguide_id),
+        chamber: row.chamber as "senate" | "house",
+        party: null,
+        state: null,
+      };
+    }
+  }
+  if (!identity) {
+    return {
+      member: null,
+      committees: [],
+      trades: {
+        total: 0,
+        buys: 0,
+        sells: 0,
+        firstTransactedAt: null,
+        lastTransactedAt: null,
+        topTickers: [],
+        recent: [],
+      },
+    };
+  }
+
+  const assignments = identity.bioguideId
+    ? await queryCommitteeAssignments(store, { bioguideId: identity.bioguideId, limit: 500 })
+    : await queryCommitteeAssignments(store, { member: identity.name, limit: 500 });
+  const byCommittee = new Map<string, MemberProfile["committees"][number]>();
+  for (const a of assignments) {
+    const existing = byCommittee.get(a.committee.thomasId) ?? {
+      thomasId: a.committee.thomasId,
+      name: a.committee.name,
+      title: null,
+      subcommittees: [],
+    };
+    if (a.subcommittee) existing.subcommittees.push(a.subcommittee.name);
+    else existing.title = a.title;
+    byCommittee.set(a.committee.thomasId, existing);
+  }
+
+  const tradeFilter = { member: identity.name };
+  const statsRow = await store.driver.get<Record<string, unknown>>(
+    `SELECT COUNT(*) AS total,
+            SUM(CASE WHEN "side" = 'buy' THEN 1 ELSE 0 END) AS buys,
+            SUM(CASE WHEN "side" = 'sell' THEN 1 ELSE 0 END) AS sells,
+            MIN("transacted_at") AS first_at, MAX("transacted_at") AS last_at
+     FROM "congress_trades" WHERE lower("member_name") LIKE ?`,
+    [`%${identity.name.toLowerCase()}%`],
+  );
+  const topTickerRows = await store.driver.all<Record<string, unknown>>(
+    `SELECT "ticker", COUNT(*) AS n FROM "congress_trades" WHERE lower("member_name") LIKE ? AND "ticker" IS NOT NULL ` +
+      `GROUP BY "ticker" ORDER BY n DESC LIMIT 10`,
+    [`%${identity.name.toLowerCase()}%`],
+  );
+
+  return {
+    member: identity,
+    committees: [...byCommittee.values()],
+    trades: {
+      total: Number(statsRow?.total ?? 0),
+      buys: Number(statsRow?.buys ?? 0),
+      sells: Number(statsRow?.sells ?? 0),
+      firstTransactedAt: statsRow?.first_at ? String(statsRow.first_at) : null,
+      lastTransactedAt: statsRow?.last_at ? String(statsRow.last_at) : null,
+      topTickers: topTickerRows.map((r) => ({ ticker: String(r.ticker), trades: Number(r.n) })),
+      recent: await queryCongressTrades(store, { ...tradeFilter, limit: 10 }),
+    },
+  };
+}
+
+// ── Patents, clinical trials, FDA, COT ────────────────────────────────────
+
+export interface PatentFilters {
+  ticker?: string;
+  assignee?: string;
+  since?: string;
+  until?: string;
+  cpcClass?: string;
+  limit?: number;
+}
+
+export async function queryPatents(store: DocketStore, f: PatentFilters = {}): Promise<Patent[]> {
+  const b = where();
+  if (f.ticker) add(b, `"assignee_tickers" LIKE ?`, `%"${f.ticker.toUpperCase()}"%`);
+  if (f.assignee) contains(b, `"assignee_name"`, f.assignee);
+  if (f.since) add(b, `"grant_date" >= ?`, f.since);
+  if (f.until) add(b, `"grant_date" <= ?`, f.until);
+  if (f.cpcClass) add(b, `"cpc_class" = ?`, f.cpcClass.toUpperCase());
+  return run(store, "patents", b, `"grant_date" DESC, "id"`, f.limit);
+}
+
+export interface ClinicalTrialFilters {
+  ticker?: string;
+  sponsor?: string;
+  status?: string;
+  phase?: string;
+  condition?: string;
+  /** Earliest lastUpdated date. */
+  since?: string;
+  limit?: number;
+}
+
+export async function queryClinicalTrials(
+  store: DocketStore,
+  f: ClinicalTrialFilters = {},
+): Promise<ClinicalTrial[]> {
+  const b = where();
+  if (f.ticker) add(b, `"sponsor_tickers" LIKE ?`, `%"${f.ticker.toUpperCase()}"%`);
+  if (f.sponsor) contains(b, `"sponsor_name"`, f.sponsor);
+  if (f.status) add(b, `"overall_status" = ?`, f.status.toUpperCase());
+  if (f.phase) add(b, `"phase" = ?`, f.phase.toUpperCase());
+  if (f.condition) contains(b, `"conditions"`, f.condition);
+  if (f.since) add(b, `"last_updated" >= ?`, f.since);
+  return run(store, "clinical-trials", b, `"last_updated" DESC, "id"`, f.limit);
+}
+
+export interface FdaApprovalFilters {
+  ticker?: string;
+  sponsor?: string;
+  status?: string;
+  since?: string;
+  limit?: number;
+}
+
+export async function queryFdaApprovals(
+  store: DocketStore,
+  f: FdaApprovalFilters = {},
+): Promise<FdaApproval[]> {
+  const b = where();
+  if (f.ticker) add(b, `"sponsor_tickers" LIKE ?`, `%"${f.ticker.toUpperCase()}"%`);
+  if (f.sponsor) contains(b, `"sponsor_name"`, f.sponsor);
+  if (f.status) add(b, `"submission_status" = ?`, f.status.toUpperCase());
+  if (f.since) add(b, `"status_date" >= ?`, f.since);
+  return run(store, "fda-approvals", b, `"status_date" DESC, "id"`, f.limit);
+}
+
+export interface CotFilters {
+  /** Market name substring, e.g. "crude oil". */
+  market?: string;
+  contractCode?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+}
+
+export async function queryCotReports(
+  store: DocketStore,
+  f: CotFilters = {},
+): Promise<CotReport[]> {
+  const b = where();
+  if (f.market) contains(b, `"market_name"`, f.market);
+  if (f.contractCode) add(b, `"contract_code" = ?`, f.contractCode);
+  if (f.from) add(b, `"report_date" >= ?`, f.from);
+  if (f.to) add(b, `"report_date" <= ?`, f.to);
+  return run(store, "cot-reports", b, `"report_date" DESC, "contract_code"`, f.limit);
 }
 
 // ── Freshness ─────────────────────────────────────────────────────────────

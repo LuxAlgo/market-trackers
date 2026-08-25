@@ -21,10 +21,11 @@ async function makeCtx(): Promise<{ ctx: SourceContext; store: DocketStore }> {
 }
 
 describe("selectSources", () => {
-  it("defaults to implemented sources only — currently all six", () => {
+  it("defaults to implemented sources only", () => {
     const selected = selectSources();
     expect(selected.every((s) => s.implemented)).toBe(true);
     expect(selected.map((s) => s.id).sort()).toEqual([
+      "congress-legislators",
       "edgar",
       "finra",
       "house-clerk",
@@ -38,8 +39,8 @@ describe("selectSources", () => {
     expect(selectSources(["house-clerk"]).map((s) => s.id)).toEqual(["house-clerk"]);
   });
 
-  it("registry covers all six sources and rejects unknowns", () => {
-    expect(ALL_SOURCES).toHaveLength(6);
+  it("registry covers all eleven sources and rejects unknowns", () => {
+    expect(ALL_SOURCES).toHaveLength(11);
     expect(() => sourceById("not-a-source")).toThrow(/Unknown source/);
   });
 });
