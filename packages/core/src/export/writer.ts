@@ -8,6 +8,7 @@ import { freshnessReport } from "../store/queries.js";
 import { addDays, todayUtc } from "../lib/dates.js";
 import type { Logger } from "../lib/logger.js";
 import { buildRssFeed, type FeedRow } from "./feeds.js";
+import { writeEntityFeeds, type EntityFeedCounts } from "./entity-feeds.js";
 
 /**
  * The dump writer: daily JSON deltas (bucketed by ingestion day), an RSS
@@ -32,9 +33,19 @@ export interface ExportOptions {
   snapshot?: boolean;
   /** Also write a single combined snapshot when a dataset has at most this many rows (default 200k). */
   combinedSnapshotMaxRows?: number;
-  /** Write feed.xml per dataset (default true). */
+  /** Write feed.xml per dataset (default true); also gates the per-entity feeds below. */
   feeds?: boolean;
+  /** Recency window (days) for per-entity feeds — see export/entity-feeds.ts (default 30). */
+  entityFeedWindowDays?: number;
+  /** Cap on distinct entities per feed kind (ticker, member) per dataset (default 200). */
+  entityFeedCap?: number;
   logger?: Logger;
+  /**
+   * Overrides "now" for this export's `generatedAt` (feed `lastBuildDate`s,
+   * the manifest's `generatedAt`, and the entity-feed recency window).
+   * Tests only — defaults to the real current time.
+   */
+  now?: Date;
 }
 
 export interface ExportSummary {
@@ -63,9 +74,11 @@ export async function exportDumps(
   );
   const rewriteSince = addDays(todayUtc(), -(options.rewriteRecentDays ?? 2));
   const combinedMax = options.combinedSnapshotMaxRows ?? 200_000;
+  const generatedAt = (options.now ?? new Date()).toISOString();
   const filesWritten: string[] = [];
   const rowTotals: Partial<Record<DatasetId, number>> = {};
   const snapshotIndex = new Map<DatasetId, { file: string; rows: number }[]>();
+  const entityFeedIndex = new Map<DatasetId, EntityFeedCounts>();
 
   for (const dataset of datasets) {
     const dir = join(options.outDir, dataset.exportDir);
@@ -97,10 +110,30 @@ export async function exportDumps(
           buildRssFeed(
             dataset as DatasetDefinition<FeedRow>,
             rows as unknown as FeedRow[],
-            new Date().toISOString(),
+            generatedAt,
           ),
         );
         filesWritten.push(feedPath);
+
+        // Per-entity feeds (feeds/by-ticker/{TICKER}.xml, and for
+        // congress-trades feeds/by-member/{bioguideId}.xml) — see
+        // export/entity-feeds.ts. Gated by the same `feeds` option as
+        // feed.xml: disabling one disables both.
+        const entityFeeds = await writeEntityFeeds(store, dataset, dir, generatedAt, {
+          windowDays: options.entityFeedWindowDays,
+          cap: options.entityFeedCap,
+        });
+        filesWritten.push(...entityFeeds.filesWritten);
+        entityFeedIndex.set(dataset.id, {
+          byTicker: entityFeeds.byTicker,
+          byMember: entityFeeds.byMember,
+        });
+        if (entityFeeds.rejected.byTicker > 0 || entityFeeds.rejected.byMember > 0) {
+          options.logger?.debug(
+            `${dataset.id}: rejected ${entityFeeds.rejected.byTicker} ticker / ` +
+              `${entityFeeds.rejected.byMember} member row-entity keys as filesystem-unsafe`,
+          );
+        }
       }
     }
 
@@ -138,7 +171,12 @@ export async function exportDumps(
     }
   }
 
-  const manifest = await buildManifest(store, snapshotIndex);
+  const manifest = await buildManifest(
+    store,
+    snapshotIndex,
+    entityFeedIndex,
+    new Date(generatedAt),
+  );
   const manifestPath = join(options.outDir, "manifest.json");
   writeFileAtomic(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
   filesWritten.push(manifestPath);
@@ -159,6 +197,8 @@ export interface DumpManifest {
       stale: boolean;
       snapshots: { file: string; rows: number }[];
       feed: string | null;
+      /** Per-entity feed counts actually written this export (see export/entity-feeds.ts). */
+      entityFeeds: EntityFeedCounts;
     }
   >;
   sources: Record<
@@ -177,8 +217,10 @@ export interface DumpManifest {
 export async function buildManifest(
   store: AltDataStore,
   snapshotIndex: Map<DatasetId, { file: string; rows: number }[]> = new Map(),
+  entityFeedIndex: Map<DatasetId, EntityFeedCounts> = new Map(),
+  now: Date = new Date(),
 ): Promise<DumpManifest> {
-  const report = await freshnessReport(store);
+  const report = await freshnessReport(store, now);
   const datasets: DumpManifest["datasets"] = {};
   for (const d of report.datasets) {
     const def = ALL_DATASETS.find((x) => x.id === d.dataset) as DatasetDefinition;
@@ -190,6 +232,10 @@ export async function buildManifest(
       stale: d.stale,
       snapshots: snapshotIndex.get(d.dataset) ?? [],
       feed: d.rowCount > 0 ? `${def.exportDir}/feed.xml` : null,
+      // entityFeeds counts are 0 whenever a dataset has no ticker/member
+      // concept, has no rows, or ran with feeds disabled — never omitted,
+      // so "0" always means "checked, found none" rather than "not asked".
+      entityFeeds: entityFeedIndex.get(d.dataset) ?? { byTicker: 0, byMember: 0 },
     };
   }
   const sources: DumpManifest["sources"] = {};

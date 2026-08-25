@@ -313,3 +313,165 @@ describe("alt-data analyze", () => {
     expect(altData(["--help"])).toContain("analyze");
   });
 });
+
+describe("alt-data backtest", () => {
+  it("rejects an unknown backtest target", () => {
+    expect(() => altData(["backtest", "not-a-target", "--db", "backtest-validation.db"])).toThrow();
+  });
+
+  it("requires --prices and names the expected CSV shape", () => {
+    let failed = false;
+    try {
+      altData(["backtest", "congress", "--db", "backtest-validation.db"]);
+    } catch (error) {
+      failed = true;
+      const err = error as { status: number; stderr: string };
+      expect(err.status).toBe(1);
+      expect(err.stderr).toContain("date,ticker,close");
+    }
+    expect(failed).toBe(true);
+  });
+
+  it("fails (nonzero) on an empty prices file, with a helpful message", () => {
+    const emptyPricesPath = join(tmp, "backtest-empty-prices.csv");
+    writeFileSync(emptyPricesPath, "date,ticker,close\n");
+    let failed = false;
+    try {
+      altData([
+        "backtest",
+        "congress",
+        "--prices",
+        emptyPricesPath,
+        "--db",
+        "backtest-validation.db",
+      ]);
+    } catch (error) {
+      failed = true;
+      const err = error as { status: number; stderr: string };
+      expect(err.status).toBe(1);
+      expect(err.stderr).toContain("no usable price rows");
+    }
+    expect(failed).toBe(true);
+  });
+
+  it("fails (nonzero) when no events match, with a helpful message", () => {
+    const pricesPath = join(tmp, "backtest-nomatch-prices.csv");
+    writeFileSync(pricesPath, "date,ticker,close\n2026-08-18,ACME,10\n");
+    let failed = false;
+    try {
+      altData([
+        "backtest",
+        "congress",
+        "--prices",
+        pricesPath,
+        "--ticker",
+        "NOPE",
+        "--db",
+        "backtest-validation.db",
+      ]);
+    } catch (error) {
+      failed = true;
+      const err = error as { status: number; stderr: string };
+      expect(err.status).toBe(1);
+      expect(err.stderr).toContain("no congress trade events matched");
+    }
+    expect(failed).toBe(true);
+  });
+
+  it(
+    "end-to-end: import a hand-written 3-event delta, join a hand-computable prices.csv, and " +
+      "report winRate arithmetic plus the disclaimer in both human and --json output, with the " +
+      "unpriceable event kept as a skipped row rather than dropped",
+    () => {
+      const provenanceFor = (n: number) => ({
+        source: "senate-efd",
+        sourceUrl: `https://example.gov/primary/backtest-doc-${n}`,
+        retrievedAt: "2026-08-18T12:00:00.000Z",
+        parser: "test@1",
+        confidence: 1,
+        needsReview: false,
+      });
+      const tradeFor = (rowIndex: number, ticker: string) => ({
+        id: `senate:backtest-doc:${rowIndex}`,
+        chamber: "senate",
+        docId: "backtest-doc",
+        rowIndex,
+        member: { name: "Backtest Member", bioguideId: "B000001", party: "I", state: "ZZ" },
+        filedAt: "2026-08-18",
+        transactedAt: "2026-08-01",
+        ticker,
+        assetDescription: `${ticker} Corp — Common Stock`,
+        assetType: "stock",
+        side: "buy",
+        amountRange: { min: 1_001, max: 15_000, text: "$1,001 - $15,000" },
+        owner: "self",
+        provenance: provenanceFor(rowIndex),
+      });
+      // ACME +10%, BETA -10%, GAMMA has no price data at all (must be
+      // skipped, never dropped) — winRate over the 2 priced events is 1/2.
+      const delta = [tradeFor(0, "ACME"), tradeFor(1, "BETA"), tradeFor(2, "GAMMA")];
+      const deltaPath = join(tmp, "backtest-delta.json");
+      writeFileSync(deltaPath, JSON.stringify(delta));
+      altData(["import", deltaPath, "--dataset", "congress-trades", "--db", "backtest-e2e.db"]);
+
+      const pricesPath = join(tmp, "backtest-prices.csv");
+      writeFileSync(
+        pricesPath,
+        [
+          "date,ticker,close",
+          "2026-08-18,ACME,40.00",
+          "2026-09-17,ACME,44.00", // +10%
+          "2026-08-18,BETA,50.00",
+          "2026-09-17,BETA,45.00", // -10%
+          "",
+        ].join("\n"),
+      );
+
+      const out = altData([
+        "backtest",
+        "congress",
+        "--prices",
+        pricesPath,
+        "--window",
+        "30",
+        "--db",
+        "backtest-e2e.db",
+      ]);
+      expect(out).toContain("Descriptive arithmetic over public records");
+      expect(out).toContain("events: 3  priced: 2  skipped: 1");
+      expect(out).toContain("winRate: 50.00%");
+      expect(out).toContain("skipped: entry price unavailable");
+
+      const jsonOut = altData([
+        "backtest",
+        "congress",
+        "--prices",
+        pricesPath,
+        "--window",
+        "30",
+        "--json",
+        "--db",
+        "backtest-e2e.db",
+      ]);
+      const result = JSON.parse(jsonOut);
+      expect(result.disclaimer).toContain("Not investment advice");
+      expect(result.dataNotes.length).toBeGreaterThan(0);
+      expect(result.aggregate).toMatchObject({ events: 3, priced: 2, skipped: 1, winRate: 0.5 });
+      expect(result.aggregate.meanChangePct).toBeCloseTo(0, 10);
+      expect(result.aggregate.bestChangePct).toBeCloseTo(0.1, 10);
+      expect(result.aggregate.worstChangePct).toBeCloseTo(-0.1, 10);
+
+      const statuses = (result.rows as { status: string }[]).map((r) => r.status).sort();
+      expect(statuses).toEqual(["priced", "priced", "skipped"]);
+      const skippedRow = (
+        result.rows as { status: string; event: { ticker: string }; reason?: string }[]
+      ).find((r) => r.status === "skipped");
+      expect(skippedRow?.event.ticker).toBe("GAMMA");
+      expect(skippedRow?.reason).toContain("entry price unavailable");
+    },
+  );
+
+  it("--help lists the backtest command", () => {
+    expect(altData(["--help"])).toContain("backtest");
+  });
+});

@@ -121,6 +121,105 @@ mean changePct: 10.00%  median changePct: 10.00%
 Descriptive arithmetic over public records and user-supplied prices. Not investment advice; no predictive claim is made.
 ```
 
+## `alt-data backtest`: one fixed strategy, applied mechanically
+
+`packages/core/src/analytics/backtest.ts` and the `alt-data backtest` CLI command build on
+the exact same primitives as `analyze` above (`prices.ts`'s `closeOn` and forward-fill, and
+the `congressTradeEvents` / `insiderTradeEvents` adapters) to answer one narrower, more
+opinionated question: "if every one of these disclosed events was entered at equal weight
+and exited `windowDays` later, what would the aggregate look like?" It is `eventPriceChange`'s
+arithmetic restated in backtest vocabulary — not a new model. LuxAlgo Alt Data still ships no
+price data and computes no score or signal here.
+
+### What it computes
+
+```ts
+runBacktest({
+  events: AnalyticsEvent[],
+  prices: PriceSeries,
+  windowDays: number,
+  entry?: "filed-close",       // the only supported value
+  searchForwardDays?: number,  // default 7, forwarded to closeOn — see analyze above
+}): BacktestResult
+```
+
+For each event: **entry** is the first close on/after `event.eventDate` (already the
+disclosure date the adapters anchor to `filedAt`, never the transaction date — see
+`adapters.ts` above); **exit** is the first close on/after `event.eventDate + windowDays`;
+**`changePct = (exit.close - entry.close) / entry.close`**. Every event becomes exactly one
+row in `result.rows` — `status: "priced"` with `entry` / `exit` (each
+`{ date, close, forwardFilled }`) and `changePct`, or `status: "skipped"` with a reason —
+never dropped.
+
+The aggregate is `{ events, priced, skipped, meanChangePct, medianChangePct, winRate,
+bestChangePct, worstChangePct }`: plain descriptive arithmetic over whatever priced.
+`winRate` is the share of _priced_ events with `changePct > 0` (a flat or negative change is
+not a win). Every aggregate field is `null` — never `0`, `NaN`, or omitted — when nothing
+priced, so an empty aggregate can't be misread as a bad or a flat outcome.
+
+### The fixed strategy (there is exactly one)
+
+- **Equal weight, always.** Every event counts the same in the aggregate regardless of the
+  size of the disclosed transaction. In fact `AnalyticsEvent` carries no amount field at
+  all — there is nothing to size a position with even if a caller wanted to.
+- **Entry at disclosure, never at the trade.** `event.eventDate` is already the filing
+  date (see `adapters.ts`): a price reaction can only be attributed to information the
+  market actually had.
+- **One knob: `windowDays`.** It only moves the exit date forward. `entry` accepts exactly
+  one value, `"filed-close"` — named explicitly (rather than assumed) so a future rule would
+  be an addition a caller opts into, never a silent change to what today's callers get.
+
+### Every honesty guard, and where it lives
+
+| Guard                                                       | Where                                                                                                                |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| The disclaimer is on every result and every output path     | `result.disclaimer` (`ANALYTICS_DISCLAIMER`); the CLI prints it in both human and `--json` mode, unconditionally     |
+| Disclosed amounts are never sized into a position or return | `AnalyticsEvent` has no amount field — there is nothing to size with, structurally                                   |
+| Nothing is dropped silently                                 | every event becomes a `rows` entry, `"priced"` or `"skipped"` with a reason                                          |
+| Forward-filled closes are flagged, not hidden               | `entry.forwardFilled` / `exit.forwardFilled` on every priced row                                                     |
+| No costs, slippage, dividends, or taxes                     | `changePct` is the one arithmetic line in `runBacktest`; nothing else touches it                                     |
+| Methodology is stated, not just implied                     | `result.dataNotes` — five fixed strings, present on every result, printed in human output right after the disclaimer |
+
+### Worked example
+
+Three disclosed trades — ACME (+10% over the window), BETA (-10%), and GAMMA (no price data
+supplied at all):
+
+```
+$ alt-data backtest congress --prices prices.csv --window 30
+events: 3  priced: 2  skipped: 1
+mean changePct: 0.00%  median changePct: 0.00%
+winRate: 50.00%  best: 10.00%  worst: -10.00%
+
+Descriptive arithmetic over public records and user-supplied prices. Not investment advice; no predictive claim is made.
+- Equal weight per event: every event contributes the same weight to the aggregate, regardless of the size of the underlying disclosed transaction.
+- Disclosed transaction amount ranges are never converted into a position size or a dollar return — only a per-event price percentage change is computed.
+- Entry is the first available close on or after the event's disclosure date (never the underlying transaction date, and never before the information was public); exit is the first available close on or after disclosure date + windowDays.
+- No transaction costs, slippage, dividends, borrow costs, or taxes are modeled — changePct is a plain (exit - entry) / entry.
+- A forward-filled entry or exit close (the nearest later trading day found in the supplied prices, not an exact match on the requested date) is flagged per event via entry.forwardFilled / exit.forwardFilled — never presented as if it were the exact date's price.
+
+label                           eventDate   entry            exit             changePct  status
+-------------------------------  ----------  ---------------  ---------------  ---------  -------------------------------------------------------------
+Jane Example (senate) buy ACME  2026-08-18  40 (2026-08-18)  44 (2026-09-17)  10.00%      priced
+Jane Example (senate) buy BETA  2026-08-18  50 (2026-08-18)  45 (2026-09-17)  -10.00%     priced
+Jane Example (senate) buy GAMMA 2026-08-18  -                -                -           skipped: entry price unavailable — no prices supplied for ticker 'GAMMA'
+```
+
+`--json` prints the full `BacktestResult` (disclaimer and `dataNotes` included); `--out
+<file>` additionally writes that same JSON to a file. Flags mirror `analyze`:
+`--ticker`, `--member` (congress only), `--since` filter the events; `--window <days>`
+(default 30) sets the exit offset.
+
+### What this will never do
+
+- **No optimization.** There is no parameter sweep, no "best window" search, and no fitting
+  `windowDays` — or anything else — to the data it's run against.
+- **No parameter fitting.** The strategy's rules (`filed-close` entry, equal weight, exit at
+  `windowDays`) are fixed in code, not learned or tuned from the events or prices supplied.
+- **No recommendations.** A `BacktestResult` describes what already happened to a price the
+  caller supplied, for events already on the public record — never a suggestion of what
+  ticker, event, or window to act on next.
+
 ## Reading further
 
 - [`notebooks/congress-disclosure-returns.md`](../notebooks/congress-disclosure-returns.md) —
