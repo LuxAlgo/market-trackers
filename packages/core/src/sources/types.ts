@@ -23,6 +23,12 @@ export interface SourceContext {
 export interface SyncOptions {
   /** Re-walk from this date (YYYY-MM-DD) instead of the stored watermark. */
   since?: string;
+  /**
+   * Stop walking at this date (YYYY-MM-DD, inclusive) — used by the backfill
+   * engine to run bounded chunks. Sources that don't walk by date may ignore
+   * it; date-walking sources must honor it.
+   */
+  until?: string;
   /** Ignore watermarks entirely and re-walk as deep as the source allows. */
   full?: boolean;
   /** Restrict to these datasets (a source may produce several). */

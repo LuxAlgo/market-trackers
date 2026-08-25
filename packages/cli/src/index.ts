@@ -14,6 +14,8 @@ import { canaryCommand } from "./commands/canary.js";
 import { serveCommand } from "./commands/serve.js";
 import { resolveCommand } from "./commands/resolve.js";
 import { importCommand } from "./commands/import.js";
+import { backfillCommand } from "./commands/backfill.js";
+import { analyzeCommand } from "./commands/analyze.js";
 
 const program = new Command();
 
@@ -122,6 +124,46 @@ globalOptions(
 ).action(async (path, flags) => {
   try {
     process.exit(await importCommand(path, flags));
+  } catch (error) {
+    fail(error);
+  }
+});
+
+globalOptions(
+  program
+    .command("backfill")
+    .description(
+      "Deep-history backfill: chunked, resumable, watermark-driven walks as far back as the free sources allow (see docs/backfill.md)",
+    )
+    .option("--source <ids>", "comma-separated sources to backfill")
+    .option("--from <date>", "start of the backfill window (YYYY-MM-DD)")
+    .option("--to <date>", "end of the backfill window (default: today)")
+    .option("--chunk-days <n>", "days per resumable chunk")
+    .option("--limit <n>", "soft cap on documents fetched this run"),
+).action(async (flags) => {
+  try {
+    process.exit(await backfillCommand(flags));
+  } catch (error) {
+    fail(error);
+  }
+});
+
+globalOptions(
+  program
+    .command("analyze <what>")
+    .description(
+      "Bring-your-own-prices factual joins over stored rows (Docket ships no price data and computes no scores; see docs/analytics.md)",
+    )
+    .option("--prices <file>", "user-supplied price series (CSV: date,ticker,close)")
+    .option("--dataset <id>", "dataset to join against")
+    .option("--ticker <t>", "restrict to one ticker")
+    .option("--member <name>", "restrict to one member (congress-trades)")
+    .option("--since <date>", "earliest event date")
+    .option("--window <days>", "days after the event to measure")
+    .option("--out <file>", "write the result table to a file"),
+).action(async (what, flags) => {
+  try {
+    process.exit(await analyzeCommand(what, flags));
   } catch (error) {
     fail(error);
   }
