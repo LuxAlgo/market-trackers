@@ -25,6 +25,7 @@ describe("selectSources", () => {
     const selected = selectSources();
     expect(selected.every((s) => s.implemented)).toBe(true);
     expect(selected.map((s) => s.id).sort()).toEqual([
+      "cftc",
       "congress-legislators",
       "edgar",
       "finra",

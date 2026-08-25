@@ -1,0 +1,17 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic Socrata SODA page for the legacy futures-only COT resource, spanning two report dates one week apart. Covers a plain-digit-string row (Crude Oil), a comma-grouped-digit-string row on the same date (Natural Gas — exercises defensive comma stripping; verify-live which form the live API actually emits), a normal row on the newer date (Gold), and a malformed row on the newer date (Silver, non-numeric open_interest_all) that must fail as a whole row rather than being zeroed.",
+  "sourceUrl": null,
+  "parser": "cftc-cot-legacy@1",
+  "parseInput": {
+    "request": {
+      "url": "https://publicreporting.cftc.gov/resource/6dca-aqww.json",
+      "$order": "report_date_as_yyyy_mm_dd",
+      "$limit": 1000,
+      "$offset": 0
+    },
+    "retrievedAt": "2026-08-24T12:00:00.000Z"
+  },
+  "expectedStats": { "attempted": 4, "succeeded": 3 }
+}
