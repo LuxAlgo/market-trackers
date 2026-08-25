@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Docket data explorer</title>
+    <style>
+      :root {
+        --bg: #f7f7f5;
+        --bg-elevated: #fff;
+        --text: #1a1a1a;
+        --text-muted: #5b5b58;
+        --border: #ddd9d3;
+        --accent: #1b5e46;
+        --hover-bg: rgba(27, 94, 70, 0.06);
+        --code-bg: rgba(0, 0, 0, 0.06);
+        --stale: #9a5b12;
+        --stale-bg: #fbeedd;
+        --stale-border: #d9a441;
+        --fresh: #1b5e46;
+        --fresh-bg: #e4f1ea;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #14171a;
+          --bg-elevated: #1c2024;
+          --text: #ece9e4;
+          --text-muted: #9a9d9f;
+          --border: #2c3136;
+          --accent: #5fcf9d;
+          --hover-bg: rgba(95, 207, 157, 0.1);
+          --code-bg: rgba(255, 255, 255, 0.08);
+          --stale: #e8b165;
+          --stale-bg: #3a2c14;
+          --stale-border: #6b4a1c;
+          --fresh: #5fcf9d;
+          --fresh-bg: #123326;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        line-height: 1.5;
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      header {
+        padding: 2.5rem 1.5rem 2rem;
+        border-bottom: 1px solid var(--border);
+      }
+      header .inner,
+      main,
+      footer .inner {
+        max-width: 72rem;
+        margin: 0 auto;
+      }
+      header .crumb {
+        margin: 0 0 0.8rem;
+        font-size: 0.85rem;
+      }
+      header h1 {
+        margin: 0 0 0.5rem;
+        font-size: 1.6rem;
+      }
+      header p {
+        margin: 0.35rem 0;
+        color: var(--text-muted);
+        max-width: 46rem;
+      }
+      main {
+        padding: 2rem 1.5rem 4rem;
+      }
+      section {
+        margin-bottom: 2.5rem;
+      }
+      h2 {
+        font-size: 1.1rem;
+        margin: 0 0 0.9rem;
+      }
+      .table-wrap {
+        overflow-x: auto;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--bg-elevated);
+      }
+      #rows-wrap {
+        max-height: 32rem;
+        overflow-y: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.88rem;
+      }
+      th,
+      td {
+        padding: 0.55rem 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+      }
+      th {
+        color: var(--text-muted);
+        font-weight: 600;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        position: sticky;
+        top: 0;
+        background: var(--bg-elevated);
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+      tbody tr:hover {
+        background: var(--hover-bg);
+      }
+      td.cell-json {
+        font-family: var(--mono);
+        font-size: 0.8rem;
+        max-width: 22rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .dataset-id {
+        color: var(--text-muted);
+        font-size: 0.8em;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        padding: 0.15rem 0.55rem;
+        border-radius: 999px;
+        background: var(--fresh-bg);
+        color: var(--fresh);
+        text-transform: uppercase;
+      }
+      .badge.stale {
+        background: var(--stale-bg);
+        color: var(--stale);
+      }
+      .viewer-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        align-items: center;
+        margin-bottom: 0.9rem;
+      }
+      select,
+      input[type="search"] {
+        font: inherit;
+        padding: 0.45rem 0.7rem;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--bg-elevated);
+        color: var(--text);
+      }
+      input[type="search"] {
+        flex: 1;
+        min-width: 12rem;
+      }
+      .row-count {
+        color: var(--text-muted);
+        font-size: 0.85rem;
+      }
+      .state {
+        padding: 1.1rem 1.2rem;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--bg-elevated);
+        color: var(--text-muted);
+      }
+      .state.error {
+        border-color: var(--stale-border);
+        background: var(--stale-bg);
+        color: var(--stale);
+      }
+      .state code {
+        font-family: var(--mono);
+        background: var(--code-bg);
+        padding: 0.1rem 0.35rem;
+        border-radius: 4px;
+      }
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 1.5rem;
+        color: var(--text-muted);
+        font-size: 0.82rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="inner">
+        <p class="crumb"><a href="../">&larr; docket-data repository root</a></p>
+        <h1>Docket data explorer</h1>
+        <p>
+          <strong>Docket</strong> publishes the public record of US markets — congressional trades,
+          insider filings, 13F holdings, government contracts &amp; grants, lobbying, short-sale
+          volume, committee assignments, patents, clinical trials, FDA events, and CFTC positioning
+          — as free daily dumps. Every row is parsed from a primary source and carries a working
+          link back to it.
+        </p>
+        <p>
+          This data is dedicated to the public domain under
+          <a id="license-link" href="../LICENSE">CC0 1.0</a> — use it for anything, no attribution
+          required. Source and parsers:
+          <a href="https://github.com/LuxAlgo/docket">github.com/LuxAlgo/docket</a>.
+        </p>
+      </div>
+    </header>
+    <main>
+      <section id="datasets-section">
+        <h2>Datasets</h2>
+        <div id="datasets-state" class="state">Loading manifest&hellip;</div>
+        <div class="table-wrap" id="datasets-wrap" hidden>
+          <table>
+            <thead>
+              <tr>
+                <th>Dataset</th>
+                <th>Rows</th>
+                <th>Last ingested</th>
+                <th>Status</th>
+                <th>Files</th>
+              </tr>
+            </thead>
+            <tbody id="datasets-body"></tbody>
+          </table>
+        </div>
+      </section>
+      <section id="viewer-section" hidden>
+        <h2>Browse a dataset</h2>
+        <div class="viewer-controls">
+          <select id="dataset-select" aria-label="Choose a dataset"></select>
+          <input
+            type="search"
+            id="filter-input"
+            placeholder="Filter rows (substring match)&hellip;"
+            aria-label="Filter rows"
+          />
+          <span class="row-count" id="row-count"></span>
+        </div>
+        <div id="viewer-state" class="state" hidden></div>
+        <div class="table-wrap" id="rows-wrap" hidden>
+          <table>
+            <thead>
+              <tr id="rows-head"></tr>
+            </thead>
+            <tbody id="rows-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <div class="inner">
+        Generated by the Docket export pipeline. This page runs entirely in your browser — it
+        fetches <code>manifest.json</code> and each dataset's <code>latest.json</code> straight from
+        wherever it's hosted; nothing is sent anywhere else.
+      </div>
+    </footer>
+    <script>
+      (function () {
+        "use strict";
+
+        var MANIFEST_CANDIDATES = ["../manifest.json", "manifest.json"];
+
+        var datasetsState = document.getElementById("datasets-state");
+        var datasetsWrap = document.getElementById("datasets-wrap");
+        var datasetsBody = document.getElementById("datasets-body");
+        var viewerSection = document.getElementById("viewer-section");
+        var datasetSelect = document.getElementById("dataset-select");
+        var filterInput = document.getElementById("filter-input");
+        var rowCountEl = document.getElementById("row-count");
+        var viewerState = document.getElementById("viewer-state");
+        var rowsWrap = document.getElementById("rows-wrap");
+        var rowsHead = document.getElementById("rows-head");
+        var rowsBody = document.getElementById("rows-body");
+
+        // Assumes the common deployment (this page one level under the repo
+        // root, at explorer/index.html); corrected once loadManifest()
+        // confirms which candidate actually resolved.
+        var base = "../";
+        var manifest = null;
+        var currentRows = [];
+
+        function fileProtocolHint() {
+          return location.protocol === "file:"
+            ? " You opened this page directly from disk (file://); browsers block those " +
+                "fetches. Serve the folder instead, e.g. `python3 -m http.server` from the " +
+                "data repo root, then open http://localhost:8000/explorer/."
+            : "";
+        }
+
+        function showError(el, message) {
+          el.hidden = false;
+          el.className = "state error";
+          el.textContent = message + fileProtocolHint();
+        }
+
+        function fmtDate(iso) {
+          if (!iso) return "—";
+          return iso.replace("T", " ").replace(/\.\d+Z$/, " UTC");
+        }
+
+        function escapeHtml(s) {
+          return String(s).replace(/[&<>"']/g, function (c) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+          });
+        }
+
+        function fetchJson(url) {
+          return fetch(url, { cache: "no-store" }).then(function (res) {
+            if (!res.ok) throw new Error("HTTP " + res.status + " for " + url);
+            return res.json();
+          });
+        }
+
+        function loadManifest() {
+          var tried = [];
+          function attempt(i) {
+            if (i >= MANIFEST_CANDIDATES.length) {
+              throw new Error("Could not load manifest.json. Tried: " + tried.join("; ") + ".");
+            }
+            var candidate = MANIFEST_CANDIDATES[i];
+            return fetchJson(candidate)
+              .then(function (data) {
+                base = candidate.slice(0, candidate.length - "manifest.json".length);
+                return data;
+              })
+              .catch(function (err) {
+                tried.push(candidate + ": " + err.message);
+                return attempt(i + 1);
+              });
+          }
+          return attempt(0);
+        }
+
+        function renderDatasets(m) {
+          var ids = Object.keys(m.datasets).sort();
+          ids.forEach(function (id) {
+            var d = m.datasets[id];
+            var files = ['<a href="' + base + d.exportDir + '/latest.json">latest.json</a>'];
+            if (d.feed) files.push('<a href="' + base + d.feed + '">feed.xml</a>');
+            (d.snapshots || []).forEach(function (s) {
+              files.push(
+                '<a href="' +
+                  base +
+                  d.exportDir +
+                  "/" +
+                  s.file +
+                  '">' +
+                  escapeHtml(s.file) +
+                  "</a>",
+              );
+            });
+
+            var tr = document.createElement("tr");
+            tr.innerHTML =
+              "<td><strong>" +
+              escapeHtml(d.title) +
+              '</strong><br><span class="dataset-id">' +
+              escapeHtml(id) +
+              "</span></td>" +
+              "<td>" +
+              d.rows.toLocaleString() +
+              "</td>" +
+              "<td>" +
+              fmtDate(d.lastIngestedAt) +
+              "</td>" +
+              '<td><span class="badge' +
+              (d.stale ? " stale" : "") +
+              '">' +
+              (d.stale ? "stale" : "fresh") +
+              "</span></td>" +
+              "<td>" +
+              files.join(" &middot; ") +
+              "</td>";
+            datasetsBody.appendChild(tr);
+
+            var opt = document.createElement("option");
+            opt.value = id;
+            opt.textContent = d.title + " (" + d.rows.toLocaleString() + ")";
+            datasetSelect.appendChild(opt);
+          });
+
+          document.getElementById("license-link").href = base + "LICENSE";
+          datasetsState.hidden = true;
+          datasetsWrap.hidden = false;
+          viewerSection.hidden = false;
+        }
+
+        function cellHtml(value) {
+          if (value === null || value === undefined) return "—";
+          if (typeof value === "object") {
+            var text = JSON.stringify(value);
+            return '<span title="' + escapeHtml(text) + '">' + escapeHtml(text) + "</span>";
+          }
+          return escapeHtml(String(value));
+        }
+
+        function renderRows(rows, columns) {
+          rowsHead.innerHTML =
+            columns
+              .map(function (c) {
+                return "<th>" + escapeHtml(c) + "</th>";
+              })
+              .join("") + "<th>source</th>";
+          rowsBody.innerHTML = "";
+          rows.forEach(function (row) {
+            var cells = columns.map(function (c) {
+              return '<td class="cell-json">' + cellHtml(row[c]) + "</td>";
+            });
+            var src = row.provenance && row.provenance.sourceUrl;
+            cells.push(
+              "<td>" +
+                (src
+                  ? '<a href="' +
+                    escapeHtml(src) +
+                    '" target="_blank" rel="noopener noreferrer">source &rarr;</a>'
+                  : "—") +
+                "</td>",
+            );
+            var tr = document.createElement("tr");
+            tr.innerHTML = cells.join("");
+            rowsBody.appendChild(tr);
+          });
+          rowsWrap.hidden = rows.length === 0;
+        }
+
+        function applyFilter() {
+          var needle = filterInput.value.trim().toLowerCase();
+          var filtered = !needle
+            ? currentRows
+            : currentRows.filter(function (row) {
+                return JSON.stringify(row).toLowerCase().indexOf(needle) !== -1;
+              });
+          var columns = currentRows.length
+            ? Object.keys(currentRows[0]).filter(function (c) {
+                return c !== "provenance";
+              })
+            : [];
+          renderRows(filtered, columns);
+          rowCountEl.textContent =
+            filtered.length.toLocaleString() +
+            " of " +
+            currentRows.length.toLocaleString() +
+            " rows shown (latest.json)";
+        }
+
+        function loadDataset(id) {
+          rowsWrap.hidden = true;
+          viewerState.hidden = false;
+          viewerState.className = "state";
+          viewerState.textContent = "Loading " + id + "…";
+          var d = manifest.datasets[id];
+          fetchJson(base + d.exportDir + "/latest.json")
+            .then(function (rows) {
+              currentRows = rows;
+              filterInput.value = "";
+              applyFilter();
+              if (rows.length === 0) {
+                viewerState.hidden = false;
+                viewerState.textContent =
+                  "latest.json for " +
+                  id +
+                  " has no rows yet (the newest ingestion day was empty).";
+              } else {
+                viewerState.hidden = true;
+              }
+            })
+            .catch(function (err) {
+              currentRows = [];
+              showError(
+                viewerState,
+                "Could not load " + d.exportDir + "/latest.json: " + err.message,
+              );
+            });
+        }
+
+        datasetSelect.addEventListener("change", function () {
+          loadDataset(datasetSelect.value);
+        });
+        filterInput.addEventListener("input", applyFilter);
+
+        loadManifest()
+          .then(function (m) {
+            manifest = m;
+            renderDatasets(m);
+            var ids = Object.keys(m.datasets).sort();
+            var withRows = ids.find(function (id) {
+              return m.datasets[id].rows > 0;
+            });
+            if (withRows) {
+              datasetSelect.value = withRows;
+              loadDataset(withRows);
+            } else {
+              viewerState.hidden = false;
+              viewerState.textContent = "No dataset has any rows yet.";
+            }
+          })
+          .catch(function (err) {
+            showError(datasetsState, err.message);
+          });
+      })();
+    </script>
+  </body>
+</html>

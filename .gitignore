@@ -15,3 +15,8 @@ dumps/
 
 .DS_Store
 *.log
+
+# python/ (standalone package, not part of the pnpm workspace)
+__pycache__/
+*.pyc
+*.egg-info/

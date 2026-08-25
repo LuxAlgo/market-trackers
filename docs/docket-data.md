@@ -24,14 +24,20 @@ manifest.json                 # row counts, watermarks, per-source health, schem
 
 (Each `.json.gz` above also gets a `.parquet` sibling — see Parquet siblings below.)
 
-| Dataset id             | `exportDir`            |
-| ---------------------- | ---------------------- |
-| `congress-trades`      | `congress/trades`      |
-| `insider-transactions` | `insider/transactions` |
-| `thirteenf-holdings`   | `thirteenf/holdings`   |
-| `gov-contracts`        | `contracts/awards`     |
-| `lobbying-filings`     | `lobbying/filings`     |
-| `short-volume`         | `short-volume/daily`   |
+| Dataset id              | `exportDir`               |
+| ----------------------- | ------------------------- |
+| `congress-trades`       | `congress/trades`         |
+| `insider-transactions`  | `insider/transactions`    |
+| `thirteenf-holdings`    | `thirteenf/holdings`      |
+| `gov-contracts`         | `contracts/awards`        |
+| `gov-grants`            | `grants/awards`           |
+| `lobbying-filings`      | `lobbying/filings`        |
+| `short-volume`          | `short-volume/daily`      |
+| `committee-assignments` | `congress/committees`     |
+| `patents`               | `patents/grants`          |
+| `clinical-trials`       | `clinical-trials/studies` |
+| `fda-approvals`         | `fda/approvals`           |
+| `cot-reports`           | `cot/legacy-futures`      |
 
 Files are single-line JSON arrays with a trailing newline. Rows are emitted in id order and one
 JSON shape, so re-exports are byte-stable and the data repo's diffs stay reviewable. Every row
@@ -128,27 +134,35 @@ see CONTRIBUTING.md). Consumers should pin the major behavior on it: same `schem
 previously written parsers keep working. Internal changes that don't alter published rows do
 not bump it.
 
-## The data explorer
+## The bundled explorer
 
-The data repo can also carry a small static site — built and maintained by a separate effort,
-not by this document's exporter/writer code — that browses the published data in a browser
-instead of raw JSON/Parquet files. `publish-dumps.yml` copies it in from
-`templates/docket-data/explorer/` in this repo whenever that directory exists, as its own commit
-after the day's data commit, so the explorer stays in sync with whatever that effort ships
-without this repo's export pipeline knowing anything about it. Until it exists, this step is a
-no-op — nothing here depends on it, and none of the layout above changes because of it.
+[`templates/docket-data/explorer/index.html`](../templates/docket-data/explorer/index.html) is
+a single, self-contained static page (no build step, no external assets) that browses the
+published dumps client-side: it fetches `manifest.json`, renders a table of every dataset with
+links to its `latest.json`/`feed.xml`/snapshots, and lets a visitor pick a dataset and filter
+its `latest.json` rows, each linking its `provenance.sourceUrl`. It resolves `manifest.json`
+path-relatively (`../manifest.json`, with a same-directory fallback) so it works wherever the
+data repo is served — a raw checkout, `python3 -m http.server`, or GitHub Pages — and reads
+`prefers-color-scheme` for dark/light.
 
-If GitHub Pages is enabled on the data repo, this is what it serves: the explorer template is
-installed at the data repo's root (alongside `manifest.json`, `README.md`, and the dataset
-directories), the same way `README.md`/`LICENSE` are installed from `templates/docket-data/` —
-so a plain root-folder Pages configuration just works, with no separate branch or build step.
+`publish-dumps.yml` installs it into the data repo at `explorer/index.html` and refreshes it
+whenever the template here changes, as its own commit after the day's data commit. Unlike
+`README.md`/`LICENSE` (installed only when missing, then left to humans), the explorer is code
+owned by this repository: hand-edits to it in the data repo get overwritten by the next refresh
+— changes belong in the template here. The daily dumps rsync excludes `/explorer` from its
+`--delete` (the exporter never produces that directory, so without the exclusion every publish
+would delete it and re-commit it minutes later). If GitHub Pages is enabled on the data repo
+(plain root-folder configuration, no build step), the explorer is served at `/explorer/`
+alongside the raw data files it reads.
 
 ## Only CI writes
 
 The data repository has exactly one writer: the `publish-dumps.yml` workflow in this repo,
 committing as `docket-publish[bot]`. It rsyncs the export output with `--delete` (so files
-removed from the layout disappear) while excluding `.git`, `README.md`, and `LICENSE` — those
-two are installed from `templates/docket-data/` only when missing and then left to humans.
+removed from the layout disappear) while excluding `.git`, `README.md`, `LICENSE`, and
+`/explorer` — the first two are installed from `templates/docket-data/` only when missing and
+then left to humans; the explorer is installed and refreshed from the same templates directory
+and stays owned by this repo (see The bundled explorer above).
 Human pull requests to data files in the data repo are closed on principle: a wrong row is a
 parser or fixture bug in this repository, and the fix flows into the next publish. This is what
 keeps every published row backed by a parser, a golden test, and a provenance link — instead of
