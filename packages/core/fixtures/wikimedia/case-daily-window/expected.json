@@ -1,0 +1,50 @@
+[
+  {
+    "id": "en.wikipedia:Nvidia:2026-08-18",
+    "project": "en.wikipedia",
+    "article": "Nvidia",
+    "day": "2026-08-18",
+    "views": 41823,
+    "tickers": ["NVDA"],
+    "provenance": {
+      "source": "wikimedia",
+      "sourceUrl": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Nvidia/daily/2026081800/2026082000",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "wikimedia-pageviews@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "en.wikipedia:Nvidia:2026-08-19",
+    "project": "en.wikipedia",
+    "article": "Nvidia",
+    "day": "2026-08-19",
+    "views": 39250,
+    "tickers": ["NVDA"],
+    "provenance": {
+      "source": "wikimedia",
+      "sourceUrl": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Nvidia/daily/2026081800/2026082000",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "wikimedia-pageviews@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "en.wikipedia:Nvidia:2026-08-20",
+    "project": "en.wikipedia",
+    "article": "Nvidia",
+    "day": "2026-08-20",
+    "views": 52110,
+    "tickers": ["NVDA"],
+    "provenance": {
+      "source": "wikimedia",
+      "sourceUrl": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Nvidia/daily/2026081800/2026082000",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "wikimedia-pageviews@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  }
+]

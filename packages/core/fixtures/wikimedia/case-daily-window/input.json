@@ -1,0 +1,31 @@
+{
+  "items": [
+    {
+      "project": "en.wikipedia",
+      "article": "Nvidia",
+      "granularity": "daily",
+      "timestamp": "2026081800",
+      "access": "all-access",
+      "agent": "user",
+      "views": 41823
+    },
+    {
+      "project": "en.wikipedia",
+      "article": "Nvidia",
+      "granularity": "daily",
+      "timestamp": "2026081900",
+      "access": "all-access",
+      "agent": "user",
+      "views": 39250
+    },
+    {
+      "project": "en.wikipedia",
+      "article": "Nvidia",
+      "granularity": "daily",
+      "timestamp": "2026082000",
+      "access": "all-access",
+      "agent": "user",
+      "views": 52110
+    }
+  ]
+}

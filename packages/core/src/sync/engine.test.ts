@@ -38,6 +38,7 @@ describe("selectSources", () => {
       "patentsview",
       "senate-efd",
       "usaspending",
+      "wikimedia",
     ]);
   });
 
