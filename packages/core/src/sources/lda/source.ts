@@ -6,6 +6,7 @@ import { ALT_DATA_VERSION } from "../../config.js";
 import { addDays, hoursSince } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
 import { resolveEntityTickers } from "../../resolve/recipients.js";
+import { extractBillReferences } from "./bill-refs.js";
 import {
   createLdaFetch,
   fetchFilingsPage,
@@ -16,6 +17,7 @@ import {
 } from "./client.js";
 
 export { LDA_API_BASE, LDA_FILINGS_URL, ldaFilingDetailUrl, parseLdaAmount } from "./client.js";
+export { extractBillReferences } from "./bill-refs.js";
 
 /**
  * Senate LDA — lobbying disclosure filings, walked newest-first by posted
@@ -70,10 +72,16 @@ export function normalizeFilingRow(
   const amountUsd = parseLdaAmount(row.income) ?? parseLdaAmount(row.expenses) ?? null;
 
   const issues: string[] = [];
+  const specificIssuesTexts: string[] = [];
   for (const activity of row.lobbying_activities ?? []) {
     const code = activity.general_issue_code?.trim();
     if (code && !issues.includes(code)) issues.push(code);
+    const description = activity.description?.trim();
+    if (description) specificIssuesTexts.push(description);
   }
+  // Same activities `issues` reads from — their free-text "specific lobbying
+  // issues" narrative, joined, is where an explicit bill citation would live.
+  const billReferences = extractBillReferences(specificIssuesTexts.join(" "));
 
   const documentUrl = row.filing_document_url?.trim();
   const postedDate =
@@ -90,9 +98,7 @@ export function normalizeFilingRow(
       filingPeriod: row.filing_period,
       filingType: row.filing_type ?? null,
       issues,
-      // Bill-reference extraction from the specific-issues text lands with
-      // the bills dataset; until then filings carry an empty list.
-      billReferences: [],
+      billReferences,
       provenance: {
         source: "lda",
         sourceUrl: documentUrl || ldaFilingDetailUrl(row.filing_uuid),
