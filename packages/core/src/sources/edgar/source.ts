@@ -16,7 +16,6 @@ import {
 import {
   accessionFromPath,
   COMPANY_TICKERS_URL,
-  dailyIndexUrl,
   EdgarClient,
   filingIndexUrl,
   filingTxtUrl,
@@ -91,7 +90,7 @@ export const edgarSource: AltDataSource = {
         result.notes.push(`stopped at --limit ${opts.limit}; watermark not advanced past ${day}`);
         break;
       }
-      const indexText = await client.text(dailyIndexUrl(day), { allow404: true });
+      const indexText = await client.dailyIndexText(day);
       if (indexText === null) {
         // Holiday (or today's index not yet published); only advance forward.
         if (day < today && (advanced === null || day > advanced)) {
@@ -212,7 +211,7 @@ export const edgarSource: AltDataSource = {
       for (let back = 0; back < 6 && !found; back++) {
         if (!isWeekend(day)) {
           try {
-            const text = await client.text(dailyIndexUrl(day), { allow404: true });
+            const text = await client.dailyIndexText(day);
             if (text !== null) {
               const { entries, headerLines } = parseMasterIndex(text);
               found = true;

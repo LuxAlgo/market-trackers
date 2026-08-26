@@ -52,6 +52,27 @@ export class EdgarClient {
     return response.text();
   }
 
+  /**
+   * Daily-index fetch. SEC's Archives answer 403 both for fair-access
+   * blocks AND for index files that don't exist (holidays, or today's index
+   * before it is posted) — indistinguishable by status alone [verified
+   * live: 2004-01-01 and a same-day index both 403 while the canary's real
+   * file fetches fine]. A 403 that survives the polite retries is
+   * disambiguated with one probe of the quarter directory's index.json:
+   * directory reachable → the file is missing (null, exactly like 404);
+   * directory also failing → we really are blocked, so the original error
+   * surfaces and the run resumes later from its watermark.
+   */
+  async dailyIndexText(date: string): Promise<string | null> {
+    try {
+      return await this.text(dailyIndexUrl(date), { allow404: true });
+    } catch (error) {
+      if (!(error instanceof HttpError) || error.status !== 403) throw error;
+      await this.text(dailyIndexQuarterUrl(date));
+      return null;
+    }
+  }
+
   async json<T>(url: string): Promise<T> {
     const response = await expectOk(this.politeFetch, url, {
       headers: { accept: "application/json" },
@@ -98,6 +119,12 @@ export type ConditionalJsonResult<T> =
 export function dailyIndexUrl(date: string): string {
   const year = date.slice(0, 4);
   return `${EDGAR_BASE}/Archives/edgar/daily-index/${year}/QTR${quarterOf(date)}/master.${compactDate(date)}.idx`;
+}
+
+/** The quarter directory's machine-readable listing — the block-vs-missing probe target. */
+export function dailyIndexQuarterUrl(date: string): string {
+  const year = date.slice(0, 4);
+  return `${EDGAR_BASE}/Archives/edgar/daily-index/${year}/QTR${quarterOf(date)}/index.json`;
 }
 
 /** Full-submission .txt URL from a master.idx path (e.g. "edgar/data/…/….txt"). */

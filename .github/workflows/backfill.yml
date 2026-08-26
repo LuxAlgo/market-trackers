@@ -186,15 +186,33 @@ jobs:
               release = await createReleaseRaceSafe();
             }
 
-            // A concurrent duplicate dispatch can win the create race; 422
-            // (already_exists) means the release exists now — fetch and use it.
+            // 422 from createRelease is ambiguous: a concurrent duplicate
+            // dispatch already created the tag (reuse it), OR creation is
+            // impossible — most notably while the data repo has no commits
+            // yet, since a release must tag one. Only a successful reuse
+            // proves the race; otherwise the original 422 detail surfaces.
             async function createReleaseRaceSafe() {
               try {
                 return await doCreateRelease();
               } catch (createError) {
                 if (createError.status !== 422) throw createError;
+                let reused;
+                try {
+                  reused = (await github.rest.repos.getReleaseByTag({ owner, repo, tag })).data;
+                } catch (reuseError) {
+                  if (reuseError.status !== 404) throw reuseError;
+                  const detail = JSON.stringify(
+                    createError.response?.data ?? createError.message ?? createError,
+                  );
+                  throw new Error(
+                    `createRelease for ${tag} failed with 422 and the tag does not exist: ${detail}. ` +
+                      "If the data repository has no commits yet, run publish-dumps once so it " +
+                      "gains a commit for release tags to point at, then re-dispatch this " +
+                      "backfill — it resumes from cache straight to the archive step.",
+                  );
+                }
                 core.info(`Release ${tag} was created concurrently; reusing it.`);
-                return (await github.rest.repos.getReleaseByTag({ owner, repo, tag })).data;
+                return reused;
               }
             }
 
