@@ -72,6 +72,18 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # The per-source store persists across dispatches so re-dispatching the
+      # same source resumes from backfill.completedThrough instead of
+      # re-walking from --from. Restore/save are split so the store is saved
+      # even when the run ends red (stopped early = exit 1 by design).
+      - name: Restore backfill store
+        uses: actions/cache/restore@v4
+        with:
+          path: backfill-${{ inputs.source }}.db
+          key: alt-data-backfill-${{ inputs.source }}-${{ github.run_id }}
+          restore-keys: |
+            alt-data-backfill-${{ inputs.source }}-
+
       # set +e: a backfill that stops early (--limit, an error, or the job
       # timeout looming) still needs export/upload to run on whatever WAS
       # ingested — the run's overall pass/fail is decided at the very end.
@@ -224,6 +236,13 @@ jobs:
                   `published: ${failedAssets.join(", ")}. See the warnings above.`,
               );
             }
+
+      - name: Save backfill store
+        if: ${{ always() && hashFiles(format('backfill-{0}.db', inputs.source)) != '' }}
+        uses: actions/cache/save@v4
+        with:
+          path: backfill-${{ inputs.source }}.db
+          key: alt-data-backfill-${{ inputs.source }}-${{ github.run_id }}
 
       - name: Fail the run if the backfill didn't fully complete
         if: steps.backfill.outputs.exit_code != '0'

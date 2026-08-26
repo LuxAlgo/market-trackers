@@ -310,15 +310,18 @@ export const fecSource: AltDataSource = {
     // fingerprint check instead confirms a baseline was recorded by the
     // last real sync — true drift detection for pas2 happens the moment
     // sync() recomputes it and finds it no longer matches.
+    // Soft: a fresh store simply hasn't synced contributions yet — that's
+    // staleness, not drift. Real pas2 drift turns red at sync time, when the
+    // recomputed fingerprint no longer matches this stored baseline.
     const pas2Fingerprint = await ctx.store.getFingerprint("fec", PAS2_FINGERPRINT_KEY);
     checks.push({
       name: "fingerprint-pas2",
       ok: pas2Fingerprint !== null,
-      severity: "hard",
+      severity: "soft",
       note:
         pas2Fingerprint !== null
           ? undefined
-          : "no pas2 fingerprint recorded yet — run a sync first",
+          : "no pas2 fingerprint recorded yet — recorded on the first contributions sync",
     });
 
     const lastSync = await ctx.store.latestSyncRun("fec");

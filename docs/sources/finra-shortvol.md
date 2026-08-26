@@ -26,7 +26,7 @@
 ## Ingestion
 
 Watermark per market (`shortvol.{MARKET}.lastDay`). Day-walk from the watermark; weekends
-skipped; 404 on a past day = holiday (mark done); 404 today = not yet published (retry next
+skipped; 404 or 403 on a past day = holiday (mark done); 404 or 403 today = not yet published (retry next
 run). Files publish evenings US-time.
 
 ## Canary
@@ -39,3 +39,10 @@ header-line fingerprint unchanged (hard) · dataset fresh within 96h (soft).
 - Per-exchange market files beyond CNMS are supported by config but not exercised by fixtures
   yet.
 - Deep backfill via the Query API not implemented.
+
+## The 403-for-missing quirk (verified live)
+
+FINRA's CDN answers **HTTP 403**, not 404, for objects that don't exist — first observed live
+on the current day's not-yet-published file (canary run, 2026-08-25). The client therefore
+excludes 403 from its retry statuses and the sync/canary treat 403 exactly like 404 ("no such
+file"), so an unpublished day is a quiet skip instead of a retry storm followed by a red.

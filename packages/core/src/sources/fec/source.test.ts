@@ -267,12 +267,12 @@ describe("fecSource.canary", () => {
     await store.close();
   });
 
-  it("hard-fails fingerprint-pas2 before any sync has ever recorded a baseline", async () => {
+  it("soft-fails fingerprint-pas2 before any sync has recorded a baseline (fresh store = amber, not red)", async () => {
     const { ctx, store } = await makeCtx();
     const outcome = await fecSource.canary(ctx);
     const check = outcome.checks.find((c) => c.name === "fingerprint-pas2");
     expect(check?.ok).toBe(false);
-    expect(check?.severity).toBe("hard");
+    expect(check?.severity).toBe("soft");
     await store.close();
   });
 

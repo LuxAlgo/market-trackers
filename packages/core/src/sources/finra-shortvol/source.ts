@@ -36,6 +36,10 @@ function buildFetch(ctx: SourceContext): PoliteFetch {
   return createPoliteFetch({
     userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
     limiter: new RateLimiter({ limit: 5, windowMs: 1_000 }),
+    // FINRA's CDN answers 403 (not 404) for objects that don't exist —
+    // observed live on the current day's not-yet-published file — so 403
+    // must fall through as a plain response instead of retry-then-throw.
+    retryStatuses: [429, 500, 502, 503, 504],
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("finra"),
   });
@@ -81,10 +85,12 @@ export const finraSource: AltDataSource = {
         fetched += 1;
         const url = shortVolumeFileUrl(market, day);
         const response = await politeFetch(url);
-        if (response.status === 404) {
+        // 404 and 403 both mean "no such file" on this CDN (it answers 403
+        // for missing objects): a market holiday, or today's file not
+        // published yet. Only advance the watermark past days that are
+        // conclusively over, and only forward.
+        if (response.status === 404 || response.status === 403) {
           await response.arrayBuffer().catch(() => undefined);
-          // Market holiday — or today's file not published yet: only advance
-          // the watermark past days that are conclusively over, and only forward.
           if (day < today && (advanced === null || day > advanced)) {
             advanced = day;
             await ctx.store.setWatermark("finra", watermarkKey(market), day);

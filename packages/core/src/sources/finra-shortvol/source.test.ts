@@ -64,6 +64,27 @@ describe("finraSource.sync", () => {
     await store.close();
   });
 
+  it("treats a 403 like a 404 — FINRA's CDN answers 403 for files that don't exist yet", async () => {
+    const { ctx, store } = await makeCtx(); // "today" is pinned to 2026-03-03
+    const inner = ctx.fetchImpl as typeof fetch;
+    ctx.fetchImpl = (async (url: Parameters<typeof fetch>[0], init?: RequestInit) => {
+      // Today's not-yet-published file 403s instead of 404ing.
+      if (String(url) === shortVolumeFileUrl("CNMS", "2026-03-03")) {
+        return new Response("Access Denied", { status: 403 });
+      }
+      return inner(url, init);
+    }) as typeof fetch;
+
+    const result = await finraSource.sync(ctx, { since: FIXTURE_DAY });
+    // The fixture day still ingests; the 403 day is skipped without an
+    // error note and without failing the sync.
+    expect(result.rowsUpserted).toBe(2);
+    expect(result.notes).toEqual([]);
+    // Today is not conclusively over, so the watermark stops at the fixture day.
+    expect(await store.getWatermark("finra", "shortvol.CNMS.lastDay")).toBe(FIXTURE_DAY);
+    await store.close();
+  });
+
   it("respects the datasets filter", async () => {
     const { ctx, store } = await makeCtx();
     const result = await finraSource.sync(ctx, {
