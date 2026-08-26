@@ -107,6 +107,56 @@ describe("alt-data CLI", () => {
     expect(Object.keys(manifest.datasets)).toHaveLength(16);
   });
 
+  it("export --snapshots-only writes snapshots + manifest but skips deltas, latest.json, feed.xml, and entity feeds", () => {
+    const delta = [
+      {
+        id: "senate:snapshots-only-doc:0",
+        chamber: "senate",
+        docId: "snapshots-only-doc",
+        rowIndex: 0,
+        member: { name: "Snap Shot", bioguideId: "S000001", party: "I", state: "ZZ" },
+        filedAt: "2026-08-18",
+        transactedAt: "2026-08-01",
+        ticker: "ACME",
+        assetDescription: "Acme Corp — Common Stock",
+        assetType: "stock",
+        side: "buy",
+        amountRange: { min: 1_001, max: 15_000, text: "$1,001 - $15,000" },
+        owner: "self",
+        provenance: {
+          source: "senate-efd",
+          sourceUrl: "https://example.gov/primary/snapshots-only-doc",
+          retrievedAt: "2026-08-18T12:00:00.000Z",
+          parser: "test@1",
+          confidence: 1,
+          needsReview: false,
+        },
+      },
+    ];
+    const deltaPath = join(tmp, "snapshots-only-delta.json");
+    writeFileSync(deltaPath, JSON.stringify(delta));
+    altData(["import", deltaPath, "--dataset", "congress-trades", "--db", "snapshots-only.db"]);
+
+    altData([
+      "export",
+      "--dataset",
+      "congress-trades",
+      "--snapshots-only",
+      "--db",
+      "snapshots-only.db",
+      "--out",
+      join(tmp, "dumps-snapshots-only"),
+    ]);
+
+    const dir = join(tmp, "dumps-snapshots-only", "congress", "trades");
+    expect(existsSync(join(dir, "2026"))).toBe(false);
+    expect(existsSync(join(dir, "latest.json"))).toBe(false);
+    expect(existsSync(join(dir, "feed.xml"))).toBe(false);
+    expect(existsSync(join(dir, "feeds"))).toBe(false);
+    expect(existsSync(join(dir, "snapshot.json.gz"))).toBe(true);
+    expect(existsSync(join(tmp, "dumps-snapshots-only", "manifest.json"))).toBe(true);
+  });
+
   it("rejects unknown sources and datasets by name", () => {
     expect(() => altData(["sync", "--source", "not-a-source", "--db", "cli-test.db"])).toThrow();
     expect(() => altData(["export", "--dataset", "nope", "--db", "cli-test.db"])).toThrow();

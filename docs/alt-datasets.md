@@ -77,6 +77,14 @@ manifest says how fresh both are. (`alt-data export --no-snapshot` exists for lo
 runs, and is what the intraday fast lane uses — see `docs/operations.md`; the daily publish
 workflow always writes snapshots.)
 
+The mirror image, `alt-data export --snapshots-only`, skips daily deltas, `latest.json`,
+`feed.xml`, and the per-entity feeds, writing only the snapshot shards, the combined snapshot
+(when under the row cap), and `manifest.json`. The deep-history backfill workflow uses it: a
+backfill's archive release (see `docs/backfill.md`) only ever publishes `snapshot-*.json.gz`
+files, so producing the rest there is wasted work. `manifest.json` is still written — it's built
+from a whole-store freshness report regardless of this flag — but its `feed` field reflects
+whether the dataset has rows at all, not whether this particular run wrote a `feed.xml`.
+
 ## Feeds (RSS)
 
 Every dataset directory also carries a `feed.xml` — RSS 2.0 over the same rows `latest.json`

@@ -5,6 +5,7 @@ export interface ExportFlags extends GlobalFlags {
   out?: string;
   dataset?: string;
   snapshot?: boolean;
+  snapshotsOnly?: boolean;
 }
 
 export async function exportCommand(flags: ExportFlags): Promise<number> {
@@ -18,10 +19,14 @@ export async function exportCommand(flags: ExportFlags): Promise<number> {
         }) as DatasetId[])
       : undefined;
 
+    // --snapshots-only: skip deltas/latest.json/feed.xml/entity feeds — just
+    // the snapshot shards, the combined snapshot, and manifest.json.
     const summary = await exportDumps(ctx.store, {
       outDir: flags.out ?? "dumps",
       datasets,
       snapshot: flags.snapshot,
+      deltas: flags.snapshotsOnly ? false : undefined,
+      feeds: flags.snapshotsOnly ? false : undefined,
       logger: ctx.logger,
     });
 

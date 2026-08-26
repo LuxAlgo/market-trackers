@@ -76,7 +76,11 @@ globalOptions(
     .description("Write daily JSON deltas, snapshots, and a manifest (the alt-datasets layout)")
     .option("--out <dir>", "output directory (default: ./dumps)")
     .option("--dataset <ids>", "comma-separated datasets to export")
-    .option("--no-snapshot", "skip full snapshot files"),
+    .option("--no-snapshot", "skip full snapshot files")
+    .option(
+      "--snapshots-only",
+      "write only snapshot shards + manifest.json (skip deltas, latest.json, feed.xml, and entity feeds)",
+    ),
 ).action(async (flags) => {
   try {
     process.exit(await exportCommand(flags));

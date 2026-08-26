@@ -22,7 +22,7 @@ import type { FecContribution } from "../schema/fec-contribution.js";
  * Titles are strictly factual restatements of the row.
  */
 
-const MAX_ITEMS = 100;
+export const MAX_ITEMS = 100;
 
 function esc(text: string): string {
   return text
@@ -95,24 +95,29 @@ export interface FeedRow {
   provenance: { sourceUrl: string; retrievedAt: string };
 }
 
+/** Newest-first by retrievedAt — the one ordering both `buildRssFeed` and `BoundedFeedSelection` use. */
+function itemOrder(a: FeedRow, b: FeedRow): number {
+  return a.provenance.retrievedAt < b.provenance.retrievedAt ? 1 : -1;
+}
+
 /**
- * `titleSuffix`, when given, scopes the feed to one entity within the
- * dataset (a ticker, or — for congress-trades — a member): the channel
- * title gains a trailing "— {titleSuffix}" and everything else (item shape,
- * titler, link, guid, pubDate, description) renders exactly as it does for
- * the whole-dataset feed. See `export/entity-feeds.ts`, the only caller that
- * passes it today.
+ * Renders already-selected, already-ordered items — no sorting here. Split
+ * out from `buildRssFeed` so a caller that assembled its own bounded
+ * selection (`BoundedFeedSelection` below) can render it without a second
+ * sort pass: re-sorting a subset with this comparator does not reliably
+ * reproduce the tie order a full-array sort produced, since the comparator
+ * treats equal timestamps as "first argument wins" rather than "equal" —
+ * consistent per single sort call, not across two sorts of different-sized
+ * arrays.
  */
-export function buildRssFeed<T extends FeedRow>(
+export function renderFeedXml<T extends FeedRow>(
   dataset: DatasetDefinition<T>,
-  rows: T[],
+  items: readonly T[],
   generatedAt: string,
   titleSuffix?: string,
 ): string {
   const titler = TITLERS[dataset.id] as unknown as (record: T) => string;
-  const items = [...rows]
-    .sort((a, b) => (a.provenance.retrievedAt < b.provenance.retrievedAt ? 1 : -1))
-    .slice(0, MAX_ITEMS)
+  const itemsXml = items
     .map((row) =>
       [
         "    <item>",
@@ -136,9 +141,59 @@ export function buildRssFeed<T extends FeedRow>(
     `    <link>https://github.com/LuxAlgo/alt-data</link>`,
     `    <description>${esc(dataset.description)} Every item links its primary-source document.</description>`,
     `    <lastBuildDate>${rfc822(generatedAt)}</lastBuildDate>`,
-    items,
+    itemsXml,
     `  </channel>`,
     `</rss>`,
     ``,
   ].join("\n");
+}
+
+/**
+ * `titleSuffix`, when given, scopes the feed to one entity within the
+ * dataset (a ticker, or — for congress-trades — a member): the channel
+ * title gains a trailing "— {titleSuffix}" and everything else (item shape,
+ * titler, link, guid, pubDate, description) renders exactly as it does for
+ * the whole-dataset feed. See `export/entity-feeds.ts`, the only caller that
+ * passes it today.
+ */
+export function buildRssFeed<T extends FeedRow>(
+  dataset: DatasetDefinition<T>,
+  rows: T[],
+  generatedAt: string,
+  titleSuffix?: string,
+): string {
+  const items = [...rows].sort(itemOrder).slice(0, MAX_ITEMS);
+  return renderFeedXml(dataset, items, generatedAt, titleSuffix);
+}
+
+/**
+ * Incremental counterpart to `buildRssFeed`'s item selection, for a caller
+ * streaming rows it can't materialize in full (a day's worth of a
+ * backfilled store). Each `push` binary-searches the capped buffer with the
+ * exact comparator a one-shot `sort+slice` uses, so the final buffer order
+ * matches `[...allRows].sort(itemOrder).slice(0, cap)` exactly, tie for
+ * tie — insertion order and a single full sort make the same sequence of
+ * pairwise comparisons, just spread over time instead of done at once.
+ * Render the result with `renderFeedXml`, not `buildRssFeed` (see above).
+ */
+export class BoundedFeedSelection<T extends FeedRow> {
+  private readonly buf: T[] = [];
+
+  constructor(private readonly cap: number = MAX_ITEMS) {}
+
+  push(row: T): void {
+    let lo = 0;
+    let hi = this.buf.length;
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1;
+      if (itemOrder(row, this.buf[mid] as T) < 0) hi = mid;
+      else lo = mid + 1;
+    }
+    this.buf.splice(lo, 0, row);
+    if (this.buf.length > this.cap) this.buf.pop();
+  }
+
+  items(): readonly T[] {
+    return this.buf;
+  }
 }

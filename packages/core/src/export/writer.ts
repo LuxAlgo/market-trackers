@@ -1,13 +1,15 @@
-import { mkdirSync, writeFileSync, existsSync, renameSync } from "node:fs";
+import { mkdirSync, writeFileSync, existsSync, renameSync, createWriteStream } from "node:fs";
+import type { Writable } from "node:stream";
+import { finished } from "node:stream/promises";
 import { dirname, join } from "node:path";
-import { gzipSync } from "node:zlib";
+import { gzipSync, createGzip } from "node:zlib";
 import type { DatasetId } from "../schema/datasets.js";
 import { ALL_DATASETS, SCHEMA_VERSION, type DatasetDefinition } from "../schema/datasets.js";
 import type { AltDataStore } from "../store/store.js";
 import { freshnessReport } from "../store/queries.js";
 import { addDays, todayUtc } from "../lib/dates.js";
 import type { Logger } from "../lib/logger.js";
-import { buildRssFeed, type FeedRow } from "./feeds.js";
+import { renderFeedXml, BoundedFeedSelection, type FeedRow } from "./feeds.js";
 import { writeEntityFeeds, type EntityFeedCounts } from "./entity-feeds.js";
 
 /**
@@ -30,6 +32,8 @@ export interface ExportOptions {
   datasets?: DatasetId[];
   /** Re-write delta files for the last N days (default 2); older files are kept as-is. */
   rewriteRecentDays?: number;
+  /** Write daily delta files, latest.json, feed.xml, and entity feeds (default true). */
+  deltas?: boolean;
   snapshot?: boolean;
   /** Also write a single combined snapshot when a dataset has at most this many rows (default 200k). */
   combinedSnapshotMaxRows?: number;
@@ -65,6 +69,86 @@ function stableJson(rows: unknown[]): string {
   return JSON.stringify(rows, null, 0) + "\n";
 }
 
+/**
+ * Writes `chunk`, waiting out backpressure (`drain`) instead of letting Node
+ * buffer it all. Whichever of `drain`/`error` fires removes the other
+ * listener — a row stream backpressures repeatedly, and leaving the loser
+ * attached each time leaks a listener per wait until Node's max-listeners
+ * warning fires.
+ */
+function writeChunk(sink: Writable, chunk: string): Promise<void> {
+  if (sink.write(chunk)) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const onDrain = () => {
+      sink.off("error", onError);
+      resolve();
+    };
+    const onError = (err: Error) => {
+      sink.off("drain", onDrain);
+      reject(err);
+    };
+    sink.once("drain", onDrain);
+    sink.once("error", onError);
+  });
+}
+
+/**
+ * Streams a JSON array to disk one row at a time — `[`, each row's
+ * `JSON.stringify` joined by `,`, `]\n` — the same bytes `stableJson`
+ * produces for the same rows, without ever holding more than one row (plus
+ * the stream's own buffer) in memory. `gzip` pipes through `createGzip()`
+ * at default settings with no manual flushes, which is what keeps its
+ * output deterministic. Atomic: written to `path.tmp`, renamed on `finish`.
+ */
+class JsonArrayFileWriter {
+  private wroteFirst = false;
+  private readonly sink: Writable;
+  private readonly fileStream: Writable;
+  private readonly tmpPath: string;
+
+  constructor(
+    private readonly finalPath: string,
+    gzip: boolean,
+  ) {
+    mkdirSync(dirname(finalPath), { recursive: true });
+    this.tmpPath = `${finalPath}.tmp`;
+    this.fileStream = createWriteStream(this.tmpPath);
+    if (gzip) {
+      const gz = createGzip();
+      gz.pipe(this.fileStream);
+      this.sink = gz;
+    } else {
+      this.sink = this.fileStream;
+    }
+  }
+
+  async writeRow(row: unknown): Promise<void> {
+    const chunk = (this.wroteFirst ? "," : "[") + JSON.stringify(row);
+    this.wroteFirst = true;
+    await writeChunk(this.sink, chunk);
+  }
+
+  async finish(): Promise<void> {
+    await writeChunk(this.sink, this.wroteFirst ? "]\n" : "[]\n");
+    const closed = finished(this.fileStream);
+    this.sink.end();
+    await closed;
+    renameSync(this.tmpPath, this.finalPath);
+  }
+}
+
+/** Drains `rows` straight into a JSON-array file; returns the row count seen (counted while streaming). */
+async function writeJsonArrayFile(path: string, rows: AsyncIterable<unknown>): Promise<number> {
+  const writer = new JsonArrayFileWriter(path, false);
+  let count = 0;
+  for await (const row of rows) {
+    await writer.writeRow(row);
+    count += 1;
+  }
+  await writer.finish();
+  return count;
+}
+
 export async function exportDumps(
   store: AltDataStore,
   options: ExportOptions,
@@ -82,85 +166,122 @@ export async function exportDumps(
 
   for (const dataset of datasets) {
     const dir = join(options.outDir, dataset.exportDir);
-    const days = await store.ingestionDays(dataset.id);
 
-    for (const day of days) {
-      const year = day.slice(0, 4);
-      const path = join(dir, year, `${day}.json`);
-      if (existsSync(path) && day < rewriteSince) continue;
-      const rows = await store.rowsIngestedOn(dataset, day);
-      writeFileAtomic(path, stableJson(rows));
-      filesWritten.push(path);
-      options.logger?.debug(`wrote ${path} (${rows.length} rows)`);
-    }
+    if (options.deltas !== false) {
+      const days = await store.ingestionDays(dataset.id);
 
-    // latest.json mirrors the newest delta for one-URL consumption; feed.xml
-    // republishes the same rows as RSS so anything that reads feeds gets
-    // zero-infrastructure alerts with primary-source links.
-    if (days.length > 0) {
-      const lastDay = days[days.length - 1] as string;
-      const rows = await store.rowsIngestedOn(dataset, lastDay);
-      const latestPath = join(dir, "latest.json");
-      writeFileAtomic(latestPath, stableJson(rows));
-      filesWritten.push(latestPath);
-      if (options.feeds !== false) {
-        const feedPath = join(dir, "feed.xml");
-        writeFileAtomic(
-          feedPath,
-          buildRssFeed(
-            dataset as DatasetDefinition<FeedRow>,
-            rows as unknown as FeedRow[],
-            generatedAt,
-          ),
-        );
-        filesWritten.push(feedPath);
+      for (const day of days) {
+        const year = day.slice(0, 4);
+        const path = join(dir, year, `${day}.json`);
+        if (existsSync(path) && day < rewriteSince) continue;
+        const count = await writeJsonArrayFile(path, store.iterateIngestedOn(dataset, day));
+        filesWritten.push(path);
+        options.logger?.debug(`wrote ${path} (${count} rows)`);
+      }
 
-        // Per-entity feeds (feeds/by-ticker/{TICKER}.xml, and for
-        // congress-trades feeds/by-member/{bioguideId}.xml) — see
-        // export/entity-feeds.ts. Gated by the same `feeds` option as
-        // feed.xml: disabling one disables both.
-        const entityFeeds = await writeEntityFeeds(store, dataset, dir, generatedAt, {
-          windowDays: options.entityFeedWindowDays,
-          cap: options.entityFeedCap,
-        });
-        filesWritten.push(...entityFeeds.filesWritten);
-        entityFeedIndex.set(dataset.id, {
-          byTicker: entityFeeds.byTicker,
-          byMember: entityFeeds.byMember,
-        });
-        if (entityFeeds.rejected.byTicker > 0 || entityFeeds.rejected.byMember > 0) {
-          options.logger?.debug(
-            `${dataset.id}: rejected ${entityFeeds.rejected.byTicker} ticker / ` +
-              `${entityFeeds.rejected.byMember} member row-entity keys as filesystem-unsafe`,
+      // latest.json mirrors the newest delta for one-URL consumption; feed.xml
+      // republishes the same rows as RSS so anything that reads feeds gets
+      // zero-infrastructure alerts with primary-source links. Both stream
+      // the same day in a single pass: latest.json takes every row, while
+      // the feed's selection never grows past MAX_ITEMS no matter how many
+      // rows the day holds.
+      if (days.length > 0) {
+        const lastDay = days[days.length - 1] as string;
+        const latestPath = join(dir, "latest.json");
+        const latestWriter = new JsonArrayFileWriter(latestPath, false);
+        const selection = options.feeds !== false ? new BoundedFeedSelection<FeedRow>() : undefined;
+        for await (const record of store.iterateIngestedOn(dataset, lastDay)) {
+          await latestWriter.writeRow(record);
+          selection?.push(record as unknown as FeedRow);
+        }
+        await latestWriter.finish();
+        filesWritten.push(latestPath);
+
+        if (selection) {
+          const feedPath = join(dir, "feed.xml");
+          writeFileAtomic(
+            feedPath,
+            renderFeedXml(dataset as DatasetDefinition<FeedRow>, selection.items(), generatedAt),
           );
+          filesWritten.push(feedPath);
+
+          // Per-entity feeds (feeds/by-ticker/{TICKER}.xml, and for
+          // congress-trades feeds/by-member/{bioguideId}.xml) — see
+          // export/entity-feeds.ts. Gated by the same `feeds` option as
+          // feed.xml: disabling one disables both.
+          const entityFeeds = await writeEntityFeeds(store, dataset, dir, generatedAt, {
+            windowDays: options.entityFeedWindowDays,
+            cap: options.entityFeedCap,
+          });
+          filesWritten.push(...entityFeeds.filesWritten);
+          entityFeedIndex.set(dataset.id, {
+            byTicker: entityFeeds.byTicker,
+            byMember: entityFeeds.byMember,
+          });
+          if (entityFeeds.rejected.byTicker > 0 || entityFeeds.rejected.byMember > 0) {
+            options.logger?.debug(
+              `${dataset.id}: rejected ${entityFeeds.rejected.byTicker} ticker / ` +
+                `${entityFeeds.rejected.byMember} member row-entity keys as filesystem-unsafe`,
+            );
+          }
         }
       }
     }
 
     if (options.snapshot !== false) {
-      // Full history, sharded by event year so no single file grows unbounded.
-      const byYear = new Map<string, unknown[]>();
+      // Full history, sharded by event year, in one pass over `store.iterate`:
+      // a shard's gzip writer opens lazily on that year's first row and
+      // streams every row after, so no year — and no whole dataset — is ever
+      // fully materialized. The combined snapshot below is the deliberate
+      // exception, and only while it's still within `combinedMax`.
+      const shardWriters = new Map<string, JsonArrayFileWriter>();
+      const shardCounts = new Map<string, number>();
+      const combinedByYear = new Map<string, unknown[]>();
+      let combinedOverCap = false;
       let total = 0;
+
       for await (const record of store.iterate(dataset)) {
         total += 1;
         const year = dataset.eventDate(record).slice(0, 4);
-        const bucket = byYear.get(year) ?? [];
-        bucket.push(record);
-        byYear.set(year, bucket);
+
+        let shardWriter = shardWriters.get(year);
+        if (!shardWriter) {
+          shardWriter = new JsonArrayFileWriter(join(dir, `snapshot-${year}.json.gz`), true);
+          shardWriters.set(year, shardWriter);
+        }
+        await shardWriter.writeRow(record);
+        shardCounts.set(year, (shardCounts.get(year) ?? 0) + 1);
+
+        // Buffer for the combined file only while it's still affordable; the
+        // moment the running total crosses the cap, drop the buffer for good
+        // instead of growing it toward the same OOM this pass exists to avoid.
+        if (!combinedOverCap) {
+          if (total > combinedMax) {
+            combinedOverCap = true;
+            combinedByYear.clear();
+          } else {
+            const bucket = combinedByYear.get(year);
+            if (bucket) bucket.push(record);
+            else combinedByYear.set(year, [record]);
+          }
+        }
       }
       rowTotals[dataset.id] = total;
 
+      const years = [...shardWriters.keys()].sort();
       const shards: { file: string; rows: number }[] = [];
-      for (const [year, rows] of [...byYear.entries()].sort()) {
+      for (const year of years) {
+        await (shardWriters.get(year) as JsonArrayFileWriter).finish();
         const shardFile = `snapshot-${year}.json.gz`;
-        writeFileAtomic(join(dir, shardFile), gzipSync(Buffer.from(stableJson(rows))));
         filesWritten.push(join(dir, shardFile));
-        shards.push({ file: shardFile, rows: rows.length });
+        shards.push({ file: shardFile, rows: shardCounts.get(year) ?? 0 });
       }
       // Small datasets also get the convenient single-file snapshot.
       if (total <= combinedMax) {
         const all: unknown[] = [];
-        for (const [, rows] of [...byYear.entries()].sort()) all.push(...rows);
+        for (const year of years) {
+          for (const row of combinedByYear.get(year) ?? []) all.push(row);
+        }
         writeFileAtomic(join(dir, "snapshot.json.gz"), gzipSync(Buffer.from(stableJson(all))));
         filesWritten.push(join(dir, "snapshot.json.gz"));
         shards.push({ file: "snapshot.json.gz", rows: total });

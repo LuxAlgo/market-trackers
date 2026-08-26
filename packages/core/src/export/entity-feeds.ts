@@ -225,7 +225,9 @@ export async function writeEntityFeeds(
   const recentRows: FeedRow[] = [];
   for (const day of recentDays) {
     const rows = await store.rowsIngestedOn(dataset, day);
-    recentRows.push(...(rows as unknown as FeedRow[]));
+    // Append in a loop, never spread: a day's rows can run into the hundreds
+    // of thousands, well past V8's spread-argument limit.
+    for (const row of rows as unknown as FeedRow[]) recentRows.push(row);
   }
 
   if (tickerKeysOfRaw) {

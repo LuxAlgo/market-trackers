@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import { DATASETS } from "../schema/datasets.js";
 import { AltDataStore } from "./store.js";
 import { MIGRATIONS } from "./migrate.js";
-import { makeInsiderTransaction, makeShortVolumeDay, makeTmpDir } from "../test-helpers.js";
+import {
+  makeInsiderTransaction,
+  makeShortVolumeDay,
+  makeProvenance,
+  makeTmpDir,
+} from "../test-helpers.js";
 import { join } from "node:path";
 
 async function memoryStore(): Promise<AltDataStore> {
@@ -184,6 +189,37 @@ describe("AltDataStore (sqlite)", () => {
     const day1 = await store.rowsIngestedOn(DATASETS["insider-transactions"], "2026-08-20");
     expect(day1.map((r) => r.id)).toEqual(["a:nd:0"]);
     expect(await store.maxRetrievedAt("insider-transactions")).toBe("2026-08-21T10:00:00.000Z");
+    await store.close();
+  });
+
+  it("iterateIngestedOn streams the same rows, in the same (id) order, as rowsIngestedOn", async () => {
+    const store = await memoryStore();
+    const provAt = (retrievedAt: string) => makeProvenance("edgar", { retrievedAt });
+    await store.upsert(DATASETS["insider-transactions"], [
+      // Inserted "b" before "a", and "b" retrieved earlier than "a" — if
+      // either insertion order or retrievedAt leaked into the result instead
+      // of "id" order, this would catch it.
+      makeInsiderTransaction({ id: "b-row:nd:0", provenance: provAt("2026-08-20T10:00:00.000Z") }),
+      makeInsiderTransaction({ id: "a-row:nd:0", provenance: provAt("2026-08-20T18:00:00.000Z") }),
+      makeInsiderTransaction({
+        id: "z-other-day:nd:0",
+        provenance: provAt("2026-08-21T09:00:00.000Z"),
+      }),
+    ]);
+
+    const viaAll = await store.rowsIngestedOn(DATASETS["insider-transactions"], "2026-08-20");
+    expect(viaAll.map((r) => r.id)).toEqual(["a-row:nd:0", "b-row:nd:0"]);
+
+    const viaIterate: (typeof viaAll)[number][] = [];
+    // batchSize 1 forces the keyset cursor to page across every row.
+    for await (const row of store.iterateIngestedOn(
+      DATASETS["insider-transactions"],
+      "2026-08-20",
+      1,
+    )) {
+      viaIterate.push(row);
+    }
+    expect(viaIterate).toEqual(viaAll);
     await store.close();
   });
 });

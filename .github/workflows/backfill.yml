@@ -107,10 +107,14 @@ jobs:
           node packages/cli/dist/index.js "${args[@]}" | tee backfill-summary.json
           echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
 
+      # --snapshots-only: the archive-release step below publishes only
+      # year-shard snapshot-*.json.gz files, so the deltas/latest.json/
+      # feed.xml/entity feeds a full export would also write here are never
+      # read by anything downstream.
       - name: Export
         env:
           SOURCE: ${{ inputs.source }}
-        run: node packages/cli/dist/index.js export --db "backfill-$SOURCE.db" --out dumps --json
+        run: node packages/cli/dist/index.js export --db "backfill-$SOURCE.db" --out dumps --snapshots-only --json
 
       - name: Upload dumps artifact
         uses: actions/upload-artifact@v4

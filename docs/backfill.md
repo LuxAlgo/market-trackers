@@ -123,11 +123,12 @@ workflow") — deep backfills are deliberate, not scheduled. Inputs: `source`, `
 The job: build → `alt-data backfill --source <source> --from <from> [--to <to>] --chunk-days
 <chunk_days> [--limit <limit>] --db backfill-{source}.db --json` (using `vars.ALT_DATA_CONTACT`
 for the EDGAR User-Agent when `source: edgar`) → `alt-data export --db backfill-{source}.db --out
-dumps` → uploads `dumps/` as a 30-day run artifact → if `vars.ALT_DATASETS_REPO` and
-`secrets.ALT_DATASETS_TOKEN` are both configured, publishes the run's year-shard snapshot files
-as release assets in the data repo (see below). The job fails (after all of the above still
-runs) when the backfill didn't fully reach `--to`, printing the resume hint — re-dispatch with
-the same `source`/`from` to continue.
+dumps --snapshots-only` (only the year-shard snapshots below get archived, so deltas/latest.json/
+feed.xml/entity feeds aren't worth producing here) → uploads `dumps/` as a 30-day run artifact →
+if `vars.ALT_DATASETS_REPO` and `secrets.ALT_DATASETS_TOKEN` are both configured, publishes the
+run's year-shard snapshot files as release assets in the data repo (see below). The job fails
+(after all of the above still runs) when the backfill didn't fully reach `--to`, printing the
+resume hint — re-dispatch with the same `source`/`from` to continue.
 
 **GitHub Actions caps a job at 6 hours.** A window spanning many years — especially for a
 daily-granularity source like `edgar` or `finra` — can exceed that easily. Dispatch large

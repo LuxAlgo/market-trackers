@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { gunzipSync } from "node:zlib";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { exportDumps, buildManifest } from "./writer.js";
+import { MAX_ITEMS } from "./feeds.js";
 import { AltDataStore } from "../store/store.js";
 import { DATASETS, SCHEMA_VERSION } from "../schema/datasets.js";
 import {
@@ -137,5 +138,102 @@ describe("exportDumps", () => {
     expect(Object.keys(manifest.sources)).toHaveLength(14);
     expect(Object.keys(manifest.datasets)).toHaveLength(16);
     expect(manifest.sources.finra?.implementedDatasets).toContain("short-volume");
+  });
+
+  // Regression: a backfilled store can put its entire history on one
+  // ingestion day. This dataset's single day/year exceeds both the old
+  // `rowsIngestedOn` single-`.all()`-call read and V8's spread-argument
+  // limit (~65k) that `all.push(...rows)`/`recentRows.push(...rows)` hit —
+  // export must complete rather than OOM or throw "Maximum call stack size
+  // exceeded".
+  it("exports a dataset with 70,000+ rows sharing one event year and one ingestion day", async () => {
+    const ROWS = 70_001;
+    const bigStore = await AltDataStore.open(":memory:");
+    const bigTmp = makeTmpDir("export-at-scale");
+    try {
+      const rows = Array.from({ length: ROWS }, (_, i) =>
+        makeShortVolumeDay({
+          id: `2026-06-15:TICK:M${i}`,
+          date: "2026-06-15",
+          ticker: "TICK",
+          market: `M${i}`,
+          provenance: makeProvenance("finra", { retrievedAt: "2026-08-24T12:00:00.000Z" }),
+        }),
+      );
+      await bigStore.upsert(DATASETS["short-volume"], rows);
+
+      const summary = await exportDumps(bigStore, {
+        outDir: bigTmp.dir,
+        datasets: ["short-volume"],
+        // Below ROWS on purpose: also exercises the combined-snapshot
+        // buffer's own discard-once-over-cap path in the same run.
+        combinedSnapshotMaxRows: 1_000,
+        now: new Date("2026-08-24T12:30:00Z"),
+      });
+      expect(summary.rowTotals["short-volume"]).toBe(ROWS);
+
+      const dir = join(bigTmp.dir, "short-volume", "daily");
+      const shardRows = JSON.parse(
+        gunzipSync(readFileSync(join(dir, "snapshot-2026.json.gz"))).toString("utf8"),
+      ) as unknown[];
+      expect(shardRows).toHaveLength(ROWS);
+      // Over combinedSnapshotMaxRows: no combined snapshot.json.gz.
+      expect(existsSync(join(dir, "snapshot.json.gz"))).toBe(false);
+
+      const latest = JSON.parse(readFileSync(join(dir, "latest.json"), "utf8")) as unknown[];
+      expect(latest).toHaveLength(ROWS);
+
+      // feed.xml stays capped at MAX_ITEMS even though the day holds far more.
+      const feed = readFileSync(join(dir, "feed.xml"), "utf8");
+      expect(feed.match(/<item>/g)).toHaveLength(MAX_ITEMS);
+
+      // entity-feeds' own recentRows.push(...rows) fix: one ticker, every
+      // row in-window, no crash.
+      expect(existsSync(join(dir, "feeds", "by-ticker", "TICK.xml"))).toBe(true);
+
+      const manifest = JSON.parse(readFileSync(join(bigTmp.dir, "manifest.json"), "utf8"));
+      expect(manifest.datasets["short-volume"].rows).toBe(ROWS);
+      expect(
+        manifest.datasets["short-volume"].snapshots.map((s: { file: string }) => s.file),
+      ).toEqual(["snapshot-2026.json.gz"]);
+    } finally {
+      bigTmp.cleanup();
+      await bigStore.close();
+    }
+  });
+
+  it("--snapshots-only equivalent (deltas: false, feeds: false) writes only snapshots and the manifest", async () => {
+    const soStore = await AltDataStore.open(":memory:");
+    const soTmp = makeTmpDir("export-snapshots-only");
+    try {
+      await soStore.upsert(DATASETS["short-volume"], [makeShortVolumeDay()]);
+
+      const summary = await exportDumps(soStore, {
+        outDir: soTmp.dir,
+        datasets: ["short-volume"],
+        deltas: false,
+        feeds: false,
+        now: new Date("2026-08-24T12:30:00Z"),
+      });
+
+      const dir = join(soTmp.dir, "short-volume", "daily");
+      expect(existsSync(join(dir, "2026"))).toBe(false);
+      expect(existsSync(join(dir, "latest.json"))).toBe(false);
+      expect(existsSync(join(dir, "feed.xml"))).toBe(false);
+      expect(existsSync(join(dir, "feeds"))).toBe(false);
+
+      expect(existsSync(join(dir, "snapshot-2026.json.gz"))).toBe(true);
+      expect(existsSync(join(dir, "snapshot.json.gz"))).toBe(true);
+      expect(existsSync(join(soTmp.dir, "manifest.json"))).toBe(true);
+      expect(summary.rowTotals["short-volume"]).toBe(1);
+
+      const manifest = JSON.parse(readFileSync(join(soTmp.dir, "manifest.json"), "utf8"));
+      expect(manifest.datasets["short-volume"].rows).toBe(1);
+      // feeds:false means no entity feeds ran this export, same as an empty count.
+      expect(manifest.datasets["short-volume"].entityFeeds).toEqual({ byTicker: 0, byMember: 0 });
+    } finally {
+      soTmp.cleanup();
+      await soStore.close();
+    }
   });
 });

@@ -180,6 +180,34 @@ export class AltDataStore {
     }
   }
 
+  /**
+   * Streams rows ingested on a given day in stable id order (keyset
+   * pagination) — the delta-export unit, without `rowsIngestedOn`'s single
+   * `.all()` call. A backfilled store can put an entire multi-year history
+   * on one ingestion day, so this is the only safe way to read one.
+   */
+  async *iterateIngestedOn<T>(
+    dataset: DatasetDefinition<T>,
+    day: string,
+    batchSize = 2_000,
+  ): AsyncGenerator<T> {
+    const mapper = mapperFor<T>(dataset.id);
+    const start = `${day}T00:00:00`;
+    const end = `${addDays(day, 1)}T00:00:00`;
+    let after = "";
+    for (;;) {
+      const rows = await this.driver.all(
+        `SELECT * FROM "${dataset.table}" WHERE "retrieved_at" >= ? AND "retrieved_at" < ? AND "id" > ? ORDER BY "id" LIMIT ?`,
+        [start, end, after, batchSize],
+      );
+      if (rows.length === 0) return;
+      for (const row of rows) {
+        yield mapper.fromRow(row as Record<string, unknown>);
+      }
+      after = String((rows[rows.length - 1] as Record<string, unknown>).id);
+    }
+  }
+
   /** Distinct ingestion days (YYYY-MM-DD of retrieved_at) present for a dataset. */
   async ingestionDays(datasetId: DatasetId): Promise<string[]> {
     const dataset = datasetById(datasetId);
