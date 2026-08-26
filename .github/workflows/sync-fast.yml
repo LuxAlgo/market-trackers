@@ -52,7 +52,7 @@ jobs:
     env:
       NODE_OPTIONS: --max-old-space-size=12288
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
 
@@ -116,7 +116,7 @@ jobs:
 
       - name: Checkout data repo
         if: steps.creds.outputs.push == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: ${{ vars.ALT_DATASETS_REPO }}
           token: ${{ secrets.ALT_DATASETS_TOKEN }}

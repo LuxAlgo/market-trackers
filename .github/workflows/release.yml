@@ -42,7 +42,7 @@ jobs:
             echo "NPM_TOKEN not configured; skipping publish."
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.npm.outputs.available == 'true'
 
       - uses: pnpm/action-setup@v4
