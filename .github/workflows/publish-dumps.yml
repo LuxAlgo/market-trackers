@@ -62,7 +62,7 @@ jobs:
       # Restore and save are split so the store is saved even when a later
       # step fails — see the "Save store" step at the end of the job.
       - name: Restore store
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: publish.db
           key: alt-data-store-v1-${{ github.run_id }}
@@ -170,7 +170,7 @@ jobs:
       # every run saves a fresh entry; restore falls back on the prefix.
       - name: Save store
         if: ${{ always() && hashFiles('publish.db') != '' }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: publish.db
           key: alt-data-store-v1-${{ github.run_id }}

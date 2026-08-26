@@ -85,7 +85,7 @@ jobs:
       # two workflows saved most recently, so watermarks advance
       # continuously across both instead of each keeping a separate store.
       - name: Restore store
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: publish.db
           key: alt-data-store-v1-${{ github.run_id }}
@@ -153,7 +153,7 @@ jobs:
       # never collides with a publish-dumps.yml save.
       - name: Save store
         if: ${{ always() && hashFiles('publish.db') != '' }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: publish.db
           key: alt-data-store-v1-${{ github.run_id }}

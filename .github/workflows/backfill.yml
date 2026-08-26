@@ -77,7 +77,7 @@ jobs:
       # re-walking from --from. Restore/save are split so the store is saved
       # even when the run ends red (stopped early = exit 1 by design).
       - name: Restore backfill store
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: backfill-${{ inputs.source }}.db
           key: alt-data-backfill-${{ inputs.source }}-${{ github.run_id }}
@@ -239,7 +239,7 @@ jobs:
 
       - name: Save backfill store
         if: ${{ always() && hashFiles(format('backfill-{0}.db', inputs.source)) != '' }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: backfill-${{ inputs.source }}.db
           key: alt-data-backfill-${{ inputs.source }}-${{ github.run_id }}
