@@ -102,7 +102,7 @@ jobs:
       # the contents API. One commit, then every later run no-ops here.
       - name: Seed data repo when empty
         if: steps.creds.outputs.push == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           DATA_REPO: ${{ vars.ALT_DATASETS_REPO }}
         with:

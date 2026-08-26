@@ -146,7 +146,7 @@ jobs:
       # asset limit) is reported and skipped; it never fails the run.
       - name: Publish archive release
         if: steps.creds.outputs.publish == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           DATA_REPO: ${{ vars.ALT_DATASETS_REPO }}
           SOURCE: ${{ inputs.source }}
