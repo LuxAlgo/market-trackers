@@ -117,7 +117,7 @@ jobs:
         run: node packages/cli/dist/index.js export --db "backfill-$SOURCE.db" --out dumps --snapshots-only --json
 
       - name: Upload dumps artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backfill-${{ inputs.source }}-${{ inputs.from }}
           path: dumps
