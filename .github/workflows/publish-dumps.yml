@@ -28,6 +28,9 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     if: vars.ALT_DATASETS_REPO != ''
+    env:
+      # Year-sharded snapshot export of a deep store needs real heap.
+      NODE_OPTIONS: --max-old-space-size=12288
     steps:
       - uses: actions/checkout@v4
 

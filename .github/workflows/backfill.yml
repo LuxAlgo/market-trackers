@@ -56,6 +56,9 @@ jobs:
   backfill:
     runs-on: ubuntu-latest
     timeout-minutes: 360
+    env:
+      # Year-sharded snapshot export of a deep store needs real heap.
+      NODE_OPTIONS: --max-old-space-size=12288
     steps:
       - uses: actions/checkout@v4
 
@@ -176,7 +179,23 @@ jobs:
               release = (await github.rest.repos.getReleaseByTag({ owner, repo, tag })).data;
             } catch (error) {
               if (error.status !== 404) throw error;
-              release = (
+              release = await createReleaseRaceSafe();
+            }
+
+            // A concurrent duplicate dispatch can win the create race; 422
+            // (already_exists) means the release exists now — fetch and use it.
+            async function createReleaseRaceSafe() {
+              try {
+                return await doCreateRelease();
+              } catch (createError) {
+                if (createError.status !== 422) throw createError;
+                core.info(`Release ${tag} was created concurrently; reusing it.`);
+                return (await github.rest.repos.getReleaseByTag({ owner, repo, tag })).data;
+              }
+            }
+
+            async function doCreateRelease() {
+              const created = (
                 await github.rest.repos.createRelease({
                   owner,
                   repo,
@@ -190,6 +209,7 @@ jobs:
                 })
               ).data;
               core.info(`Created release ${tag}`);
+              return created;
             }
 
             const TWO_GB = 2 * 1024 * 1024 * 1024;

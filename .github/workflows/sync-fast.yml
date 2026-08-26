@@ -49,6 +49,8 @@ jobs:
   sync-fast:
     runs-on: ubuntu-latest
     if: vars.ALT_DATASETS_REPO != ''
+    env:
+      NODE_OPTIONS: --max-old-space-size=12288
     steps:
       - uses: actions/checkout@v4
 
