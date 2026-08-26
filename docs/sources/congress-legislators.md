@@ -11,7 +11,9 @@
 - `…/committee-membership-current.yaml` — membership keyed by committee `thomas_id`
   ("SSAS") or committee+subcommittee id ("SSAS14"); entries carry name, rank, optional
   title, bioguide id, and — on joint committees — an explicit `chamber`.
-- The same repository's legislators files already power `resolve/members.ts`.
+- The same repository's legislators files already power `resolve/members.ts` — note those
+  are the **generated JSON** files, which upstream publishes only on its `gh-pages` branch
+  (fetching them from `main` 404s, verified live); the YAML endpoints above live on `main`.
 
 ## Semantics — a current-state dataset
 

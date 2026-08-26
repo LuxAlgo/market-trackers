@@ -13,6 +13,7 @@ export interface SyncFlags extends GlobalFlags {
   since?: string;
   full?: boolean;
   limit?: string;
+  allowPartial?: boolean;
 }
 
 function parseSources(input?: string): SourceId[] | undefined {
@@ -56,7 +57,10 @@ export async function syncCommand(flags: SyncFlags): Promise<number> {
         for (const note of result.notes) process.stdout.write(`${"".padEnd(12)} note: ${note}\n`);
       }
     }
-    return summary.ok ? 0 : 1;
+    // --allow-partial: exit 0 as long as any implemented source succeeded —
+    // per-source errors still land in the summary, sync-run records, and the
+    // health board, so a partial day publishes instead of blocking everything.
+    return (flags.allowPartial ? summary.partialOk : summary.ok) ? 0 : 1;
   } finally {
     await ctx.close();
   }

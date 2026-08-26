@@ -15,7 +15,15 @@ import { ALL_SOURCES, sourceById } from "../sources/registry.js";
  */
 
 export interface SyncSummary {
+  /** Every selected source completed without error. */
   ok: boolean;
+  /**
+   * At least one implemented source completed without error. Multi-source
+   * publish pipelines key off this (`sync --allow-partial`): one upstream
+   * having a bad day must not stop the healthy sources' data from shipping,
+   * while an every-source failure still fails loudly.
+   */
+  partialOk: boolean;
   results: (SourceSyncResult & { error?: string })[];
 }
 
@@ -75,5 +83,6 @@ export async function runSync(ctx: SourceContext, opts: RunSyncOptions = {}): Pr
     }
   }
 
-  return { ok, results };
+  const partialOk = results.some((r) => r.implemented && !r.error);
+  return { ok, partialOk, results };
 }

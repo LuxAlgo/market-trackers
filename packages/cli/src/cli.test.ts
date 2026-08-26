@@ -79,8 +79,40 @@ describe("alt-data CLI", () => {
     ]);
     const summary = JSON.parse(out);
     expect(summary.ok).toBe(true);
+    expect(summary.partialOk).toBe(true);
     expect(summary.results[0].implemented).toBe(true);
     expect(summary.results[0].rowsUpserted).toBe(0);
+  });
+
+  it("sync --allow-partial exits 0 on a partial success and still 1 when everything fails", () => {
+    // Success side: the offline no-op filter counts as a succeeding source.
+    const out = altData([
+      "sync",
+      "--source",
+      "finra",
+      "--dataset",
+      "congress-trades",
+      "--allow-partial",
+      "--json",
+      "--db",
+      "cli-test.db",
+    ]);
+    expect(JSON.parse(out).partialOk).toBe(true);
+
+    // Failure side: edgar (the only source) fails fast without a contact
+    // email, so even --allow-partial exits 1.
+    let failed = false;
+    try {
+      altData(["sync", "--source", "edgar", "--allow-partial", "--json", "--db", "cli-test.db"], {
+        ALT_DATA_CONTACT: "",
+      });
+    } catch (error) {
+      failed = true;
+      const err = error as { status: number; stdout: string };
+      expect(err.status).toBe(1);
+      expect(JSON.parse(err.stdout).partialOk).toBe(false);
+    }
+    expect(failed).toBe(true);
   });
 
   it("sync --source edgar without a contact email fails with the fair-access explanation", () => {

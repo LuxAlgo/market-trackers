@@ -51,7 +51,11 @@ globalOptions(
     .option("--dataset <ids>", "comma-separated datasets to restrict to")
     .option("--since <date>", "re-walk from this date (YYYY-MM-DD) instead of the watermark")
     .option("--full", "ignore watermarks and re-walk")
-    .option("--limit <n>", "soft cap on documents fetched (for demos/smoke tests)"),
+    .option("--limit <n>", "soft cap on documents fetched (for demos/smoke tests)")
+    .option(
+      "--allow-partial",
+      "exit 0 when at least one source succeeds (per-source errors stay in the summary)",
+    ),
 ).action(async (flags) => {
   try {
     process.exit(await syncCommand(flags));

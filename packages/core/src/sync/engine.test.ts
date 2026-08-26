@@ -58,6 +58,8 @@ describe("runSync", () => {
     // edgar fails fast: no contact email configured → buildUserAgent throws.
     const summary = await runSync(ctx, { sources: ["edgar", "finra"], since: "2026-08-21" });
     expect(summary.ok).toBe(false);
+    // finra succeeded, so the run is still partially ok (--allow-partial's exit signal).
+    expect(summary.partialOk).toBe(true);
 
     const edgarResult = summary.results.find((r) => r.source === "edgar");
     expect(edgarResult?.error).toMatch(/User-Agent/);
@@ -73,12 +75,22 @@ describe("runSync", () => {
     await store.close();
   });
 
+  it("partialOk stays false when every source fails", async () => {
+    const { ctx, store } = await makeCtx();
+    // edgar is the only selected source and fails fast (no contact email).
+    const summary = await runSync(ctx, { sources: ["edgar"], since: "2026-08-21" });
+    expect(summary.ok).toBe(false);
+    expect(summary.partialOk).toBe(false);
+    await store.close();
+  });
+
   it("a dataset filter no source produces makes the run an explicit no-op", async () => {
     const { ctx, store } = await makeCtx();
     // finra only produces short-volume; the filter short-circuits before any
     // network access, so this exercises the engine path fully offline.
     const summary = await runSync(ctx, { sources: ["finra"], datasets: ["congress-trades"] });
     expect(summary.ok).toBe(true);
+    expect(summary.partialOk).toBe(true);
     expect(summary.results[0]?.implemented).toBe(true);
     expect(summary.results[0]?.rowsUpserted).toBe(0);
     expect((await store.latestSyncRun("finra"))?.ok).toBe(true);

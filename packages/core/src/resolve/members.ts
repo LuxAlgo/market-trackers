@@ -12,10 +12,12 @@ import { hoursSince } from "../lib/dates.js";
  * chamber); ambiguous names resolve to null rather than to a guess.
  */
 
+// The generated JSON lives on the upstream repo's gh-pages branch only; the
+// main branch carries just the YAML sources (fetching JSON from main 404s).
 export const LEGISLATORS_CURRENT_URL =
-  "https://raw.githubusercontent.com/unitedstates/congress-legislators/main/legislators-current.json";
+  "https://raw.githubusercontent.com/unitedstates/congress-legislators/gh-pages/legislators-current.json";
 export const LEGISLATORS_HISTORICAL_URL =
-  "https://raw.githubusercontent.com/unitedstates/congress-legislators/main/legislators-historical.json";
+  "https://raw.githubusercontent.com/unitedstates/congress-legislators/gh-pages/legislators-historical.json";
 
 const legislatorSchema = z.object({
   id: z.object({ bioguide: z.string() }),

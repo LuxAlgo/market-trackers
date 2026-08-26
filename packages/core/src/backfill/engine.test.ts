@@ -45,7 +45,8 @@ function fakeRunSync(script: ScriptFn): { fn: RunSyncFn; calls: RunSyncOptions[]
       notes: [],
       ...partial,
     };
-    const summary: SyncSummary = { ok: result.error === undefined, results: [result] };
+    const ok = result.error === undefined;
+    const summary: SyncSummary = { ok, partialOk: ok, results: [result] };
     return summary;
   };
   return { fn, calls };

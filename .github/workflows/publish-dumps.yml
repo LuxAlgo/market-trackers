@@ -72,10 +72,15 @@ jobs:
           restore-keys: |
             alt-data-store-v1-
 
+      # --allow-partial: a single upstream having a bad day (or an unset
+      # optional API key) must not block publishing every other source's
+      # data. Per-source failures still land in the summary, the sync-run
+      # records, and the README health board; only an every-source failure
+      # fails this step.
       - name: Sync
         env:
           ALT_DATA_CONTACT: ${{ vars.ALT_DATA_CONTACT }}
-        run: node packages/cli/dist/index.js sync --db publish.db --json
+        run: node packages/cli/dist/index.js sync --db publish.db --allow-partial --json
 
       - name: Export
         run: node packages/cli/dist/index.js export --db publish.db --out dumps --json

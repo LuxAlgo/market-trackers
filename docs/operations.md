@@ -53,7 +53,9 @@ repo starts empty.
    EDGAR data should flow).
 4. **Run the workflow** (Actions → "Publish dumps" → Run workflow, or wait for the daily cron).
    The first run:
-   - syncs into a fresh `publish.db` (cached across runs, so history accumulates),
+   - syncs into a fresh `publish.db` (cached across runs, so history accumulates) with
+     `--allow-partial`, so one failing upstream never blocks the other sources' data from
+     publishing — per-source failures still show in the summary and the health board,
    - exports the dump layout (daily deltas, `latest.json`, `snapshot.json.gz`, `manifest.json`),
    - installs `README.md` and `LICENSE` into the data repo from `templates/alt-datasets/` —
      **only when missing**, so later hand-edits in the data repo are never overwritten,
