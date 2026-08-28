@@ -430,6 +430,127 @@ describe("runBackfill — per-source failure isolation", () => {
     expect(await ctx.store.getWatermark("finra", BACKFILL_WATERMARK_KEY)).toBe("2024-01-15");
     await ctx.store.close();
   });
+
+  // Regression for the hard-cap deaths: two consecutive EDGAR shifts blew
+  // through the 60-minute kill margin because one heavy chunk under retry
+  // backoffs ran for hours and the engine could only stop BETWEEN chunks.
+  // The deadline now rides into the source, which stops itself mid-chunk
+  // and reports the exact day it covered.
+  it("passes the budget deadline into each chunk's sync options", async () => {
+    const ctx = await makeCtx();
+    const t0 = Date.UTC(2026, 0, 1);
+    const { fn, calls } = fakeRunSync(() => completeChunk(1));
+
+    await runBackfill(ctx, {
+      sources: ["edgar"],
+      from: "2024-01-01",
+      to: "2024-01-10",
+      chunkDays: 5,
+      runSyncFn: fn,
+      budgetMinutes: 300,
+      now: () => new Date(t0),
+    });
+
+    expect(calls.length).toBeGreaterThan(0);
+    for (const call of calls) expect(call.deadlineMs).toBe(t0 + 300 * 60_000);
+    await ctx.store.close();
+  });
+
+  it("banks a mid-chunk deadline stop at the exact day the source covered", async () => {
+    const ctx = await makeCtx();
+    const { fn, calls } = fakeRunSync((_opts, i) => {
+      if (i === 1) {
+        // Second chunk (2024-01-08..01-14): the source stopped itself at the
+        // deadline after fully covering only 01-08.
+        return {
+          rowsUpserted: 2,
+          parse: { attempted: 2, succeeded: 2 },
+          stoppedEarly: "deadline" as const,
+          completedThrough: "2024-01-08",
+          notes: ["time budget reached; stopped cleanly, covered through 2024-01-08"],
+        };
+      }
+      return completeChunk(1);
+    });
+
+    const summary = await runBackfill(ctx, {
+      sources: ["edgar"],
+      from: "2024-01-01",
+      to: "2024-01-31",
+      chunkDays: 7,
+      runSyncFn: fn,
+      budgetMinutes: 300,
+    });
+
+    expect(calls).toHaveLength(2);
+    const result = summary.sources[0];
+    expect(result?.stoppedReason).toBe("budget");
+    expect(result?.complete).toBe(false);
+    // NOT chunk 1's end (01-07): the partial chunk's covered day is banked.
+    expect(result?.completedThrough).toBe("2024-01-08");
+    expect(await ctx.store.getWatermark("edgar", BACKFILL_WATERMARK_KEY)).toBe("2024-01-08");
+    expect(result?.chunks[1]?.stoppedEarly).toBe("deadline");
+
+    // The next dispatch resumes the day AFTER the banked one.
+    const resume = fakeRunSync(() => completeChunk(1));
+    await runBackfill(ctx, {
+      sources: ["edgar"],
+      from: "2024-01-01",
+      to: "2024-01-31",
+      chunkDays: 7,
+      runSyncFn: resume.fn,
+    });
+    expect(resume.calls[0]?.since).toBe("2024-01-09");
+    await ctx.store.close();
+  });
+
+  it("a deadline stop that covered no day banks nothing and resumes at the chunk start", async () => {
+    const ctx = await makeCtx();
+    const { fn } = fakeRunSync(() => ({
+      stoppedEarly: "deadline" as const,
+      completedThrough: null,
+    }));
+
+    const summary = await runBackfill(ctx, {
+      sources: ["edgar"],
+      from: "2024-01-01",
+      to: "2024-01-31",
+      chunkDays: 7,
+      runSyncFn: fn,
+      budgetMinutes: 300,
+    });
+
+    const result = summary.sources[0];
+    expect(result?.stoppedReason).toBe("budget");
+    expect(result?.completedThrough).toBeNull();
+    expect(await ctx.store.getWatermark("edgar", BACKFILL_WATERMARK_KEY)).toBeNull();
+    await ctx.store.close();
+  });
+
+  it("a structured mid-chunk limit stop banks covered days the same way", async () => {
+    const ctx = await makeCtx();
+    const { fn } = fakeRunSync(() => ({
+      rowsUpserted: 5,
+      parse: { attempted: 5, succeeded: 5 },
+      stoppedEarly: "limit" as const,
+      completedThrough: "2024-01-03",
+    }));
+
+    const summary = await runBackfill(ctx, {
+      sources: ["edgar"],
+      from: "2024-01-01",
+      to: "2024-01-31",
+      chunkDays: 15,
+      limit: 5,
+      runSyncFn: fn,
+    });
+
+    const result = summary.sources[0];
+    expect(result?.stoppedReason).toBe("limit");
+    expect(result?.completedThrough).toBe("2024-01-03");
+    expect(await ctx.store.getWatermark("edgar", BACKFILL_WATERMARK_KEY)).toBe("2024-01-03");
+    await ctx.store.close();
+  });
 });
 
 describe("runBackfill — date-unbounded sources", () => {

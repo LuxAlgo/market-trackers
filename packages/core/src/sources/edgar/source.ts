@@ -109,18 +109,36 @@ export const edgarSource: TrackerSource = {
     // OLD ground (a historical backfill run after the live watermark has
     // already moved past it) can never regress it.
     let advanced = watermark;
+    // The last day of THIS run's window walked to completion — what
+    // `completedThrough` reports on an early stop. Distinct from `advanced`:
+    // a backfill chunk over old ground never moves the live watermark, but
+    // its caller still needs to know exactly how far the walk got.
+    let lastFullyWalkedDay: string | null = null;
+    let stop: "deadline" | "limit" | null = null;
+    // Checked between days AND between filings: one heavy day under
+    // upstream retry backoffs can run longer than a CI job's entire
+    // kill margin, so day granularity alone is not a safe stop.
+    const pastDeadline = () =>
+      opts.deadlineMs !== undefined && (ctx.now?.() ?? new Date()).getTime() >= opts.deadlineMs;
 
     for (const day of days) {
       if (fetched >= limit) {
-        result.notes.push(`stopped at --limit ${opts.limit}; watermark not advanced past ${day}`);
+        stop = "limit";
+        break;
+      }
+      if (pastDeadline()) {
+        stop = "deadline";
         break;
       }
       const indexText = await client.dailyIndexText(day);
       if (indexText === null) {
         // Holiday (or today's index not yet published); only advance forward.
-        if (day < today && (advanced === null || day > advanced)) {
-          advanced = day;
-          await ctx.store.setWatermark("edgar", WATERMARK_KEY, day);
+        if (day < today) {
+          lastFullyWalkedDay = day;
+          if (advanced === null || day > advanced) {
+            advanced = day;
+            await ctx.store.setWatermark("edgar", WATERMARK_KEY, day);
+          }
         }
         continue;
       }
@@ -150,6 +168,12 @@ export const edgarSource: TrackerSource = {
 
       for (const entry of wanted) {
         if (fetched >= limit) {
+          stop = "limit";
+          dayIncomplete = true;
+          break;
+        }
+        if (pastDeadline()) {
+          stop = "deadline";
           dayIncomplete = true;
           break;
         }
@@ -209,10 +233,26 @@ export const edgarSource: TrackerSource = {
           (result.perDataset["thirteenf-holdings"] ?? 0) + rows;
       }
       if (dayIncomplete) break;
-      if (day < today && (advanced === null || day > advanced)) {
-        advanced = day;
-        await ctx.store.setWatermark("edgar", WATERMARK_KEY, day);
+      if (day < today) {
+        lastFullyWalkedDay = day;
+        if (advanced === null || day > advanced) {
+          advanced = day;
+          await ctx.store.setWatermark("edgar", WATERMARK_KEY, day);
+        }
       }
+    }
+
+    if (stop !== null) {
+      result.stoppedEarly = stop;
+      result.completedThrough = lastFullyWalkedDay;
+      const covered = lastFullyWalkedDay
+        ? `covered through ${lastFullyWalkedDay}`
+        : "no day fully covered";
+      result.notes.push(
+        stop === "limit"
+          ? `stopped at --limit ${opts.limit}; ${covered}`
+          : `time budget reached; stopped cleanly, ${covered}`,
+      );
     }
 
     if (preXmlThirteenf > 0) {

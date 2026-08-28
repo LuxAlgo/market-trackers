@@ -162,6 +162,76 @@ describe("edgarSource.sync", () => {
     await store.close();
   });
 
+  // Regression for the hard-cap deaths: the walk must stop ITSELF at
+  // opts.deadlineMs — between days and between filings — reporting the last
+  // day it fully covered, so the backfill engine banks day-granular progress
+  // and the CI job's kill margin is never overrun by one heavy chunk.
+  it("stops cleanly at the deadline mid-walk: prior day banked, current day's filings left unfetched", async () => {
+    const T0 = Date.parse("2004-02-13T00:00:00Z");
+    const DEADLINE = T0 + 60_000;
+    let clock = T0;
+    const indexFor = (yyyymmdd: string, accession: string) =>
+      [
+        "Description:           Master Index of EDGAR Dissemination Feed",
+        "-------------------",
+        `123456|EXAMPLECORP INC|4|${yyyymmdd}|edgar/data/123456/${accession}.txt`,
+      ].join("\n");
+    const requests: string[] = [];
+    const fetchImpl = (async (url: Parameters<typeof fetch>[0]) => {
+      const key = String(url);
+      requests.push(key);
+      if (key === COMPANY_TICKERS_URL) return new Response(COMPANY_TICKERS_BODY, { status: 200 });
+      if (key.endsWith("/2004/QTR1/master.20040211.idx")) {
+        return new Response(indexFor("20040211", "0001127602-26-019876"), { status: 200 });
+      }
+      if (key.endsWith("/2004/QTR1/master.20040212.idx")) {
+        // Day 2's index arrives AFTER the budget ran out.
+        clock = DEADLINE + 1;
+        return new Response(indexFor("20040212", "0001127602-26-019877"), { status: 200 });
+      }
+      if (key.endsWith("0001127602-26-019876.txt")) {
+        return new Response(
+          readFixture("edgar-form-ownership", "case-form4-sale-and-exercise", "input.txt"),
+        );
+      }
+      return new Response("not found", { status: 404 });
+    }) as typeof fetch;
+    const { ctx, store } = await makeCtx(fetchImpl);
+    ctx.now = () => new Date(clock);
+
+    const result = await edgarSource.sync(ctx, {
+      since: "2004-02-11",
+      until: "2004-02-12",
+      deadlineMs: DEADLINE,
+    });
+
+    expect(result.stoppedEarly).toBe("deadline");
+    expect(result.completedThrough).toBe("2004-02-11");
+    expect(result.notes.some((n) => n.includes("time budget"))).toBe(true);
+    // Day 1 landed in full; day 2's filing was never even requested.
+    expect(result.perDataset["insider-transactions"]).toBe(3);
+    expect(requests.some((u) => u.includes("master.20040212.idx"))).toBe(true);
+    expect(requests.some((u) => u.includes("0001127602-26-019877"))).toBe(false);
+    await store.close();
+  });
+
+  it("reports a mid-day --limit stop as stoppedEarly, not as covered ground", async () => {
+    const { fetchImpl } = mockEdgarFetch();
+    const { ctx, store } = await makeCtx(fetchImpl);
+
+    // The fixture day has 3 filings; a limit of 1 stops inside the day.
+    const result = await edgarSource.sync(ctx, {
+      since: FIXTURE_DAY,
+      until: FIXTURE_DAY,
+      limit: 1,
+    });
+
+    expect(result.stoppedEarly).toBe("limit");
+    expect(result.completedThrough).toBeNull();
+    expect(result.notes.some((n) => n.includes("--limit"))).toBe(true);
+    await store.close();
+  });
+
   it("a bounded backfill chunk over old ground never regresses an already-advanced watermark", async () => {
     const { fetchImpl } = mockEdgarFetch();
     const { ctx, store } = await makeCtx(fetchImpl);

@@ -88,6 +88,10 @@ export interface BackfillChunkOutcome {
   perDataset: Partial<Record<DatasetId, number>>;
   notes: string[];
   error: string | null;
+  /** The source stopped itself inside this chunk (deadline or limit). */
+  stoppedEarly?: "deadline" | "limit";
+  /** With `stoppedEarly`: the last date the source fully covered, if it says. */
+  completedThrough?: string | null;
 }
 
 export interface BackfillSourceResult {
@@ -206,6 +210,10 @@ async function backfillOneSource(
         since: chunkStart,
         until: chunkEnd,
         limit: Number.isFinite(remaining) ? remaining : undefined,
+        // Long-walking sources stop themselves at the deadline mid-chunk;
+        // the between-chunk check above alone can't keep one heavy chunk
+        // from overrunning the budget into the CI job's hard kill.
+        deadlineMs: deadlineMs ?? undefined,
       });
       const result: (SourceSyncResult & { error?: string }) | undefined = summary.results[0];
 
@@ -217,6 +225,8 @@ async function backfillOneSource(
         perDataset: result?.perDataset ?? {},
         notes: result?.notes ?? [],
         error: result?.error ?? null,
+        stoppedEarly: result?.stoppedEarly,
+        completedThrough: result?.completedThrough,
       };
       base.chunks.push(outcome);
       addChunkResult(base, outcome);
@@ -245,7 +255,30 @@ async function backfillOneSource(
         base.stoppedReason = "error";
         break;
       }
+      if (outcome.stoppedEarly) {
+        // The source stopped itself inside the chunk (its deadline or limit
+        // hit mid-walk). Bank exactly the ground it says it covered —
+        // day-granular — so the next dispatch resumes where this one
+        // actually stopped instead of re-walking the whole chunk.
+        const covered = outcome.completedThrough ?? null;
+        if (
+          covered &&
+          covered >= chunkStart &&
+          (!lastCompletedThrough || covered > lastCompletedThrough)
+        ) {
+          lastCompletedThrough = covered;
+          await ctx.store.setWatermark(source, BACKFILL_WATERMARK_KEY, covered);
+        }
+        base.stoppedReason = outcome.stoppedEarly === "deadline" ? "budget" : "limit";
+        logger.info(
+          `${source}: ${outcome.stoppedEarly} stop inside chunk ${chunkStart}..${chunkEnd}` +
+            (covered ? ` — banked progress through ${covered}` : ""),
+        );
+        break;
+      }
       if (outcome.notes.some((n) => n.includes("--limit"))) {
+        // Sources without `stoppedEarly` reporting still flag limit stops
+        // in a note; treat that as the same signal.
         base.stoppedReason = "limit";
         break;
       }

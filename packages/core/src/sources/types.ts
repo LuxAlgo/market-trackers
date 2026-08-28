@@ -35,6 +35,15 @@ export interface SyncOptions {
   datasets?: DatasetId[];
   /** Soft cap on documents fetched this run — for demos and smoke tests. */
   limit?: number;
+  /**
+   * Stop starting new work at this epoch-ms deadline and return cleanly,
+   * reporting the stop via `SourceSyncResult.stoppedEarly`. The backfill
+   * engine sets this so a slow chunk stops INSIDE the run's time budget
+   * instead of overrunning into the CI job's hard kill (which forfeits the
+   * export, archive, and store-cache save). Sources whose whole sync is one
+   * short pass may ignore it; long document-walking sources must honor it.
+   */
+  deadlineMs?: number;
 }
 
 export interface ParseStats {
@@ -49,6 +58,20 @@ export interface SourceSyncResult {
   parse: ParseStats;
   perDataset: Partial<Record<DatasetId, number>>;
   notes: string[];
+  /**
+   * Set when the sync stopped itself before covering its whole window: at
+   * `SyncOptions.deadlineMs` ("deadline") or at `SyncOptions.limit`
+   * ("limit"). Callers that treat a sync as ground covered — the backfill
+   * engine advancing `backfill.completedThrough` — must check this instead
+   * of assuming a clean return means the window is done.
+   */
+  stoppedEarly?: "deadline" | "limit";
+  /**
+   * With `stoppedEarly`, for date-walking sources: the last date
+   * (YYYY-MM-DD) fully covered before stopping — the caller's safe resume
+   * point. Null when the stop landed before the first day completed.
+   */
+  completedThrough?: string | null;
 }
 
 /**
