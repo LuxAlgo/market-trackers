@@ -42,6 +42,15 @@ jobs:
           node-version: "22"
           cache: pnpm
 
+      # pnpm hands the actual registry publish to the npm CLI, and the
+      # OIDC-for-credentials exchange behind trusted publishing ships in
+      # npm 11.5+ — newer than what Node 22 bundles. Without this, the
+      # tokenless publish fails with a plain auth error.
+      - name: Upgrade npm for trusted publishing
+        run: |
+          npm install -g npm@latest
+          npm --version
+
       - name: Install
         run: pnpm install --frozen-lockfile
 
