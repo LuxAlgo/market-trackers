@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic 13F-HR/A restatement amending case-13f-2026's period: parsed as its own accession (ids under 0009876543-26-000005), whole-dollar era, with a Call option row. Supersede-the-original logic is a query-time concern, not the parser's.",
+  "sourceUrl": null,
+  "parser": "thirteenf-xml@1",
+  "parseInput": {
+    "accessionNumber": "0009876543-26-000005",
+    "filedAt": "2026-09-01",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/9876543/0009876543-26-000005-index.htm",
+    "retrievedAt": "2026-09-01T00:00:00.000Z"
+  }
+}

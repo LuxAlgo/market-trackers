@@ -1,0 +1,40 @@
+{
+  "issuerCik": "0000123456",
+  "ticker": "EXCO",
+  "rows": [
+    {
+      "id": "0000123456-26-000031:nd:0",
+      "accessionNumber": "0000123456-26-000031",
+      "formType": "3",
+      "ticker": "EXCO",
+      "issuerCik": "0000123456",
+      "issuerName": "EXAMPLECORP INC",
+      "insider": {
+        "name": "Roe Richard",
+        "cik": "0007654321",
+        "title": null,
+        "isDirector": true,
+        "isOfficer": false,
+        "isTenPctOwner": false
+      },
+      "transactedAt": null,
+      "filedAt": "2026-08-17",
+      "code": null,
+      "acquiredDisposed": null,
+      "securityTitle": "Common Stock",
+      "shares": null,
+      "pricePerShare": null,
+      "sharesOwnedAfter": 1500,
+      "ownership": "direct",
+      "isDerivative": false,
+      "provenance": {
+        "source": "edgar",
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/123456/0000123456-26-000031-index.htm",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "form-ownership-xml@1",
+        "confidence": 1,
+        "needsReview": false
+      }
+    }
+  ]
+}

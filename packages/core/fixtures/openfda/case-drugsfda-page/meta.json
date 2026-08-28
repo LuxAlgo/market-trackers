@@ -1,0 +1,17 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic drugsfda.json result page (meta.results.total matches the 4 result rows, so no skip-ceiling narrowing is triggered). Covers an original approval (NDA021436, Pfizer, single brand), a supplement on an application whose ORIG submission predates the sync window and is silently skipped as out-of-window (NDA021555, unmapped sponsor), a multi-brand application (BLA125514, Pfizer, brandName takes the first of two), and an application with three submissions (NDA099887, unmapped sponsor, no openfda.brand_name): one in-window original approval, one supplement missing submission_status_date entirely (a parse failure, never guessed), and one later supplement used by the until-bound test to prove a bound both excludes the row and caps the watermark.",
+  "sourceUrl": null,
+  "parser": "openfda-drugsfda@1",
+  "parseInput": {
+    "request": {
+      "url": "https://api.fda.gov/drug/drugsfda.json",
+      "search": "submissions.submission_status_date:[20260801 TO 20260824]",
+      "skip": 0,
+      "limit": 100
+    },
+    "retrievedAt": "2026-08-24T12:00:00.000Z"
+  },
+  "expectedStats": { "attempted": 6, "succeeded": 5 }
+}

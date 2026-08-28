@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic Form 5 (annual statement): a bona fide gift (code G) with no transactionPricePerShare element — price must stay null, never guessed — plus a nonDerivativeHolding row reported indirect (by spouse). Also exercises an empty transactionTimeliness value.",
+  "sourceUrl": null,
+  "parser": "form-ownership-xml@1",
+  "parseInput": {
+    "accessionNumber": "0001127602-26-021500",
+    "filedAt": "2026-02-17",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/123456/0001127602-26-021500-index.htm",
+    "retrievedAt": "2026-08-24T00:00:00.000Z"
+  }
+}

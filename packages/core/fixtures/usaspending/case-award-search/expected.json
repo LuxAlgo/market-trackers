@@ -1,0 +1,102 @@
+[
+  {
+    "id": "CONT_AWD_75N98026D0009_7529_-NONE-_-NONE-",
+    "awardId": "75N98026D0009",
+    "awardType": "DEFINITIVE CONTRACT",
+    "agency": "Department of Health and Human Services",
+    "subAgency": "National Institutes of Health",
+    "recipient": {
+      "name": "BLUE HARBOR ANALYTICS INC",
+      "uei": "SYNTHBHAUEI3",
+      "tickers": []
+    },
+    "amountUsd": 1975000,
+    "actionDate": "2026-08-21",
+    "description": "BIOMEDICAL DATA CURATION SERVICES",
+    "naicsCode": "541511",
+    "naicsDescription": "CUSTOM COMPUTER PROGRAMMING SERVICES",
+    "provenance": {
+      "source": "usaspending",
+      "sourceUrl": "https://www.usaspending.gov/award/CONT_AWD_75N98026D0009_7529_-NONE-_-NONE-",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "usaspending-awards@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "CONT_AWD_FA860126C0001_9700_-NONE-_-NONE-",
+    "awardId": "FA860126C0001",
+    "awardType": "DEFINITIVE CONTRACT",
+    "agency": "Department of Defense",
+    "subAgency": "Department of the Air Force",
+    "recipient": {
+      "name": "LOCKHEED MARTIN CORPORATION",
+      "uei": "SYNTHLMTUEI1",
+      "tickers": ["LMT"]
+    },
+    "amountUsd": 12500000.5,
+    "actionDate": "2026-08-18",
+    "description": "AIRCRAFT SUSTAINMENT AND LOGISTICS SUPPORT",
+    "naicsCode": "336411",
+    "naicsDescription": "AIRCRAFT MANUFACTURING",
+    "provenance": {
+      "source": "usaspending",
+      "sourceUrl": "https://www.usaspending.gov/award/CONT_AWD_FA860126C0001_9700_-NONE-_-NONE-",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "usaspending-awards@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "CONT_AWD_N0001926F0107_1700_-NONE-_-NONE-",
+    "awardId": "N0001926F0107",
+    "awardType": "DELIVERY ORDER",
+    "agency": "Department of Defense",
+    "subAgency": "Department of the Navy",
+    "recipient": {
+      "name": "PRATT & WHITNEY MILITARY ENGINES",
+      "uei": "SYNTHPWUEI02",
+      "tickers": ["RTX"]
+    },
+    "amountUsd": null,
+    "actionDate": "2026-08-20",
+    "description": null,
+    "naicsCode": "336412",
+    "naicsDescription": "AIRCRAFT ENGINE AND ENGINE PARTS MANUFACTURING",
+    "provenance": {
+      "source": "usaspending",
+      "sourceUrl": "https://www.usaspending.gov/award/CONT_AWD_N0001926F0107_1700_-NONE-_-NONE-",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "usaspending-awards@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "CONT_AWD_W912DY26P0042_2100_-NONE-_-NONE-",
+    "awardId": "W912DY26P0042",
+    "awardType": "PURCHASE ORDER",
+    "agency": "Department of Defense",
+    "subAgency": "Department of the Army",
+    "recipient": {
+      "name": "CASCADIA FIELD SERVICES LLC",
+      "uei": null,
+      "tickers": []
+    },
+    "amountUsd": 348000,
+    "actionDate": "2026-08-19",
+    "description": "GROUNDS MAINTENANCE AND SNOW REMOVAL",
+    "naicsCode": "561730",
+    "naicsDescription": "LANDSCAPING SERVICES",
+    "provenance": {
+      "source": "usaspending",
+      "sourceUrl": "https://www.usaspending.gov/award/CONT_AWD_W912DY26P0042_2100_-NONE-_-NONE-",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "usaspending-awards@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  }
+]

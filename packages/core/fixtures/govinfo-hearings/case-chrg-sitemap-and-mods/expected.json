@@ -1,0 +1,80 @@
+[
+  {
+    "id": "CHRG-119hhrg90001",
+    "packageId": "CHRG-119hhrg90001",
+    "title": "OVERSIGHT OF THE EXAMPLE DATA BUREAU & ITS PROGRAMS",
+    "chamber": "house",
+    "docClass": "HHRG",
+    "congress": 119,
+    "session": 2,
+    "heldDate": "2026-06-10",
+    "citation": "Serial No. 119-42",
+    "committees": [{ "name": "Committee on Example Matters", "authorityId": "hsex00" }],
+    "witnesses": [
+      "Jane Q. Witness, Director, Example Data Bureau",
+      "Robert R. Witness, Inspector General, Example Data Bureau"
+    ],
+    "memberBioguideIds": ["E000001", "E000002"],
+    "detailUrl": "https://www.govinfo.gov/app/details/CHRG-119hhrg90001",
+    "htmlUrl": "https://www.govinfo.gov/content/pkg/CHRG-119hhrg90001/html/CHRG-119hhrg90001.htm",
+    "pdfUrl": "https://www.govinfo.gov/content/pkg/CHRG-119hhrg90001/pdf/CHRG-119hhrg90001.pdf",
+    "provenance": {
+      "source": "govinfo-hearings",
+      "sourceUrl": "https://www.govinfo.gov/metadata/pkg/CHRG-119hhrg90001/mods.xml",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "govinfo-hearings-mods@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "CHRG-119jhrg80001",
+    "packageId": "CHRG-119jhrg80001",
+    "title": "JOINT HEARING ON EXAMPLE ECONOMIC REPORTING",
+    "chamber": null,
+    "docClass": "JHRG",
+    "congress": 119,
+    "session": 1,
+    "heldDate": "2025-09-17",
+    "citation": null,
+    "committees": [{ "name": "Example Joint Economic", "authorityId": "jsec00" }],
+    "witnesses": ["Dr. Casey Example, Chief Economist, Example Institute"],
+    "memberBioguideIds": [],
+    "detailUrl": "https://www.govinfo.gov/app/details/CHRG-119jhrg80001",
+    "htmlUrl": "https://www.govinfo.gov/content/pkg/CHRG-119jhrg80001/html/CHRG-119jhrg80001.htm",
+    "pdfUrl": "https://www.govinfo.gov/content/pkg/CHRG-119jhrg80001/pdf/CHRG-119jhrg80001.pdf",
+    "provenance": {
+      "source": "govinfo-hearings",
+      "sourceUrl": "https://www.govinfo.gov/metadata/pkg/CHRG-119jhrg80001/mods.xml",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "govinfo-hearings-mods@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "CHRG-119shrg90002",
+    "packageId": "CHRG-119shrg90002",
+    "title": "EXAMPLE NOMINATIONS OF 2026",
+    "chamber": "senate",
+    "docClass": "SHRG",
+    "congress": 119,
+    "session": null,
+    "heldDate": "2026-05-20",
+    "citation": null,
+    "committees": [],
+    "witnesses": [],
+    "memberBioguideIds": [],
+    "detailUrl": "https://www.govinfo.gov/app/details/CHRG-119shrg90002",
+    "htmlUrl": null,
+    "pdfUrl": "https://www.govinfo.gov/content/pkg/CHRG-119shrg90002/pdf/CHRG-119shrg90002.pdf",
+    "provenance": {
+      "source": "govinfo-hearings",
+      "sourceUrl": "https://www.govinfo.gov/metadata/pkg/CHRG-119shrg90002/mods.xml",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "govinfo-hearings-mods@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  }
+]

@@ -1,0 +1,74 @@
+{
+  "rows": [
+    {
+      "id": "0000123456-26-000055:nd:0",
+      "accessionNumber": "0000123456-26-000055",
+      "formType": "3",
+      "ticker": "EXCO",
+      "issuerCik": "0000123456",
+      "issuerName": "EXAMPLECORP INC",
+      "insider": {
+        "name": "Stone Casey B",
+        "cik": "0002468135",
+        "title": "Chief Technology Officer",
+        "isDirector": false,
+        "isOfficer": true,
+        "isTenPctOwner": false
+      },
+      "transactedAt": null,
+      "filedAt": "2026-09-14",
+      "code": null,
+      "acquiredDisposed": null,
+      "securityTitle": "Common Stock",
+      "shares": null,
+      "pricePerShare": null,
+      "sharesOwnedAfter": 5000,
+      "ownership": "direct",
+      "isDerivative": false,
+      "provenance": {
+        "source": "edgar",
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/123456/0000123456-26-000055-index.htm",
+        "retrievedAt": "2026-09-14T00:00:00.000Z",
+        "parser": "form-ownership-xml@1",
+        "confidence": 1,
+        "needsReview": false
+      }
+    },
+    {
+      "id": "0000123456-26-000055:d:0",
+      "accessionNumber": "0000123456-26-000055",
+      "formType": "3",
+      "ticker": "EXCO",
+      "issuerCik": "0000123456",
+      "issuerName": "EXAMPLECORP INC",
+      "insider": {
+        "name": "Stone Casey B",
+        "cik": "0002468135",
+        "title": "Chief Technology Officer",
+        "isDirector": false,
+        "isOfficer": true,
+        "isTenPctOwner": false
+      },
+      "transactedAt": null,
+      "filedAt": "2026-09-14",
+      "code": null,
+      "acquiredDisposed": null,
+      "securityTitle": "Employee Stock Option (right to buy)",
+      "shares": null,
+      "pricePerShare": null,
+      "sharesOwnedAfter": null,
+      "ownership": "direct",
+      "isDerivative": true,
+      "provenance": {
+        "source": "edgar",
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/123456/0000123456-26-000055-index.htm",
+        "retrievedAt": "2026-09-14T00:00:00.000Z",
+        "parser": "form-ownership-xml@1",
+        "confidence": 1,
+        "needsReview": false
+      }
+    }
+  ],
+  "issuerCik": "0000123456",
+  "ticker": "EXCO"
+}

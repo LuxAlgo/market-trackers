@@ -1,0 +1,109 @@
+<SEC-DOCUMENT>0000123456-26-000055.txt : 20260914
+<SEC-HEADER>0000123456-26-000055.hdr.sgml : 20260914
+ACCESSION NUMBER:		0000123456-26-000055
+CONFORMED SUBMISSION TYPE:	3
+PUBLIC DOCUMENT COUNT:		1
+CONFORMED PERIOD OF REPORT:	20260910
+FILED AS OF DATE:		20260914
+
+REPORTING-OWNER:
+
+	OWNER DATA:
+		COMPANY CONFORMED NAME:			Stone Casey B
+		CENTRAL INDEX KEY:			0002468135
+
+ISSUER:
+
+	COMPANY DATA:
+		COMPANY CONFORMED NAME:			EXAMPLECORP INC
+		CENTRAL INDEX KEY:			0000123456
+</SEC-HEADER>
+<DOCUMENT>
+<TYPE>3
+<SEQUENCE>1
+<FILENAME>form3.xml
+<DESCRIPTION>OWNERSHIP DOCUMENT
+<TEXT>
+<XML>
+<?xml version="1.0"?>
+<ownershipDocument>
+    <schemaVersion>X0206</schemaVersion>
+    <documentType>3</documentType>
+    <periodOfReport>2026-09-10</periodOfReport>
+    <noSecuritiesOwned>0</noSecuritiesOwned>
+    <issuer>
+        <issuerCik>0000123456</issuerCik>
+        <issuerName>EXAMPLECORP INC</issuerName>
+        <issuerTradingSymbol>EXCO</issuerTradingSymbol>
+    </issuer>
+    <reportingOwner>
+        <reportingOwnerId>
+            <rptOwnerCik>0002468135</rptOwnerCik>
+            <rptOwnerName>Stone Casey B</rptOwnerName>
+        </reportingOwnerId>
+        <reportingOwnerRelationship>
+            <isDirector>0</isDirector>
+            <isOfficer>1</isOfficer>
+            <isTenPercentOwner>0</isTenPercentOwner>
+            <isOther>0</isOther>
+            <officerTitle>Chief Technology Officer</officerTitle>
+        </reportingOwnerRelationship>
+    </reportingOwner>
+    <nonDerivativeTable>
+        <nonDerivativeHolding>
+            <securityTitle>
+                <value>Common Stock</value>
+            </securityTitle>
+            <postTransactionAmounts>
+                <sharesOwnedFollowingTransaction>
+                    <value>5000</value>
+                </sharesOwnedFollowingTransaction>
+            </postTransactionAmounts>
+            <ownershipNature>
+                <directOrIndirectOwnership>
+                    <value>D</value>
+                </directOrIndirectOwnership>
+            </ownershipNature>
+        </nonDerivativeHolding>
+    </nonDerivativeTable>
+    <derivativeTable>
+        <derivativeHolding>
+            <securityTitle>
+                <value>Employee Stock Option (right to buy)</value>
+            </securityTitle>
+            <conversionOrExercisePrice>
+                <value>12.00</value>
+            </conversionOrExercisePrice>
+            <exerciseDate>
+                <footnoteId id="F1"/>
+            </exerciseDate>
+            <expirationDate>
+                <value>2036-09-10</value>
+            </expirationDate>
+            <underlyingSecurity>
+                <underlyingSecurityTitle>
+                    <value>Common Stock</value>
+                </underlyingSecurityTitle>
+                <underlyingSecurityShares>
+                    <value>20000</value>
+                </underlyingSecurityShares>
+            </underlyingSecurity>
+            <ownershipNature>
+                <directOrIndirectOwnership>
+                    <value>D</value>
+                </directOrIndirectOwnership>
+            </ownershipNature>
+        </derivativeHolding>
+    </derivativeTable>
+    <footnotes>
+        <footnote id="F1">The option vests in four equal annual installments beginning on September 10, 2027.</footnote>
+    </footnotes>
+    <ownerSignature>
+        <signatureName>/s/ Casey B. Stone</signatureName>
+        <signatureDate>2026-09-14</signatureDate>
+    </ownerSignature>
+</ownershipDocument>
+</XML>
+</TEXT>
+</DOCUMENT>
+</SEC-DOCUMENT>

@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic Form 3 (initial statement): a single non-derivative holding, no transactions — exercises null transactedAt/code/shares handling.",
+  "sourceUrl": null,
+  "parser": "form-ownership-xml@1",
+  "parseInput": {
+    "accessionNumber": "0000123456-26-000031",
+    "filedAt": "2026-08-17",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/123456/0000123456-26-000031-index.htm",
+    "retrievedAt": "2026-08-24T00:00:00.000Z"
+  }
+}

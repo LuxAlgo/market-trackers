@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mods xmlns="http://www.loc.gov/mods/v3" version="3.7" ID="id-CHRG-119hhrg99999">
+  <location>
+    <url displayLabel="Content Detail" access="object in context">https://www.govinfo.gov/app/details/CHRG-119hhrg99999</url>
+  </location>
+  <originInfo>
+    <publisher>U.S. Government Publishing Office</publisher>
+    <dateIssued encoding="w3cdtf">2026-06-30</dateIssued>
+  </originInfo>
+  <extension>
+    <docClass>HHRG</docClass>
+    <accessId>CHRG-119hhrg99999</accessId>
+    <chamber>HOUSE</chamber>
+    <congress>119</congress>
+    <heldDate>2026-06-12</heldDate>
+  </extension>
+</mods>

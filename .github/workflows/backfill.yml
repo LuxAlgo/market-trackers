@@ -1,0 +1,323 @@
+name: Backfill
+
+# Manual, one-source-at-a-time deep-history backfill
+# (packages/core/src/backfill/engine.ts drives the chunking/resume logic;
+# this workflow is just dispatch + export + archive plumbing around it).
+#
+# The walk stops itself via --budget-minutes well before the job's 6-hour
+# hard cap (`timeout-minutes` below), so every shift still exports, archives,
+# and saves its resume point — a hard kill would forfeit all three (the
+# timeout stays as the backstop for a truly hung process). Re-dispatch with
+# the SAME --source/--from and it resumes from `backfill.completedThrough`
+# (persisted per chunk) instead of re-walking covered ground. Dispatch a
+# source's entire free-history depth in repeated shifts — see
+# docs/backfill.md for per-source depth notes and the resume model.
+#
+# No-ops until configured:
+#   vars.ALT_DATA_CONTACT       — contact email for the SEC EDGAR User-Agent (only needed for `source: edgar`)
+#   vars.ALT_DATASETS_REPO     — e.g. "LuxAlgo/alt-datasets" (archive-release publish step skipped without it)
+#   secrets.ALT_DATASETS_TOKEN — token with contents:write on the data repo (archive-release publish step skipped without it)
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Source id to backfill (e.g. edgar, finra, usaspending)"
+        required: true
+        type: string
+      from:
+        description: "Start of the window (YYYY-MM-DD)"
+        required: true
+        type: string
+      to:
+        description: "End of the window (YYYY-MM-DD); defaults to today"
+        required: false
+        type: string
+      chunk_days:
+        description: "Days per resumable chunk"
+        required: false
+        type: string
+        default: "30"
+      limit:
+        description: "Soft cap on documents fetched this run (leave empty for none)"
+        required: false
+        type: string
+      full:
+        description: "Ignore the resume watermark and re-walk the whole window (after a source fix invalidates earlier passes)"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# Two dispatches for the SAME source would race the same db file, the same
+# backfill.completedThrough watermark, and (if archiving) the same release
+# tag — queue them instead of running in parallel. Different sources are
+# independent and may run concurrently under separate workflow runs.
+concurrency:
+  group: backfill-${{ inputs.source }}
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      # Year-sharded snapshot export of a deep store needs real heap.
+      NODE_OPTIONS: --max-old-space-size=12288
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      # The per-source store persists across dispatches so re-dispatching the
+      # same source resumes from backfill.completedThrough instead of
+      # re-walking from --from. Restore/save are split so the store is saved
+      # even when the run ends red (stopped early = exit 1 by design).
+      - name: Restore backfill store
+        uses: actions/cache/restore@v4
+        with:
+          path: backfill-${{ inputs.source }}.db
+          key: alt-data-backfill-${{ inputs.source }}-${{ github.run_id }}
+          restore-keys: |
+            alt-data-backfill-${{ inputs.source }}-
+
+      # set +e: a backfill that stops early (--limit, an error, or the job
+      # timeout looming) still needs export/upload to run on whatever WAS
+      # ingested — the run's overall pass/fail is decided at the very end.
+      - name: Backfill
+        id: backfill
+        env:
+          ALT_DATA_CONTACT: ${{ vars.ALT_DATA_CONTACT }}
+          ALT_DATA_PATENTSVIEW_KEY: ${{ secrets.ALT_DATA_PATENTSVIEW_KEY }}
+          SOURCE: ${{ inputs.source }}
+          FROM: ${{ inputs.from }}
+          TO_INPUT: ${{ inputs.to }}
+          CHUNK_DAYS: ${{ inputs.chunk_days }}
+          LIMIT_INPUT: ${{ inputs.limit }}
+          FULL_INPUT: ${{ inputs.full }}
+        run: |
+          set +e
+          # The archive tag needs the run's resolved window, not the summary
+          # JSON (which is diagnostic output, not plumbing): an empty `to`
+          # defaults to today, resolved HERE — before the walk starts — to
+          # match the CLI's own resolution even when a shift crosses
+          # midnight UTC.
+          echo "from=$FROM" >> "$GITHUB_OUTPUT"
+          echo "to=${TO_INPUT:-$(date -u +%F)}" >> "$GITHUB_OUTPUT"
+          # 300 minutes leaves ~60 for the tail of the chunk in flight when
+          # the budget lands (it can't be preempted; slow-source chunks have
+          # overrun a 40-minute margin in practice) plus export + artifact +
+          # archive-release, all inside the job's 360-minute hard cap.
+          args=(backfill --source "$SOURCE" --from "$FROM" --chunk-days "${CHUNK_DAYS:-30}" --budget-minutes 300 --db "backfill-$SOURCE.db" --json)
+          [ -n "$TO_INPUT" ] && args+=(--to "$TO_INPUT")
+          [ -n "$LIMIT_INPUT" ] && args+=(--limit "$LIMIT_INPUT")
+          # A fixed source can leave behind a resume state that says "already
+          # complete" from passes that ingested nothing — --full is the
+          # operator's way to force the re-walk the fix deserves.
+          [ "$FULL_INPUT" = "true" ] && args+=(--full)
+          node packages/cli/dist/index.js "${args[@]}" | tee backfill-summary.json
+          echo "exit_code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+      # --snapshots-only: the archive-release step below publishes only
+      # year-shard snapshot-*.json.gz files, so the deltas/latest.json/
+      # feed.xml/entity feeds a full export would also write here are never
+      # read by anything downstream.
+      - name: Export
+        env:
+          SOURCE: ${{ inputs.source }}
+        run: node packages/cli/dist/index.js export --db "backfill-$SOURCE.db" --out dumps --snapshots-only --json
+
+      - name: Upload dumps artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backfill-${{ inputs.source }}-${{ inputs.from }}
+          path: dumps
+          retention-days: 30
+
+      # Secrets can't be read directly in a job/step `if:`, so the token is
+      # checked here (via env, never echoed) and the result exposed as a
+      # step output that later steps gate on.
+      - name: Check data-repo credentials
+        id: creds
+        if: vars.ALT_DATASETS_REPO != ''
+        env:
+          ALT_DATASETS_TOKEN: ${{ secrets.ALT_DATASETS_TOKEN }}
+        run: |
+          if [ -n "$ALT_DATASETS_TOKEN" ]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "ALT_DATASETS_TOKEN not configured; skipping the archive-release publish step."
+          fi
+
+      # Publishes this run's year-shard snapshot-*.json.gz files as assets on
+      # a GitHub Release (created if missing) in the data repo, tagged
+      # archive-{source}-{from}-{to} — see docs/backfill.md for the layout
+      # and the restore steps. A per-asset >2GB failure (GitHub's release
+      # asset limit) is reported and skipped; it never fails the run.
+      - name: Publish archive release
+        if: steps.creds.outputs.publish == 'true'
+        uses: actions/github-script@v7
+        env:
+          DATA_REPO: ${{ vars.ALT_DATASETS_REPO }}
+          SOURCE: ${{ inputs.source }}
+          WINDOW_FROM: ${{ steps.backfill.outputs.from }}
+          WINDOW_TO: ${{ steps.backfill.outputs.to }}
+        with:
+          github-token: ${{ secrets.ALT_DATASETS_TOKEN }}
+          script: |
+            const fs = require("fs");
+            const path = require("path");
+
+            function findSnapshots(dir, out = []) {
+              for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+                const full = path.join(dir, entry.name);
+                if (entry.isDirectory()) findSnapshots(full, out);
+                else if (entry.name.startsWith("snapshot-") && entry.name.endsWith(".json.gz")) {
+                  out.push(full);
+                }
+              }
+              return out;
+            }
+
+            const files = findSnapshots("dumps");
+            if (files.length === 0) {
+              core.notice("No snapshot-*.json.gz files were produced by this run; nothing to archive.");
+              return;
+            }
+
+            // The window comes from the dispatch inputs (resolved by the
+            // Backfill step), never from backfill-summary.json — that file
+            // is diagnostic stdout, and a truncated or malformed summary
+            // must not be able to fail the archive of a finished walk.
+            const [owner, repo] = process.env.DATA_REPO.split("/");
+            const source = process.env.SOURCE;
+            const tag = `archive-${source}-${process.env.WINDOW_FROM}-${process.env.WINDOW_TO}`;
+
+            let release;
+            try {
+              release = (await github.rest.repos.getReleaseByTag({ owner, repo, tag })).data;
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              release = await createReleaseRaceSafe();
+            }
+
+            // 422 from createRelease is ambiguous: a concurrent duplicate
+            // dispatch already created the tag (reuse it), OR creation is
+            // impossible — most notably while the data repo has no commits
+            // yet, since a release must tag one. Only a successful reuse
+            // proves the race; otherwise the original 422 detail surfaces.
+            async function createReleaseRaceSafe() {
+              try {
+                return await doCreateRelease();
+              } catch (createError) {
+                if (createError.status !== 422) throw createError;
+                let reused;
+                try {
+                  reused = (await github.rest.repos.getReleaseByTag({ owner, repo, tag })).data;
+                } catch (reuseError) {
+                  if (reuseError.status !== 404) throw reuseError;
+                  const detail = JSON.stringify(
+                    createError.response?.data ?? createError.message ?? createError,
+                  );
+                  throw new Error(
+                    `createRelease for ${tag} failed with 422 and the tag does not exist: ${detail}. ` +
+                      "If the data repository has no commits yet, run publish-dumps once so it " +
+                      "gains a commit for release tags to point at, then re-dispatch this " +
+                      "backfill — it resumes from cache straight to the archive step.",
+                  );
+                }
+                core.info(`Release ${tag} was created concurrently; reusing it.`);
+                return reused;
+              }
+            }
+
+            async function doCreateRelease() {
+              const created = (
+                await github.rest.repos.createRelease({
+                  owner,
+                  repo,
+                  tag_name: tag,
+                  name: tag,
+                  body:
+                    `Deep-history archive for **${source}**, event window ${process.env.WINDOW_FROM}..${process.env.WINDOW_TO}.\n\n` +
+                    "Snapshot files are sharded by event year. Restore with `alt-data import` " +
+                    "against a downloaded asset, or a full checkout of this repo — see " +
+                    "docs/backfill.md in LuxAlgo/alt-data for the full restore story.",
+                })
+              ).data;
+              core.info(`Created release ${tag}`);
+              return created;
+            }
+
+            const TWO_GB = 2 * 1024 * 1024 * 1024;
+            const failedAssets = [];
+            for (const file of files) {
+              const name = path.basename(file);
+              const size = fs.statSync(file).size;
+              if (size > TWO_GB) {
+                core.warning(
+                  `Skipping asset ${name}: ${size} bytes exceeds GitHub's ${TWO_GB}-byte release-asset ` +
+                    "limit. Publish it manually (e.g. via a data-repo checkout) or re-dispatch this " +
+                    "backfill in smaller (e.g. year-sized) windows so each snapshot shard stays under it.",
+                );
+                failedAssets.push(name);
+                continue;
+              }
+
+              // A resumed/re-dispatched run for the same window re-uploads —
+              // clear any same-named asset from a prior attempt first.
+              const { data: existingAssets } = await github.rest.repos.listReleaseAssets({
+                owner,
+                repo,
+                release_id: release.id,
+                per_page: 100,
+              });
+              const existing = existingAssets.find((a) => a.name === name);
+              if (existing) {
+                await github.rest.repos.deleteReleaseAsset({ owner, repo, asset_id: existing.id });
+              }
+
+              await github.rest.repos.uploadReleaseAsset({
+                owner,
+                repo,
+                release_id: release.id,
+                name,
+                data: fs.readFileSync(file),
+              });
+              core.info(`Uploaded ${name} (${size} bytes) to release ${tag}`);
+            }
+
+            if (failedAssets.length > 0) {
+              core.setFailed(
+                `${failedAssets.length} asset(s) exceeded the 2GB release-asset limit and were not ` +
+                  `published: ${failedAssets.join(", ")}. See the warnings above.`,
+              );
+            }
+
+      - name: Save backfill store
+        if: ${{ always() && hashFiles(format('backfill-{0}.db', inputs.source)) != '' }}
+        uses: actions/cache/save@v4
+        with:
+          path: backfill-${{ inputs.source }}.db
+          key: alt-data-backfill-${{ inputs.source }}-${{ github.run_id }}
+
+      - name: Fail the run if the backfill didn't fully complete
+        if: steps.backfill.outputs.exit_code != '0'
+        run: |
+          echo "The backfill stopped before reaching --to (alt-data backfill exit code ${{ steps.backfill.outputs.exit_code }})."
+          echo "Whatever WAS ingested this run was still exported and uploaded above."
+          echo "Re-dispatch this workflow with the same source/from — it resumes automatically from backfill.completedThrough."
+          exit 1

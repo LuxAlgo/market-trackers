@@ -1,0 +1,66 @@
+{
+  "name": "@luxalgo/alt-data-core",
+  "version": "0.1.0",
+  "description": "Ingestors, parsers, normalizers, entity resolution, and storage for the public record of US markets \u2014 congress trades, insider filings, 13F holdings, government contracts, lobbying, and short-sale volume. Primary sources only; every row carries provenance.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "data",
+    "!dist/**/*.test.*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LuxAlgo/alt-data.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/LuxAlgo/alt-data#readme",
+  "bugs": "https://github.com/LuxAlgo/alt-data/issues",
+  "keywords": [
+    "sec",
+    "edgar",
+    "congress-trades",
+    "insider-trading",
+    "13f",
+    "usaspending",
+    "lobbying",
+    "finra",
+    "reg-sho",
+    "open-data"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.2.0",
+    "fast-xml-parser": "^5.2.0",
+    "fflate": "^0.8.3",
+    "node-html-parser": "^9.0.1",
+    "pg": "^8.16.0",
+    "unpdf": "^1.8.1",
+    "yaml": "^2.9.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.15.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  },
+  "engines": {
+    "node": ">=20.9"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

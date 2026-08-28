@@ -1,0 +1,86 @@
+{
+  "count": 1,
+  "bulkDataProductBag": [
+    {
+      "productIdentifier": "PVGPATDIS",
+      "productDescriptionText": "Includes 35 files for patents granted from January 1976 to the present. Synthetic fixture: the file bag is trimmed to the entries this ingestor exercises.",
+      "productTitleText": "PatentsView Granted Patent Disambiguated Data",
+      "productFrequencyText": "QUARTERLY",
+      "daysOfWeekText": "MONDAY",
+      "productLabelArrayText": [
+        "Patent",
+        "Research"
+      ],
+      "productDatasetArrayText": [
+        "PatentsView"
+      ],
+      "productDatasetCategoryArrayText": [
+        "Issued patents (patent grants)",
+        "PatentsView"
+      ],
+      "productFromDate": "1976-01-01",
+      "productToDate": "2026-06-30",
+      "productTotalFileSize": 32333845658,
+      "productFileTotalQuantity": 5,
+      "lastModifiedDateTime": "2026-07-15 09:37:53",
+      "mimeTypeIdentifierArrayText": [
+        "TSV"
+      ],
+      "productFileBag": {
+        "count": 5,
+        "fileDataBag": [
+          {
+            "fileName": "PV_grant_data_dictionary.pdf",
+            "fileSize": 137909,
+            "fileDataFromDate": "1976-01-01",
+            "fileDataToDate": "2026-06-30",
+            "fileTypeText": "Document",
+            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PVGPATDIS/PV_grant_data_dictionary.pdf",
+            "fileReleaseDate": "2026-03-12 23:21:23",
+            "fileLastModifiedDateTime": "2026-03-12 23:21:23"
+          },
+          {
+            "fileName": "clustering_resources.zip",
+            "fileSize": 8826607069,
+            "fileDataFromDate": "1976-01-01",
+            "fileDataToDate": "2026-06-30",
+            "fileTypeText": "Document",
+            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PVGPATDIS/clustering_resources.zip",
+            "fileReleaseDate": "2026-07-15 09:37:53",
+            "fileLastModifiedDateTime": "2026-07-15 09:37:53"
+          },
+          {
+            "fileName": "g_patent.tsv.zip",
+            "fileSize": 511,
+            "fileDataFromDate": "1976-01-01",
+            "fileDataToDate": "2026-06-30",
+            "fileTypeText": "Document",
+            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PVGPATDIS/g_patent.tsv.zip",
+            "fileReleaseDate": "2026-07-15 09:37:53",
+            "fileLastModifiedDateTime": "2026-07-15 09:37:53"
+          },
+          {
+            "fileName": "g_assignee_disambiguated.tsv.zip",
+            "fileSize": 403,
+            "fileDataFromDate": "1976-01-01",
+            "fileDataToDate": "2026-06-30",
+            "fileTypeText": "Document",
+            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PVGPATDIS/g_assignee_disambiguated.tsv.zip",
+            "fileReleaseDate": "2026-07-15 09:37:53",
+            "fileLastModifiedDateTime": "2026-07-15 09:37:53"
+          },
+          {
+            "fileName": "g_cpc_current.tsv.zip",
+            "fileSize": 385,
+            "fileDataFromDate": "1976-01-01",
+            "fileDataToDate": "2026-06-30",
+            "fileTypeText": "Document",
+            "fileDownloadURI": "https://api.uspto.gov/api/v1/datasets/products/files/PVGPATDIS/g_cpc_current.tsv.zip",
+            "fileReleaseDate": "2026-07-15 09:37:53",
+            "fileLastModifiedDateTime": "2026-07-15 09:37:53"
+          }
+        ]
+      }
+    }
+  ]
+}

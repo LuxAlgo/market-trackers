@@ -1,0 +1,60 @@
+{
+  "name": "@luxalgo/alt-data-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for LuxAlgo Alt Data \u2014 congress trades, insider filings, 13F holdings, government contracts, lobbying, and short-sale volume for AI agents. Local stdio + stateless streamable HTTP; every answer carries primary-source citations.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "alt-data-mcp": "dist/stdio.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.test.*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LuxAlgo/alt-data.git",
+    "directory": "packages/mcp"
+  },
+  "homepage": "https://github.com/LuxAlgo/alt-data#readme",
+  "bugs": "https://github.com/LuxAlgo/alt-data/issues",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "congress-trades",
+    "insider-trading",
+    "sec",
+    "edgar",
+    "open-data"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "start": "node dist/stdio.js",
+    "start:http": "node dist/http.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@luxalgo/alt-data-core": "workspace:^",
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  },
+  "engines": {
+    "node": ">=20.9"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

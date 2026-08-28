@@ -1,0 +1,40 @@
+{
+  "rows": [
+    {
+      "id": "0001127602-26-020707:nd:0",
+      "accessionNumber": "0001127602-26-020707",
+      "formType": "4",
+      "ticker": "EXCO",
+      "issuerCik": "0000123456",
+      "issuerName": "EXAMPLECORP INC",
+      "insider": {
+        "name": "Example Ventures GP LLC",
+        "cik": "0003692581",
+        "title": null,
+        "isDirector": false,
+        "isOfficer": false,
+        "isTenPctOwner": true
+      },
+      "transactedAt": "2026-09-04",
+      "filedAt": "2026-09-08",
+      "code": "P",
+      "acquiredDisposed": "A",
+      "securityTitle": "Common Stock",
+      "shares": 100000,
+      "pricePerShare": 18.5,
+      "sharesOwnedAfter": 2100000,
+      "ownership": "indirect",
+      "isDerivative": false,
+      "provenance": {
+        "source": "edgar",
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/123456/0001127602-26-020707-index.htm",
+        "retrievedAt": "2026-09-08T00:00:00.000Z",
+        "parser": "form-ownership-xml@1",
+        "confidence": 1,
+        "needsReview": true
+      }
+    }
+  ],
+  "issuerCik": "0000123456",
+  "ticker": "EXCO"
+}

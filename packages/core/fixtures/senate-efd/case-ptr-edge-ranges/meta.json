@@ -1,0 +1,14 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic web-table PTR exercising the edge ranges (open-ended 'Over $50,000,000' → max null; 'None (or less than $1,001)' → 0..1000), an Exchange transaction, and the asset-type heuristic across treasury/stock/ETF/crypto/option rows.",
+  "sourceUrl": null,
+  "parser": "efd-ptr-html@1",
+  "parseInput": {
+    "docId": "9d8c7b6a-5f4e-4d2c-8b0a-998877665544",
+    "memberName": "Alexandra Doe",
+    "filedAt": "2026-08-13",
+    "sourceUrl": "https://efdsearch.senate.gov/search/view/ptr/9d8c7b6a-5f4e-4d2c-8b0a-998877665544/",
+    "retrievedAt": "2026-08-24T00:00:00.000Z"
+  }
+}

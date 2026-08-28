@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mods xmlns="http://www.loc.gov/mods/v3" version="3.7" ID="id-CHRG-119shrg90002">
+  <extension>
+    <collectionCode>CHRG</collectionCode>
+    <category>Congressional Committee Materials</category>
+  </extension>
+  <titleInfo>
+    <title><![CDATA[EXAMPLE NOMINATIONS OF 2026]]></title>
+  </titleInfo>
+  <location>
+    <url displayLabel="Content Detail" access="object in context">https://www.govinfo.gov/app/details/CHRG-119shrg90002</url>
+    <url displayLabel="PDF rendition" access="raw object">https://www.govinfo.gov/content/pkg/CHRG-119shrg90002/pdf/CHRG-119shrg90002.pdf</url>
+  </location>
+  <originInfo>
+    <publisher>U.S. Government Publishing Office</publisher>
+    <dateIssued encoding="w3cdtf">2026-05-20</dateIssued>
+  </originInfo>
+  <extension>
+    <docClass>SHRG</docClass>
+    <accessId>CHRG-119shrg90002</accessId>
+    <type>N</type>
+    <chamber>SENATE</chamber>
+    <congress>119</congress>
+  </extension>
+</mods>

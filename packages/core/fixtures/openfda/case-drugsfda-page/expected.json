@@ -1,0 +1,92 @@
+[
+  {
+    "id": "BLA125514:ORIG:1",
+    "applicationNumber": "BLA125514",
+    "sponsor": { "name": "PFIZER INC", "tickers": ["PFE"] },
+    "brandName": "BRANDONE",
+    "submissionType": "ORIG",
+    "submissionNumber": "1",
+    "submissionStatus": "AP",
+    "statusDate": "2026-08-06",
+    "provenance": {
+      "source": "openfda",
+      "sourceUrl": "https://www.accessdata.fda.gov/scripts/cder/daf/index.cfm?event=overview.process&ApplNo=125514",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "openfda-drugsfda@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "NDA021436:ORIG:1",
+    "applicationNumber": "NDA021436",
+    "sponsor": { "name": "PFIZER INC", "tickers": ["PFE"] },
+    "brandName": "EXAMPLETA",
+    "submissionType": "ORIG",
+    "submissionNumber": "1",
+    "submissionStatus": "AP",
+    "statusDate": "2026-08-03",
+    "provenance": {
+      "source": "openfda",
+      "sourceUrl": "https://www.accessdata.fda.gov/scripts/cder/daf/index.cfm?event=overview.process&ApplNo=021436",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "openfda-drugsfda@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "NDA021555:SUPPL:12",
+    "applicationNumber": "NDA021555",
+    "sponsor": { "name": "MERCK SHARP DOHME LLC", "tickers": [] },
+    "brandName": null,
+    "submissionType": "SUPPL",
+    "submissionNumber": "12",
+    "submissionStatus": "AP",
+    "statusDate": "2026-08-05",
+    "provenance": {
+      "source": "openfda",
+      "sourceUrl": "https://www.accessdata.fda.gov/scripts/cder/daf/index.cfm?event=overview.process&ApplNo=021555",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "openfda-drugsfda@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "NDA099887:ORIG:1",
+    "applicationNumber": "NDA099887",
+    "sponsor": { "name": "EXAMPLE BIOSCIENCES INC", "tickers": [] },
+    "brandName": null,
+    "submissionType": "ORIG",
+    "submissionNumber": "1",
+    "submissionStatus": "AP",
+    "statusDate": "2026-08-08",
+    "provenance": {
+      "source": "openfda",
+      "sourceUrl": "https://www.accessdata.fda.gov/scripts/cder/daf/index.cfm?event=overview.process&ApplNo=099887",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "openfda-drugsfda@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "NDA099887:SUPPL:3",
+    "applicationNumber": "NDA099887",
+    "sponsor": { "name": "EXAMPLE BIOSCIENCES INC", "tickers": [] },
+    "brandName": null,
+    "submissionType": "SUPPL",
+    "submissionNumber": "3",
+    "submissionStatus": "AP",
+    "statusDate": "2026-08-20",
+    "provenance": {
+      "source": "openfda",
+      "sourceUrl": "https://www.accessdata.fda.gov/scripts/cder/daf/index.cfm?event=overview.process&ApplNo=099887",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "openfda-drugsfda@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  }
+]

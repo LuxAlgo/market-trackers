@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["20", "22"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format check
+        run: pnpm format:check
+
+      # Copyleft or unknown dependency licenses fail the build — see the
+      # allowlist in the script.
+      - name: Dependency license gate
+        run: node scripts/check-dep-licenses.mjs
+
+      # The suite is fully offline: fixtures + mocked fetch, no keys, no network.
+      - name: Test
+        run: pnpm test
+
+      # Smoke the health-board rewriter against a fabricated canary report
+      # and a COPY of the README — the real README is never modified in CI.
+      - name: Health-board script smoke
+        run: |
+          cat > "$RUNNER_TEMP/canary-smoke.json" <<'EOF'
+          {
+            "generatedAt": "2026-01-01T00:00:00.000Z",
+            "overall": "red",
+            "sources": [
+              { "source": "edgar", "status": "green", "ranAt": "2026-01-01T00:00:00.000Z", "checks": [] },
+              { "source": "finra", "status": "red", "ranAt": "2026-01-01T00:00:00.000Z", "checks": [] },
+              { "source": "lda", "status": "amber", "ranAt": "2026-01-01T00:00:00.000Z", "checks": [] },
+              { "source": "senate-efd", "status": "skip", "checks": [] }
+            ]
+          }
+          EOF
+          cp README.md "$RUNNER_TEMP/readme-smoke.md"
+          node scripts/update-health-board.mjs \
+            "$RUNNER_TEMP/canary-smoke.json" \
+            "$RUNNER_TEMP/readme-smoke.md" \
+            "$RUNNER_TEMP/readme-smoke.out.md"
+          grep -q "🟢 healthy" "$RUNNER_TEMP/readme-smoke.out.md"
+          grep -q "🔴 broken" "$RUNNER_TEMP/readme-smoke.out.md"
+          grep -q "🟡 stale" "$RUNNER_TEMP/readme-smoke.out.md"
+          git diff --exit-code README.md
+
+      # Smoke make-parquet.mjs's graceful-degrade path: duckdb is never
+      # installed in this job, so both an empty directory and one holding a
+      # real snapshot*.json.gz file must still exit 0 with a clear log line
+      # rather than fail the build.
+      - name: Parquet script smoke (degrade path)
+        run: |
+          set -euo pipefail
+
+          EMPTY_DIR="$RUNNER_TEMP/parquet-smoke-empty"
+          mkdir -p "$EMPTY_DIR"
+          node scripts/make-parquet.mjs "$EMPTY_DIR" | tee "$RUNNER_TEMP/parquet-smoke-empty.log"
+          grep -q "nothing to do" "$RUNNER_TEMP/parquet-smoke-empty.log"
+
+          SNAPSHOT_DIR="$RUNNER_TEMP/parquet-smoke-snapshot/congress/trades"
+          mkdir -p "$SNAPSHOT_DIR"
+          echo "[]" | gzip > "$SNAPSHOT_DIR/snapshot-2026.json.gz"
+          node scripts/make-parquet.mjs "$RUNNER_TEMP/parquet-smoke-snapshot" | tee "$RUNNER_TEMP/parquet-smoke-snapshot.log"
+          grep -qi "duckdb" "$RUNNER_TEMP/parquet-smoke-snapshot.log"

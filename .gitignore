@@ -1,0 +1,26 @@
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+
+.tmp-test/
+
+# local stores & exports
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+.alt-data/
+dumps/
+
+.DS_Store
+*.log
+
+# python/ (standalone package, not part of the pnpm workspace)
+__pycache__/
+*.pyc
+*.egg-info/
+
+# local env files — credentials never live in the tree
+.env
+.env.*

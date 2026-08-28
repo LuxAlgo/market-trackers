@@ -1,0 +1,79 @@
+<SEC-DOCUMENT>0009876543-23-000104.txt : 20230214
+<SEC-HEADER>0009876543-23-000104.hdr.sgml : 20230214
+ACCESSION NUMBER:		0009876543-23-000104
+CONFORMED SUBMISSION TYPE:	13F-HR
+PUBLIC DOCUMENT COUNT:		2
+CONFORMED PERIOD OF REPORT:	20221231
+FILED AS OF DATE:		20230214
+
+FILER:
+
+	COMPANY DATA:
+		COMPANY CONFORMED NAME:			EXAMPLE CAPITAL MANAGEMENT LP
+		CENTRAL INDEX KEY:			0009876543
+		IRS NUMBER:				000000000
+		STATE OF INCORPORATION:			DE
+</SEC-HEADER>
+<DOCUMENT>
+<TYPE>13F-HR
+<SEQUENCE>1
+<FILENAME>primary_doc.xml
+<TEXT>
+<XML>
+<?xml version="1.0" encoding="UTF-8"?>
+<edgarSubmission xmlns="http://www.sec.gov/edgar/thirteenffiler" xmlns:com="http://www.sec.gov/edgar/common">
+  <headerData>
+    <submissionType>13F-HR</submissionType>
+    <filerInfo>
+      <periodOfReport>12-31-2022</periodOfReport>
+    </filerInfo>
+  </headerData>
+</edgarSubmission>
+</XML>
+</TEXT>
+</DOCUMENT>
+<DOCUMENT>
+<TYPE>INFORMATION TABLE
+<SEQUENCE>2
+<FILENAME>infotable.xml
+<TEXT>
+<XML>
+<?xml version="1.0" encoding="UTF-8"?>
+<ns1:informationTable xmlns:ns1="http://www.sec.gov/edgar/document/thirteenf/informationtable">
+  <ns1:infoTable>
+    <ns1:nameOfIssuer>EXAMPLECORP INC</ns1:nameOfIssuer>
+    <ns1:titleOfClass>COM</ns1:titleOfClass>
+    <ns1:cusip>30303M102</ns1:cusip>
+    <ns1:value>104,650</ns1:value>
+    <ns1:shrsOrPrnAmt>
+      <ns1:sshPrnamt>2,500,000</ns1:sshPrnamt>
+      <ns1:sshPrnamtType>SH</ns1:sshPrnamtType>
+    </ns1:shrsOrPrnAmt>
+    <ns1:investmentDiscretion>SOLE</ns1:investmentDiscretion>
+    <ns1:votingAuthority>
+      <ns1:Sole>2500000</ns1:Sole>
+      <ns1:Shared>0</ns1:Shared>
+      <ns1:None>0</ns1:None>
+    </ns1:votingAuthority>
+  </ns1:infoTable>
+  <ns1:infoTable>
+    <ns1:nameOfIssuer>SAMPLE ENERGY CORP</ns1:nameOfIssuer>
+    <ns1:titleOfClass>NOTE 5.250% 12/</ns1:titleOfClass>
+    <ns1:cusip>79589LAB2</ns1:cusip>
+    <ns1:value>4,980</ns1:value>
+    <ns1:shrsOrPrnAmt>
+      <ns1:sshPrnamt>5,000,000</ns1:sshPrnamt>
+      <ns1:sshPrnamtType>PRN</ns1:sshPrnamtType>
+    </ns1:shrsOrPrnAmt>
+    <ns1:investmentDiscretion>SOLE</ns1:investmentDiscretion>
+    <ns1:votingAuthority>
+      <ns1:Sole>0</ns1:Sole>
+      <ns1:Shared>0</ns1:Shared>
+      <ns1:None>5000000</ns1:None>
+    </ns1:votingAuthority>
+  </ns1:infoTable>
+</ns1:informationTable>
+</XML>
+</TEXT>
+</DOCUMENT>
+</SEC-DOCUMENT>

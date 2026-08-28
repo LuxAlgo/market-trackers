@@ -1,0 +1,24 @@
+﻿[
+  {
+    "d": "8/5/2026 4:05:00 PM",
+    "t": "Outlook for the Example Economy",
+    "s": "Governor Jane Example",
+    "lo": "At the 2026 Example Economic Luncheon, Example City, Alaska",
+    "l": "/newsevents/speech/example20260805a.htm",
+    "a": "",
+    "o": "no",
+    "v": "",
+    "video": "No"
+  },
+  {
+    "d": "7/10/2026 9:00:00 AM",
+    "t": "Example Remarks on Payments Innovation",
+    "s": "Vice Chair Pat Example",
+    "lo": "",
+    "l": "/newsevents/speech/example20260710a.htm",
+    "a": "Accessible version corrected July 11, 2026",
+    "o": "no",
+    "v": "/newsevents/media/example20260710a-video.htm",
+    "video": "Yes"
+  }
+]

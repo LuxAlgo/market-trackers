@@ -1,0 +1,40 @@
+{
+  "rows": [
+    {
+      "id": "0001127602-26-020101:nd:0",
+      "accessionNumber": "0001127602-26-020101",
+      "formType": "4/A",
+      "ticker": "EXCO",
+      "issuerCik": "0000123456",
+      "issuerName": "EXAMPLECORP INC",
+      "insider": {
+        "name": "Doe Jane A",
+        "cik": "0001234567",
+        "title": "Chief Financial Officer",
+        "isDirector": false,
+        "isOfficer": true,
+        "isTenPctOwner": false
+      },
+      "transactedAt": "2026-08-18",
+      "filedAt": "2026-08-26",
+      "code": "S",
+      "acquiredDisposed": "D",
+      "securityTitle": "Common Stock",
+      "shares": 4500,
+      "pricePerShare": 41.875,
+      "sharesOwnedAfter": 48000,
+      "ownership": "indirect",
+      "isDerivative": false,
+      "provenance": {
+        "source": "edgar",
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/123456/0001127602-26-020101-index.htm",
+        "retrievedAt": "2026-08-27T00:00:00.000Z",
+        "parser": "form-ownership-xml@1",
+        "confidence": 1,
+        "needsReview": false
+      }
+    }
+  ],
+  "issuerCik": "0000123456",
+  "ticker": "EXCO"
+}

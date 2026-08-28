@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>eFD Search Home</title>
+  </head>
+  <body>
+    <main class="container">
+      <h1>Electronic Financial Disclosure Search</h1>
+      <h2>Agreement</h2>
+      <p>
+        Reports are available for viewing subject to the prohibition on obtaining or using reports
+        for commercial, credit, or solicitation purposes.
+      </p>
+      <form method="post" action="/search/home/">
+        <input
+          type="hidden"
+          name="csrfmiddlewaretoken"
+          value="fixture-csrf-token-0123456789abcdef"
+        />
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            name="prohibition_agreement"
+            id="agree_statement"
+            value="1"
+          />
+          <label class="form-check-label" for="agree_statement">
+            I understand the prohibitions on obtaining and use of financial disclosure reports.
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary">Continue</button>
+      </form>
+    </main>
+  </body>
+</html>

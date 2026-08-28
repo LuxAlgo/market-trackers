@@ -1,0 +1,18 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic copies of the Board's three news-events JSON feeds, mirroring live captures: every file begins with a UTF-8 BOM (as the live feeds do — JSON.parse fails without stripping it), items use single-letter field names (d = 'M/D/YYYY h:mm:ss AM/PM' US-Eastern datetime, t = title, s = speaker, lo = location/venue, l = relative link, a = addendum note, v = video link sometimes, video = Yes/No, pt = press category on ne-press.json only). ne-speeches.json exercises a blank lo (venue null), a filled a (note kept), and a filled relative v (absolutized videoUrl). ne-press.json mixes pt values: three 'Monetary Policy' items (an FOMC minutes title → type minutes; 'Federal Reserve issues FOMC statement' → type statement; the Board's discount-rate minutes → plain pressRelease) plus one 'Orders on Banking Applications' and one 'Enforcement Actions' item that must be filtered out (out of scope, not parse failures). All names/links are synthetic; the shapes mirror the live feeds verbatim.",
+  "sourceUrl": null,
+  "parser": "federalreserve-json@1",
+  "parseInput": {
+    "request": {
+      "feeds": [
+        "https://www.federalreserve.gov/json/ne-speeches.json",
+        "https://www.federalreserve.gov/json/ne-testimony.json",
+        "https://www.federalreserve.gov/json/ne-press.json"
+      ]
+    },
+    "retrievedAt": "2026-08-27T12:00:00.000Z"
+  },
+  "expectedStats": { "attempted": 8, "succeeded": 8 }
+}

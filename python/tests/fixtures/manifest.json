@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-08-25T00:00:00.000Z",
+  "schemaVersion": 1,
+  "datasets": {
+    "congress-trades": {
+      "title": "Congressional trades",
+      "exportDir": "congress/trades",
+      "rows": 2,
+      "lastIngestedAt": "2026-08-24T00:00:00.000Z",
+      "stale": false,
+      "snapshots": [
+        { "file": "snapshot-2026.json.gz", "rows": 2 },
+        { "file": "snapshot.json.gz", "rows": 2 }
+      ],
+      "feed": "congress/trades/feed.xml"
+    },
+    "big-dataset": {
+      "title": "A dataset too big for a combined snapshot",
+      "exportDir": "big-dataset",
+      "rows": 2,
+      "lastIngestedAt": "2026-08-24T00:00:00.000Z",
+      "stale": false,
+      "snapshots": [
+        { "file": "snapshot-2025.json.gz", "rows": 1 },
+        { "file": "snapshot-2026.json.gz", "rows": 1 }
+      ],
+      "feed": null
+    },
+    "empty-dataset": {
+      "title": "A dataset with no rows yet",
+      "exportDir": "empty-dataset",
+      "rows": 0,
+      "lastIngestedAt": null,
+      "stale": true,
+      "snapshots": [],
+      "feed": null
+    }
+  },
+  "sources": {}
+}

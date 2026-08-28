@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://www.govinfo.gov/app/details/CHRG-119hhrg90001</loc>
+    <lastmod>2026-07-01T10:00:00.000Z</lastmod>
+  </url>
+  <url>
+    <loc>https://www.govinfo.gov/app/details/CHRG-119shrg90002</loc>
+    <lastmod>2026-05-20T10:00:00.000Z</lastmod>
+  </url>
+  <url>
+    <loc>https://www.govinfo.gov/app/details/CHRG-119hhrg99999</loc>
+  </url>
+  <url>
+    <loc>https://www.govinfo.gov/app/details/CHRG-119hhrg90001</loc>
+  </url>
+  <url>
+    <loc>https://www.govinfo.gov/features/some-feature-page</loc>
+  </url>
+</urlset>

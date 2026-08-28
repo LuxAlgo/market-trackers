@@ -1,0 +1,59 @@
+<SEC-DOCUMENT>0000123456-26-000031.txt : 20260817
+<SEC-HEADER>0000123456-26-000031.hdr.sgml : 20260817
+ACCESSION NUMBER:		0000123456-26-000031
+CONFORMED SUBMISSION TYPE:	3
+PUBLIC DOCUMENT COUNT:		1
+CONFORMED PERIOD OF REPORT:	20260815
+FILED AS OF DATE:		20260817
+</SEC-HEADER>
+<DOCUMENT>
+<TYPE>3
+<SEQUENCE>1
+<FILENAME>form3.xml
+<TEXT>
+<XML>
+<?xml version="1.0"?>
+<ownershipDocument>
+    <schemaVersion>X0206</schemaVersion>
+    <documentType>3</documentType>
+    <periodOfReport>2026-08-15</periodOfReport>
+    <noSecuritiesOwned>0</noSecuritiesOwned>
+    <issuer>
+        <issuerCik>0000123456</issuerCik>
+        <issuerName>EXAMPLECORP INC</issuerName>
+        <issuerTradingSymbol>EXCO</issuerTradingSymbol>
+    </issuer>
+    <reportingOwner>
+        <reportingOwnerId>
+            <rptOwnerCik>0007654321</rptOwnerCik>
+            <rptOwnerName>Roe Richard</rptOwnerName>
+        </reportingOwnerId>
+        <reportingOwnerRelationship>
+            <isDirector>1</isDirector>
+            <isOfficer>0</isOfficer>
+            <isTenPercentOwner>0</isTenPercentOwner>
+            <isOther>0</isOther>
+        </reportingOwnerRelationship>
+    </reportingOwner>
+    <nonDerivativeTable>
+        <nonDerivativeHolding>
+            <securityTitle>
+                <value>Common Stock</value>
+            </securityTitle>
+            <postTransactionAmounts>
+                <sharesOwnedFollowingTransaction>
+                    <value>1500</value>
+                </sharesOwnedFollowingTransaction>
+            </postTransactionAmounts>
+            <ownershipNature>
+                <directOrIndirectOwnership>
+                    <value>D</value>
+                </directOrIndirectOwnership>
+            </ownershipNature>
+        </nonDerivativeHolding>
+    </nonDerivativeTable>
+</ownershipDocument>
+</XML>
+</TEXT>
+</DOCUMENT>
+</SEC-DOCUMENT>

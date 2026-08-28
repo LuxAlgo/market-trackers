@@ -1,0 +1,51 @@
+{
+  "name": "@luxalgo/alt-data-cli",
+  "version": "0.1.0",
+  "description": "The LuxAlgo Alt Data CLI \u2014 sync the public record of US markets to a local database, serve it over MCP, and export it as JSON dumps. `alt-data sync | serve | export | status | canary`.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "alt-data": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "!dist/**/*.test.*"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LuxAlgo/alt-data.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/LuxAlgo/alt-data#readme",
+  "bugs": "https://github.com/LuxAlgo/alt-data/issues",
+  "keywords": [
+    "cli",
+    "congress-trades",
+    "insider-trading",
+    "sec",
+    "edgar",
+    "open-data"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@luxalgo/alt-data-core": "workspace:^",
+    "@luxalgo/alt-data-mcp": "workspace:^",
+    "commander": "^13.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  },
+  "engines": {
+    "node": ">=20.9"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

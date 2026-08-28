@@ -1,0 +1,123 @@
+<SEC-DOCUMENT>0001127602-26-021500.txt : 20260217
+<SEC-HEADER>0001127602-26-021500.hdr.sgml : 20260217
+<ACCEPTANCE-DATETIME>20260217120544
+ACCESSION NUMBER:		0001127602-26-021500
+CONFORMED SUBMISSION TYPE:	5
+PUBLIC DOCUMENT COUNT:		1
+CONFORMED PERIOD OF REPORT:	20251231
+FILED AS OF DATE:		20260217
+
+REPORTING-OWNER:
+
+	OWNER DATA:
+		COMPANY CONFORMED NAME:			Roe Richard
+		CENTRAL INDEX KEY:			0007654321
+
+ISSUER:
+
+	COMPANY DATA:
+		COMPANY CONFORMED NAME:			EXAMPLECORP INC
+		CENTRAL INDEX KEY:			0000123456
+</SEC-HEADER>
+<DOCUMENT>
+<TYPE>5
+<SEQUENCE>1
+<FILENAME>form5.xml
+<DESCRIPTION>OWNERSHIP DOCUMENT
+<TEXT>
+<XML>
+<?xml version="1.0"?>
+<ownershipDocument>
+    <schemaVersion>X0508</schemaVersion>
+    <documentType>5</documentType>
+    <periodOfReport>2025-12-31</periodOfReport>
+    <notSubjectToSection16>0</notSubjectToSection16>
+    <issuer>
+        <issuerCik>0000123456</issuerCik>
+        <issuerName>EXAMPLECORP INC</issuerName>
+        <issuerTradingSymbol>EXCO</issuerTradingSymbol>
+    </issuer>
+    <reportingOwner>
+        <reportingOwnerId>
+            <rptOwnerCik>0007654321</rptOwnerCik>
+            <rptOwnerName>Roe Richard</rptOwnerName>
+        </reportingOwnerId>
+        <reportingOwnerAddress>
+            <rptOwnerStreet1>1 EXAMPLE PLAZA</rptOwnerStreet1>
+            <rptOwnerCity>SPRINGFIELD</rptOwnerCity>
+            <rptOwnerState>IL</rptOwnerState>
+            <rptOwnerZipCode>62701</rptOwnerZipCode>
+        </reportingOwnerAddress>
+        <reportingOwnerRelationship>
+            <isDirector>1</isDirector>
+            <isOfficer>0</isOfficer>
+            <isTenPercentOwner>0</isTenPercentOwner>
+            <isOther>0</isOther>
+        </reportingOwnerRelationship>
+    </reportingOwner>
+    <nonDerivativeTable>
+        <nonDerivativeTransaction>
+            <securityTitle>
+                <value>Common Stock</value>
+            </securityTitle>
+            <transactionDate>
+                <value>2025-11-03</value>
+            </transactionDate>
+            <transactionTimeliness>
+                <value></value>
+            </transactionTimeliness>
+            <transactionCoding>
+                <transactionFormType>5</transactionFormType>
+                <transactionCode>G</transactionCode>
+                <equitySwapInvolved>0</equitySwapInvolved>
+            </transactionCoding>
+            <transactionAmounts>
+                <transactionShares>
+                    <value>2500</value>
+                </transactionShares>
+                <transactionAcquiredDisposedCode>
+                    <value>D</value>
+                </transactionAcquiredDisposedCode>
+            </transactionAmounts>
+            <postTransactionAmounts>
+                <sharesOwnedFollowingTransaction>
+                    <value>9000</value>
+                </sharesOwnedFollowingTransaction>
+            </postTransactionAmounts>
+            <ownershipNature>
+                <directOrIndirectOwnership>
+                    <value>D</value>
+                </directOrIndirectOwnership>
+            </ownershipNature>
+        </nonDerivativeTransaction>
+        <nonDerivativeHolding>
+            <securityTitle>
+                <value>Common Stock</value>
+            </securityTitle>
+            <postTransactionAmounts>
+                <sharesOwnedFollowingTransaction>
+                    <value>3200</value>
+                </sharesOwnedFollowingTransaction>
+            </postTransactionAmounts>
+            <ownershipNature>
+                <directOrIndirectOwnership>
+                    <value>I</value>
+                </directOrIndirectOwnership>
+                <natureOfOwnership>
+                    <value>By spouse</value>
+                </natureOfOwnership>
+            </ownershipNature>
+        </nonDerivativeHolding>
+    </nonDerivativeTable>
+    <footnotes>
+        <footnote id="F1">Bona fide gift of shares to a charitable organization.</footnote>
+    </footnotes>
+    <ownerSignature>
+        <signatureName>/s/ Richard Roe</signatureName>
+        <signatureDate>2026-02-17</signatureDate>
+    </ownerSignature>
+</ownershipDocument>
+</XML>
+</TEXT>
+</DOCUMENT>
+</SEC-DOCUMENT>

@@ -1,0 +1,71 @@
+{
+  "studies": [
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT05677654",
+          "orgStudyIdInfo": { "id": "MGH-2023-PACS-07" },
+          "briefTitle": "Long-Term Cardiopulmonary Outcomes After Post-Acute COVID-19 Syndrome",
+          "officialTitle": "A Prospective Observational Cohort Study of Long-Term Cardiopulmonary Outcomes After Post-Acute COVID-19 Syndrome"
+        },
+        "statusModule": {
+          "statusVerifiedDate": "2026-08",
+          "overallStatus": "RECRUITING",
+          "startDateStruct": { "date": "2026-01-12", "type": "ACTUAL" },
+          "primaryCompletionDateStruct": { "date": "2029-01", "type": "ESTIMATED" },
+          "lastUpdatePostDateStruct": { "date": "2026-08-08", "type": "ACTUAL" },
+          "studyFirstSubmitDate": "2025-11-20"
+        },
+        "sponsorCollaboratorsModule": {
+          "leadSponsor": { "name": "Massachusetts General Hospital", "class": "OTHER" },
+          "collaborators": []
+        },
+        "designModule": {
+          "studyType": "OBSERVATIONAL",
+          "designInfo": {
+            "observationalModel": "COHORT",
+            "timePerspective": "PROSPECTIVE"
+          },
+          "enrollmentInfo": { "count": 300, "type": "ESTIMATED" }
+        },
+        "conditionsModule": {
+          "conditions": ["Post-Acute COVID-19 Syndrome"]
+        }
+      },
+      "hasResults": false
+    },
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT05699998",
+          "orgStudyIdInfo": { "id": "CCF-IRB-23-118" },
+          "briefTitle": "A Study of Topical Ruxolitinib for Refractory Chronic Hand Eczema",
+          "officialTitle": "A Phase 2, Open-Label Study of Topical Ruxolitinib for Refractory Chronic Hand Eczema"
+        },
+        "statusModule": {
+          "statusVerifiedDate": "2026-06",
+          "overallStatus": "TERMINATED",
+          "startDateStruct": { "date": "2025-03", "type": "ACTUAL" },
+          "lastUpdatePostDateStruct": { "date": "2026-07-30", "type": "ACTUAL" },
+          "studyFirstSubmitDate": "2023-01-09",
+          "whyStopped": "Sponsor decision unrelated to safety; slow enrollment."
+        },
+        "sponsorCollaboratorsModule": {
+          "leadSponsor": { "name": "Cleveland Clinic Foundation", "class": "OTHER" },
+          "collaborators": []
+        },
+        "designModule": {
+          "studyType": "INTERVENTIONAL",
+          "phases": ["PHASE2"],
+          "designInfo": {
+            "allocation": "NA",
+            "interventionModel": "SINGLE_GROUP",
+            "primaryPurpose": "TREATMENT"
+          },
+          "enrollmentInfo": { "count": 14, "type": "ACTUAL" }
+        }
+      },
+      "hasResults": false
+    }
+  ]
+}

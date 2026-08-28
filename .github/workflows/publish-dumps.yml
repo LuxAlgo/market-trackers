@@ -1,0 +1,224 @@
+name: Publish dumps
+
+# Daily: sync all implemented sources into a cached store, export the
+# alt-datasets layout (daily deltas + snapshots + manifest), and push it to
+# the data repository. Humans never hand-edit data — only this workflow
+# writes to alt-datasets.
+#
+# No-ops until configured:
+#   vars.ALT_DATA_CONTACT       — contact email for the SEC EDGAR User-Agent
+#   vars.ALT_DATASETS_REPO     — e.g. "LuxAlgo/alt-datasets" (job skipped without it)
+#   secrets.ALT_DATASETS_TOKEN — token with push access to the data repo
+#                               (without it, dumps build but nothing is pushed)
+on:
+  schedule:
+    - cron: "41 12 * * 1-6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Never let two publishes race each other (or the shared store cache); a run
+# that fires while another is in flight queues instead of overlapping.
+concurrency:
+  group: publish-dumps
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: vars.ALT_DATASETS_REPO != ''
+    env:
+      # Year-sharded snapshot export of a deep store needs real heap.
+      NODE_OPTIONS: --max-old-space-size=12288
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      # Secrets are not allowed in job-level `if`, so the data-repo steps key
+      # off this output instead. The token itself is never printed.
+      - name: Check data-repo credentials
+        id: creds
+        env:
+          ALT_DATASETS_TOKEN: ${{ secrets.ALT_DATASETS_TOKEN }}
+        run: |
+          if [ -n "$ALT_DATASETS_TOKEN" ]; then
+            echo "push=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "push=false" >> "$GITHUB_OUTPUT"
+            echo "ALT_DATASETS_TOKEN not configured; dumps will be built but not published."
+          fi
+
+      # The store accumulates across runs so exports carry full history.
+      # Restore and save are split so the store is saved even when a later
+      # step fails — see the "Save store" step at the end of the job.
+      - name: Restore store
+        uses: actions/cache/restore@v4
+        with:
+          path: publish.db
+          key: alt-data-store-v1-${{ github.run_id }}
+          restore-keys: |
+            alt-data-store-v1-
+
+      # --allow-partial: a single upstream having a bad day (or an unset
+      # optional API key) must not block publishing every other source's
+      # data. Per-source failures still land in the summary, the sync-run
+      # records, and the README health board; only an every-source failure
+      # fails this step.
+      - name: Sync
+        env:
+          ALT_DATA_CONTACT: ${{ vars.ALT_DATA_CONTACT }}
+          ALT_DATA_PATENTSVIEW_KEY: ${{ secrets.ALT_DATA_PATENTSVIEW_KEY }}
+        run: node packages/cli/dist/index.js sync --db publish.db --allow-partial --json
+
+      - name: Export
+        run: node packages/cli/dist/index.js export --db publish.db --out dumps --json
+
+      # Parquet siblings for every snapshot*.json.gz, via DuckDB. DuckDB is
+      # never a project dependency (installed ephemerally right here,
+      # immediately before the one script that needs it) — and
+      # make-parquet.mjs degrades gracefully (logs + exits 0) whether this
+      # install is skipped, fails, or the runner's platform has no matching
+      # prebuilt binary, so a DuckDB hiccup can never break this publish.
+      - name: Parquet siblings
+        run: |
+          npm i --no-save duckdb || echo "duckdb install failed; make-parquet.mjs will degrade gracefully."
+          node scripts/make-parquet.mjs dumps
+
+      # actions/checkout cannot fetch an empty repository (no refs to fetch),
+      # and release tags need a commit to point at — so the very first
+      # publish seeds the brand-new data repo with the template README via
+      # the contents API. One commit, then every later run no-ops here.
+      - name: Seed data repo when empty
+        if: steps.creds.outputs.push == 'true'
+        uses: actions/github-script@v7
+        env:
+          DATA_REPO: ${{ vars.ALT_DATASETS_REPO }}
+        with:
+          github-token: ${{ secrets.ALT_DATASETS_TOKEN }}
+          script: |
+            const fs = require("fs");
+            const [owner, repo] = process.env.DATA_REPO.split("/");
+            try {
+              await github.rest.repos.listCommits({ owner, repo, per_page: 1 });
+              return;
+            } catch (error) {
+              // 409 is GitHub's "Git Repository is empty" — the one case to seed.
+              if (error.status !== 409) throw error;
+            }
+            await github.rest.repos.createOrUpdateFileContents({
+              owner,
+              repo,
+              path: "README.md",
+              message: "data: seed repository for the first publish",
+              content: fs.readFileSync("templates/alt-datasets/README.md").toString("base64"),
+            });
+            core.info("Seeded the empty data repo with the template README.");
+
+      - name: Checkout data repo
+        if: steps.creds.outputs.push == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.ALT_DATASETS_REPO }}
+          token: ${{ secrets.ALT_DATASETS_TOKEN }}
+          path: data-repo
+
+      # First-publish bootstrap: install the data repo's landing README and
+      # CC0 LICENSE from templates/alt-datasets/ — only when missing, so a
+      # maintainer's later edits in the data repo are never overwritten.
+      - name: Install data-repo README/LICENSE when missing
+        if: steps.creds.outputs.push == 'true'
+        run: |
+          for f in README.md LICENSE; do
+            if [ ! -f "data-repo/$f" ]; then
+              cp "templates/alt-datasets/$f" "data-repo/$f"
+              echo "Installed $f into the data repo (first publish)."
+            fi
+          done
+
+      # "/explorer" is excluded because the exporter never produces it — it is
+      # installed by the next step, and without the exclusion this --delete
+      # would wipe it on every run just to have it re-committed minutes later.
+      - name: Commit & push dumps
+        if: steps.creds.outputs.push == 'true'
+        run: |
+          rsync -a --delete --exclude ".git" --exclude "README.md" --exclude "LICENSE" --exclude "/explorer" --exclude "/llms.txt" dumps/ data-repo/
+          cd data-repo
+          git config user.name "alt-data-publish[bot]"
+          git config user.email "alt-data-publish@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No data changes today."
+          else
+            git commit -m "data: $(date -u +%F) daily publish"
+            git push
+          fi
+
+      # Installs/refreshes the static data explorer at explorer/index.html in
+      # the data repo (a self-contained page that reads ../manifest.json and
+      # the dataset files next to it — see docs/alt-datasets.md). Its own
+      # commit, separate from the dumps push; the dumps rsync above excludes
+      # "/explorer" so its --delete can never wipe this between refreshes.
+      - name: Install data-repo explorer when present
+        if: steps.creds.outputs.push == 'true'
+        run: |
+          if [ ! -d "templates/alt-datasets/explorer" ]; then
+            echo "No explorer template (templates/alt-datasets/explorer/ not present); skipping."
+            exit 0
+          fi
+          rsync -a templates/alt-datasets/explorer/ data-repo/explorer/
+          # llms.txt is maintained documentation like the explorer (refreshed
+          # every publish, excluded from the dumps rsync's --delete), unlike
+          # README/LICENSE which are installed once and left to maintainers.
+          cp templates/alt-datasets/llms.txt data-repo/llms.txt
+          cd data-repo
+          git config user.name "alt-data-publish[bot]"
+          git config user.email "alt-data-publish@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No explorer changes today."
+          else
+            git commit -m "data: $(date -u +%F) refresh data explorer"
+            git push
+          fi
+
+      - name: Update README health board
+        env:
+          ALT_DATA_CONTACT: ${{ vars.ALT_DATA_CONTACT }}
+          ALT_DATA_PATENTSVIEW_KEY: ${{ secrets.ALT_DATA_PATENTSVIEW_KEY }}
+        run: |
+          node packages/cli/dist/index.js canary --db publish.db --out canary-report.json --json || true
+          node scripts/update-health-board.mjs canary-report.json README.md
+          # The board generator doesn't pad table columns the way prettier
+          # does; without this the bot's [skip ci] commit leaves README
+          # unformatted and Format check ambushes the NEXT human push.
+          pnpm exec prettier --write README.md
+          if ! git diff --quiet README.md; then
+            git config user.name "alt-data-publish[bot]"
+            git config user.email "alt-data-publish@users.noreply.github.com"
+            git add README.md
+            git commit -m "docs: refresh health board [skip ci]"
+            git push
+          fi
+
+      # Saved last (and even on failure) so canary runs and fingerprint
+      # baselines recorded above persist too. The run-id key is unique, so
+      # every run saves a fresh entry; restore falls back on the prefix.
+      - name: Save store
+        if: ${{ always() && hashFiles('publish.db') != '' }}
+        uses: actions/cache/save@v4
+        with:
+          path: publish.db
+          key: alt-data-store-v1-${{ github.run_id }}

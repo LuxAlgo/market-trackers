@@ -1,0 +1,42 @@
+{
+  "limit": 100,
+  "results": [
+    {
+      "internal_id": 110020003,
+      "Award ID": "N0001926F0107",
+      "Recipient Name": "PRATT & WHITNEY MILITARY ENGINES",
+      "Recipient UEI": "SYNTHPWUEI02",
+      "Awarding Agency": "Department of Defense",
+      "Awarding Sub Agency": "Department of the Navy",
+      "Award Amount": null,
+      "Description": null,
+      "Contract Award Type": "DELIVERY ORDER",
+      "NAICS Code": "336412",
+      "NAICS Description": "AIRCRAFT ENGINE AND ENGINE PARTS MANUFACTURING",
+      "Start Date": "2026-08-20",
+      "generated_internal_id": "CONT_AWD_N0001926F0107_1700_-NONE-_-NONE-"
+    },
+    {
+      "internal_id": 110020004,
+      "Award ID": "75N98026D0009",
+      "Recipient Name": "BLUE HARBOR ANALYTICS INC",
+      "Recipient UEI": "SYNTHBHAUEI3",
+      "Awarding Agency": "Department of Health and Human Services",
+      "Awarding Sub Agency": "National Institutes of Health",
+      "Award Amount": 1975000,
+      "Description": "BIOMEDICAL DATA CURATION SERVICES",
+      "Contract Award Type": "DEFINITIVE CONTRACT",
+      "NAICS Code": "541511",
+      "NAICS Description": "CUSTOM COMPUTER PROGRAMMING SERVICES",
+      "Start Date": "2026-08-21",
+      "generated_internal_id": "CONT_AWD_75N98026D0009_7529_-NONE-_-NONE-"
+    }
+  ],
+  "page_metadata": {
+    "page": 2,
+    "hasNext": false,
+    "last_record_unique_id": 110020004,
+    "last_record_sort_value": "2026-08-21"
+  },
+  "messages": []
+}

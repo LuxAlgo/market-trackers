@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<billStatus>
+  <bill>
+    <congress>119</congress>
+    <type>HR</type>
+    <originChamber>House</originChamber>
+    <number>5678</number>
+    <introducedDate>2026-07-01T00:00:00Z</introducedDate>
+    <title><![CDATA[Example Minimal Reporting Act]]></title>
+    <sponsors>
+      <item>
+        <bioguideId>E000004</bioguideId>
+        <fullName>Rep. Fourth, Sponsor [I-ME-0]</fullName>
+      </item>
+    </sponsors>
+  </bill>
+</billStatus>

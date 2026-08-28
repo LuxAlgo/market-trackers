@@ -1,0 +1,1380 @@
+{
+  "version": 1,
+  "entries": [
+    {
+      "tickers": ["LMT"],
+      "names": ["LOCKHEED MARTIN", "SIKORSKY", "SIKORSKY AIRCRAFT"],
+      "uei": []
+    },
+    {
+      "tickers": ["RTX"],
+      "names": [
+        "RTX",
+        "RAYTHEON",
+        "RAYTHEON TECHNOLOGIES",
+        "COLLINS AEROSPACE",
+        "PRATT AND WHITNEY",
+        "UNITED TECHNOLOGIES",
+        "HAMILTON SUNDSTRAND"
+      ],
+      "uei": []
+    },
+    {
+      "tickers": ["BA"],
+      "names": ["BOEING", "THE BOEING"],
+      "uei": []
+    },
+    {
+      "tickers": ["NOC"],
+      "names": ["NORTHROP GRUMMAN", "ORBITAL ATK", "SCALED COMPOSITES"],
+      "uei": []
+    },
+    {
+      "tickers": ["GD"],
+      "names": [
+        "GENERAL DYNAMICS",
+        "ELECTRIC BOAT",
+        "GULFSTREAM AEROSPACE",
+        "NATIONAL STEEL AND SHIPBUILDING",
+        "BATH IRON WORKS"
+      ],
+      "uei": []
+    },
+    {
+      "tickers": ["LHX"],
+      "names": [
+        "L3HARRIS",
+        "L3HARRIS TECHNOLOGIES",
+        "L3 TECHNOLOGIES",
+        "L3 COMMUNICATIONS",
+        "AEROJET ROCKETDYNE"
+      ],
+      "uei": []
+    },
+    {
+      "tickers": ["LDOS"],
+      "names": ["LEIDOS", "DYNETICS"],
+      "uei": []
+    },
+    {
+      "tickers": ["HII"],
+      "names": ["HUNTINGTON INGALLS", "NEWPORT NEWS SHIPBUILDING", "INGALLS SHIPBUILDING"],
+      "uei": []
+    },
+    {
+      "tickers": ["BAH"],
+      "names": ["BOOZ ALLEN", "BOOZ ALLEN HAMILTON", "BOOZ ALLEN AND HAMILTON"],
+      "uei": []
+    },
+    {
+      "tickers": ["SAIC"],
+      "names": ["SAIC", "SCIENCE APPLICATIONS INTERNATIONAL"],
+      "uei": []
+    },
+    {
+      "tickers": ["CACI"],
+      "names": ["CACI"],
+      "uei": []
+    },
+    {
+      "tickers": ["PLTR"],
+      "names": ["PALANTIR", "PALANTIR TECHNOLOGIES"],
+      "uei": []
+    },
+    {
+      "tickers": ["KBR"],
+      "names": ["KBR", "KELLOGG BROWN AND ROOT"],
+      "uei": []
+    },
+    {
+      "tickers": ["TDY"],
+      "names": ["TELEDYNE"],
+      "uei": []
+    },
+    {
+      "tickers": ["ACM"],
+      "names": ["AECOM"],
+      "uei": []
+    },
+    {
+      "tickers": ["J"],
+      "names": ["JACOBS ENGINEERING", "JACOBS SOLUTIONS", "JACOBS TECHNOLOGY"],
+      "uei": []
+    },
+    {
+      "tickers": ["PSN"],
+      "names": ["PARSONS", "PARSONS GOVERNMENT SERVICES"],
+      "uei": []
+    },
+    {
+      "tickers": ["VVX"],
+      "names": ["V2X", "VECTRUS"],
+      "uei": []
+    },
+    {
+      "tickers": ["AMTM"],
+      "names": ["AMENTUM"],
+      "uei": []
+    },
+    {
+      "tickers": ["GE"],
+      "names": ["GENERAL ELECTRIC", "GE AEROSPACE", "GE AVIATION"],
+      "uei": []
+    },
+    {
+      "tickers": ["HON"],
+      "names": ["HONEYWELL"],
+      "uei": []
+    },
+    {
+      "tickers": ["TXT"],
+      "names": ["TEXTRON", "BELL TEXTRON", "BELL HELICOPTER", "CESSNA AIRCRAFT", "BEECHCRAFT"],
+      "uei": []
+    },
+    {
+      "tickers": ["ORCL"],
+      "names": ["ORACLE", "CERNER", "ORACLE AMERICA"],
+      "uei": []
+    },
+    {
+      "tickers": ["MSFT"],
+      "names": ["MICROSOFT"],
+      "uei": []
+    },
+    {
+      "tickers": ["AMZN"],
+      "names": ["AMAZON COM", "AMAZON WEB SERVICES"],
+      "uei": []
+    },
+    {
+      "tickers": ["GOOGL"],
+      "names": ["GOOGLE", "ALPHABET"],
+      "uei": []
+    },
+    {
+      "tickers": ["IBM"],
+      "names": ["IBM", "INTERNATIONAL BUSINESS MACHINES"],
+      "uei": []
+    },
+    {
+      "tickers": ["CSCO"],
+      "names": ["CISCO SYSTEMS"],
+      "uei": []
+    },
+    {
+      "tickers": ["DELL"],
+      "names": ["DELL", "DELL TECHNOLOGIES"],
+      "uei": []
+    },
+    {
+      "tickers": ["HPE"],
+      "names": ["HEWLETT PACKARD ENTERPRISE"],
+      "uei": []
+    },
+    {
+      "tickers": ["ACN"],
+      "names": ["ACCENTURE", "ACCENTURE FEDERAL SERVICES"],
+      "uei": []
+    },
+    {
+      "tickers": ["NVDA"],
+      "names": ["NVIDIA"],
+      "uei": []
+    },
+    {
+      "tickers": ["INTC"],
+      "names": ["INTEL"],
+      "uei": []
+    },
+    {
+      "tickers": ["CRM"],
+      "names": ["SALESFORCE", "SALESFORCE COM"],
+      "uei": []
+    },
+    {
+      "tickers": ["NOW"],
+      "names": ["SERVICENOW"],
+      "uei": []
+    },
+    {
+      "tickers": ["MSI"],
+      "names": ["MOTOROLA SOLUTIONS"],
+      "uei": []
+    },
+    {
+      "tickers": ["MMS"],
+      "names": ["MAXIMUS"],
+      "uei": []
+    },
+    {
+      "tickers": ["MMM"],
+      "names": ["3M"],
+      "uei": []
+    },
+    {
+      "tickers": ["CAT"],
+      "names": ["CATERPILLAR"],
+      "uei": []
+    },
+    {
+      "tickers": ["FDX"],
+      "names": ["FEDEX", "FEDERAL EXPRESS"],
+      "uei": []
+    },
+    {
+      "tickers": ["UPS"],
+      "names": ["UNITED PARCEL SERVICE"],
+      "uei": []
+    },
+    {
+      "tickers": ["VZ"],
+      "names": ["VERIZON", "VERIZON COMMUNICATIONS"],
+      "uei": []
+    },
+    {
+      "tickers": ["T"],
+      "names": ["AT AND T"],
+      "uei": []
+    },
+    {
+      "tickers": ["PFE"],
+      "names": ["PFIZER"],
+      "uei": []
+    },
+    {
+      "tickers": ["MRNA"],
+      "names": ["MODERNA", "MODERNATX"],
+      "uei": []
+    },
+    {
+      "tickers": ["JNJ"],
+      "names": ["JOHNSON AND JOHNSON", "JANSSEN PHARMACEUTICALS", "JANSSEN BIOTECH"],
+      "uei": []
+    },
+    {
+      "tickers": ["MCK"],
+      "names": ["MCKESSON"],
+      "uei": []
+    },
+    {
+      "tickers": ["CVS"],
+      "names": ["CVS", "CVS HEALTH", "CVS PHARMACY", "CVS CAREMARK", "AETNA"],
+      "uei": []
+    },
+    {
+      "tickers": ["UNH"],
+      "names": ["UNITEDHEALTH GROUP", "UNITEDHEALTHCARE", "UNITED HEALTHCARE", "OPTUM"],
+      "uei": []
+    },
+    {
+      "tickers": ["HUM"],
+      "names": ["HUMANA"],
+      "uei": []
+    },
+    {
+      "tickers": ["CNC"],
+      "names": ["CENTENE"],
+      "uei": []
+    },
+    {
+      "tickers": ["ELV"],
+      "names": ["ELEVANCE HEALTH", "ANTHEM"],
+      "uei": []
+    },
+    {
+      "tickers": ["CI"],
+      "names": ["CIGNA", "THE CIGNA GROUP", "EVERNORTH"],
+      "uei": []
+    },
+    {
+      "tickers": ["AAPL"],
+      "names": ["APPLE"],
+      "uei": []
+    },
+    {
+      "tickers": ["QCOM"],
+      "names": ["QUALCOMM", "QUALCOMM TECHNOLOGIES"],
+      "uei": []
+    },
+    {
+      "tickers": ["TXN"],
+      "names": ["TEXAS INSTRUMENTS"],
+      "uei": []
+    },
+    {
+      "tickers": ["AVGO"],
+      "names": ["BROADCOM"],
+      "uei": []
+    },
+    {
+      "tickers": ["MU"],
+      "names": ["MICRON TECHNOLOGY"],
+      "uei": []
+    },
+    {
+      "tickers": ["AMAT"],
+      "names": ["APPLIED MATERIALS"],
+      "uei": []
+    },
+    {
+      "tickers": ["META"],
+      "names": ["META PLATFORMS", "FACEBOOK"],
+      "uei": []
+    },
+    {
+      "tickers": ["AMD"],
+      "names": ["ADVANCED MICRO DEVICES"],
+      "uei": []
+    },
+    {
+      "tickers": ["TSLA"],
+      "names": ["TESLA"],
+      "uei": []
+    },
+    {
+      "tickers": ["NVS"],
+      "names": ["NOVARTIS", "NOVARTIS PHARMACEUTICALS"],
+      "uei": []
+    },
+    {
+      "tickers": ["AZN"],
+      "names": ["ASTRAZENECA", "ASTRAZENECA PHARMACEUTICALS"],
+      "uei": []
+    },
+    {
+      "tickers": ["LLY"],
+      "names": ["ELI LILLY", "ELI LILLY AND"],
+      "uei": []
+    },
+    {
+      "tickers": ["MRK"],
+      "names": ["MERCK SHARP AND DOHME", "MERCK AND"],
+      "uei": []
+    },
+    {
+      "tickers": ["BMY"],
+      "names": ["BRISTOL-MYERS SQUIBB", "BRISTOL MYERS SQUIBB"],
+      "uei": []
+    },
+    {
+      "tickers": ["GSK"],
+      "names": ["GLAXOSMITHKLINE", "GSK"],
+      "uei": []
+    },
+    {
+      "tickers": ["SNY"],
+      "names": ["SANOFI"],
+      "uei": []
+    },
+    {
+      "tickers": ["AMGN"],
+      "names": ["AMGEN"],
+      "uei": []
+    },
+    {
+      "tickers": ["GILD"],
+      "names": ["GILEAD SCIENCES"],
+      "uei": []
+    },
+    {
+      "tickers": ["ABBV"],
+      "names": ["ABBVIE"],
+      "uei": []
+    },
+    {
+      "tickers": ["REGN"],
+      "names": ["REGENERON PHARMACEUTICALS", "REGENERON"],
+      "uei": []
+    },
+    {
+      "tickers": ["VRTX"],
+      "names": ["VERTEX PHARMACEUTICALS"],
+      "uei": []
+    },
+    {
+      "tickers": ["BIIB"],
+      "names": ["BIOGEN"],
+      "uei": []
+    },
+    {
+      "tickers": ["ILMN"],
+      "names": ["ILLUMINA"],
+      "uei": []
+    },
+    {
+      "tickers": ["TDG"],
+      "names": ["TRANSDIGM GROUP", "TRANSDIGM"],
+      "uei": []
+    },
+    {
+      "tickers": ["CW"],
+      "names": ["CURTISS-WRIGHT"],
+      "uei": []
+    },
+    {
+      "tickers": ["HEI"],
+      "names": ["HEICO"],
+      "uei": []
+    },
+    {
+      "tickers": ["HXL"],
+      "names": ["HEXCEL"],
+      "uei": []
+    },
+    {
+      "tickers": ["SPR"],
+      "names": ["SPIRIT AEROSYSTEMS HOLDINGS"],
+      "uei": []
+    },
+    {
+      "tickers": ["WWD"],
+      "names": ["WOODWARD GOVERNOR"],
+      "uei": []
+    },
+    {
+      "tickers": ["AVAV"],
+      "names": ["AEROVIRONMENT"],
+      "uei": []
+    },
+    {
+      "tickers": ["KTOS"],
+      "names": ["KRATOS DEFENSE AND SECURITY SOLUTIONS", "KRATOS DEFENSE"],
+      "uei": []
+    },
+    {
+      "tickers": ["MRCY"],
+      "names": ["MERCURY SYSTEMS"],
+      "uei": []
+    },
+    {
+      "tickers": ["RKLB"],
+      "names": ["ROCKET LAB USA", "ROCKET LAB"],
+      "uei": []
+    },
+    {
+      "tickers": ["BWXT"],
+      "names": ["BWX TECHNOLOGIES"],
+      "uei": []
+    },
+    {
+      "tickers": ["AXON"],
+      "names": ["AXON ENTERPRISE"],
+      "uei": []
+    },
+    {
+      "tickers": ["DRS"],
+      "names": ["LEONARDO DRS"],
+      "uei": []
+    },
+    {
+      "tickers": ["ESLT"],
+      "names": ["ELBIT SYSTEMS OF AMERICA", "ELBIT SYSTEMS"],
+      "uei": []
+    },
+    {
+      "tickers": ["GEV"],
+      "names": ["GE VERNOVA"],
+      "uei": []
+    },
+    {
+      "tickers": ["XOM"],
+      "names": ["EXXON MOBIL", "EXXONMOBIL", "EXXON"],
+      "uei": []
+    },
+    {
+      "tickers": ["CVX"],
+      "names": ["CHEVRON"],
+      "uei": []
+    },
+    {
+      "tickers": ["COP"],
+      "names": ["CONOCOPHILLIPS"],
+      "uei": []
+    },
+    {
+      "tickers": ["SLB"],
+      "names": ["SCHLUMBERGER"],
+      "uei": []
+    },
+    {
+      "tickers": ["HAL"],
+      "names": ["HALLIBURTON"],
+      "uei": []
+    },
+    {
+      "tickers": ["BKR"],
+      "names": ["BAKER HUGHES"],
+      "uei": []
+    },
+    {
+      "tickers": ["OXY"],
+      "names": ["OCCIDENTAL PETROLEUM"],
+      "uei": []
+    },
+    {
+      "tickers": ["VLO"],
+      "names": ["VALERO ENERGY", "VALERO"],
+      "uei": []
+    },
+    {
+      "tickers": ["MPC"],
+      "names": ["MARATHON PETROLEUM"],
+      "uei": []
+    },
+    {
+      "tickers": ["MRO"],
+      "names": ["MARATHON OIL"],
+      "uei": []
+    },
+    {
+      "tickers": ["PSX"],
+      "names": ["PHILLIPS 66"],
+      "uei": []
+    },
+    {
+      "tickers": ["WMB"],
+      "names": ["WILLIAMS COMPANIES"],
+      "uei": []
+    },
+    {
+      "tickers": ["KMI"],
+      "names": ["KINDER MORGAN"],
+      "uei": []
+    },
+    {
+      "tickers": ["OKE"],
+      "names": ["ONEOK"],
+      "uei": []
+    },
+    {
+      "tickers": ["EOG"],
+      "names": ["EOG RESOURCES"],
+      "uei": []
+    },
+    {
+      "tickers": ["DVN"],
+      "names": ["DEVON ENERGY"],
+      "uei": []
+    },
+    {
+      "tickers": ["FANG"],
+      "names": ["DIAMONDBACK ENERGY"],
+      "uei": []
+    },
+    {
+      "tickers": ["TRGP"],
+      "names": ["TARGA RESOURCES"],
+      "uei": []
+    },
+    {
+      "tickers": ["LNG"],
+      "names": ["CHENIERE ENERGY", "CHENIERE"],
+      "uei": []
+    },
+    {
+      "tickers": ["NEE"],
+      "names": ["NEXTERA ENERGY", "NEXTERA"],
+      "uei": []
+    },
+    {
+      "tickers": ["DUK"],
+      "names": ["DUKE ENERGY"],
+      "uei": []
+    },
+    {
+      "tickers": ["D"],
+      "names": ["DOMINION ENERGY"],
+      "uei": []
+    },
+    {
+      "tickers": ["AEP"],
+      "names": ["AMERICAN ELECTRIC POWER"],
+      "uei": []
+    },
+    {
+      "tickers": ["EXC"],
+      "names": ["EXELON"],
+      "uei": []
+    },
+    {
+      "tickers": ["PCG"],
+      "names": ["PACIFIC GAS AND ELECTRIC", "PG AND E"],
+      "uei": []
+    },
+    {
+      "tickers": ["ED"],
+      "names": ["CONSOLIDATED EDISON"],
+      "uei": []
+    },
+    {
+      "tickers": ["EIX"],
+      "names": ["EDISON INTERNATIONAL"],
+      "uei": []
+    },
+    {
+      "tickers": ["SRE"],
+      "names": ["SEMPRA"],
+      "uei": []
+    },
+    {
+      "tickers": ["UNP"],
+      "names": ["UNION PACIFIC"],
+      "uei": []
+    },
+    {
+      "tickers": ["CSX"],
+      "names": ["CSX"],
+      "uei": []
+    },
+    {
+      "tickers": ["NSC"],
+      "names": ["NORFOLK SOUTHERN"],
+      "uei": []
+    },
+    {
+      "tickers": ["DE"],
+      "names": ["DEERE AND", "JOHN DEERE"],
+      "uei": []
+    },
+    {
+      "tickers": ["ITW"],
+      "names": ["ILLINOIS TOOL WORKS"],
+      "uei": []
+    },
+    {
+      "tickers": ["EMR"],
+      "names": ["EMERSON ELECTRIC"],
+      "uei": []
+    },
+    {
+      "tickers": ["PH"],
+      "names": ["PARKER HANNIFIN"],
+      "uei": []
+    },
+    {
+      "tickers": ["CMI"],
+      "names": ["CUMMINS"],
+      "uei": []
+    },
+    {
+      "tickers": ["XYL"],
+      "names": ["XYLEM"],
+      "uei": []
+    },
+    {
+      "tickers": ["ROK"],
+      "names": ["ROCKWELL AUTOMATION"],
+      "uei": []
+    },
+    {
+      "tickers": ["AME"],
+      "names": ["AMETEK"],
+      "uei": []
+    },
+    {
+      "tickers": ["FTV"],
+      "names": ["FORTIVE"],
+      "uei": []
+    },
+    {
+      "tickers": ["IEX"],
+      "names": ["IDEX"],
+      "uei": []
+    },
+    {
+      "tickers": ["PNR"],
+      "names": ["PENTAIR"],
+      "uei": []
+    },
+    {
+      "tickers": ["GNRC"],
+      "names": ["GENERAC HOLDINGS"],
+      "uei": []
+    },
+    {
+      "tickers": ["WAB"],
+      "names": ["WABTEC", "WESTINGHOUSE AIR BRAKE TECHNOLOGIES"],
+      "uei": []
+    },
+    {
+      "tickers": ["FLR"],
+      "names": ["FLUOR"],
+      "uei": []
+    },
+    {
+      "tickers": ["DHR"],
+      "names": ["DANAHER"],
+      "uei": []
+    },
+    {
+      "tickers": ["PWR"],
+      "names": ["QUANTA SERVICES"],
+      "uei": []
+    },
+    {
+      "tickers": ["F"],
+      "names": ["FORD MOTOR"],
+      "uei": []
+    },
+    {
+      "tickers": ["GM"],
+      "names": ["GENERAL MOTORS"],
+      "uei": []
+    },
+    {
+      "tickers": ["STLA"],
+      "names": ["STELLANTIS N V"],
+      "uei": []
+    },
+    {
+      "tickers": ["RIVN"],
+      "names": ["RIVIAN AUTOMOTIVE", "RIVIAN"],
+      "uei": []
+    },
+    {
+      "tickers": ["LCID"],
+      "names": ["LUCID GROUP"],
+      "uei": []
+    },
+    {
+      "tickers": ["APTV"],
+      "names": ["APTIV"],
+      "uei": []
+    },
+    {
+      "tickers": ["BWA"],
+      "names": ["BORGWARNER"],
+      "uei": []
+    },
+    {
+      "tickers": ["ALV"],
+      "names": ["AUTOLIV"],
+      "uei": []
+    },
+    {
+      "tickers": ["GNTX"],
+      "names": ["GENTEX"],
+      "uei": []
+    },
+    {
+      "tickers": ["AXL"],
+      "names": ["AMERICAN AXLE AND MANUFACTURING HOLDINGS"],
+      "uei": []
+    },
+    {
+      "tickers": ["TMUS"],
+      "names": ["T-MOBILE US", "T-MOBILE"],
+      "uei": []
+    },
+    {
+      "tickers": ["CMCSA"],
+      "names": ["COMCAST"],
+      "uei": []
+    },
+    {
+      "tickers": ["CHTR"],
+      "names": ["CHARTER COMMUNICATIONS"],
+      "uei": []
+    },
+    {
+      "tickers": ["LUMN"],
+      "names": ["LUMEN TECHNOLOGIES"],
+      "uei": []
+    },
+    {
+      "tickers": ["DISH"],
+      "names": ["DISH NETWORK"],
+      "uei": []
+    },
+    {
+      "tickers": ["FYBR"],
+      "names": ["FRONTIER COMMUNICATIONS PARENT"],
+      "uei": []
+    },
+    {
+      "tickers": ["USM"],
+      "names": ["UNITED STATES CELLULAR", "US CELLULAR"],
+      "uei": []
+    },
+    {
+      "tickers": ["WMT"],
+      "names": ["WALMART"],
+      "uei": []
+    },
+    {
+      "tickers": ["COST"],
+      "names": ["COSTCO WHOLESALE", "COSTCO"],
+      "uei": []
+    },
+    {
+      "tickers": ["HD"],
+      "names": ["THE HOME DEPOT", "HOME DEPOT"],
+      "uei": []
+    },
+    {
+      "tickers": ["TJX"],
+      "names": ["THE TJX COMPANIES"],
+      "uei": []
+    },
+    {
+      "tickers": ["ROST"],
+      "names": ["ROSS STORES"],
+      "uei": []
+    },
+    {
+      "tickers": ["KR"],
+      "names": ["THE KROGER"],
+      "uei": []
+    },
+    {
+      "tickers": ["SYY"],
+      "names": ["SYSCO"],
+      "uei": []
+    },
+    {
+      "tickers": ["DG"],
+      "names": ["DOLLAR GENERAL"],
+      "uei": []
+    },
+    {
+      "tickers": ["DLTR"],
+      "names": ["DOLLAR TREE"],
+      "uei": []
+    },
+    {
+      "tickers": ["BBY"],
+      "names": ["BEST BUY"],
+      "uei": []
+    },
+    {
+      "tickers": ["ULTA"],
+      "names": ["ULTA BEAUTY", "ULTA"],
+      "uei": []
+    },
+    {
+      "tickers": ["YUM"],
+      "names": ["YUM BRANDS", "YUM! BRANDS"],
+      "uei": []
+    },
+    {
+      "tickers": ["SBUX"],
+      "names": ["STARBUCKS"],
+      "uei": []
+    },
+    {
+      "tickers": ["CMG"],
+      "names": ["CHIPOTLE MEXICAN GRILL"],
+      "uei": []
+    },
+    {
+      "tickers": ["NKE"],
+      "names": ["NIKE"],
+      "uei": []
+    },
+    {
+      "tickers": ["LULU"],
+      "names": ["LULULEMON ATHLETICA", "LULULEMON"],
+      "uei": []
+    },
+    {
+      "tickers": ["EL"],
+      "names": [
+        "THE ESTEE LAUDER COMPANIES",
+        "THE ESTÉE LAUDER COMPANIES",
+        "ESTEE LAUDER",
+        "ESTÉE LAUDER"
+      ],
+      "uei": []
+    },
+    {
+      "tickers": ["PG"],
+      "names": ["THE PROCTER AND GAMBLE"],
+      "uei": []
+    },
+    {
+      "tickers": ["KO"],
+      "names": ["THE COCA-COLA", "COCA-COLA"],
+      "uei": []
+    },
+    {
+      "tickers": ["PEP"],
+      "names": ["PEPSICO"],
+      "uei": []
+    },
+    {
+      "tickers": ["MDLZ"],
+      "names": ["MONDELEZ INTERNATIONAL", "MONDELEZ"],
+      "uei": []
+    },
+    {
+      "tickers": ["KHC"],
+      "names": ["THE KRAFT HEINZ", "KRAFT HEINZ"],
+      "uei": []
+    },
+    {
+      "tickers": ["GIS"],
+      "names": ["GENERAL MILLS"],
+      "uei": []
+    },
+    {
+      "tickers": ["K"],
+      "names": ["KELLANOVA"],
+      "uei": []
+    },
+    {
+      "tickers": ["STZ"],
+      "names": ["CONSTELLATION BRANDS"],
+      "uei": []
+    },
+    {
+      "tickers": ["CL"],
+      "names": ["COLGATE-PALMOLIVE"],
+      "uei": []
+    },
+    {
+      "tickers": ["CLX"],
+      "names": ["THE CLOROX"],
+      "uei": []
+    },
+    {
+      "tickers": ["KMB"],
+      "names": ["KIMBERLY-CLARK"],
+      "uei": []
+    },
+    {
+      "tickers": ["CHD"],
+      "names": ["CHURCH AND DWIGHT"],
+      "uei": []
+    },
+    {
+      "tickers": ["HSY"],
+      "names": ["THE HERSHEY", "HERSHEY"],
+      "uei": []
+    },
+    {
+      "tickers": ["JPM"],
+      "names": ["JPMORGAN CHASE AND", "JPMORGAN"],
+      "uei": []
+    },
+    {
+      "tickers": ["BAC"],
+      "names": ["BANK OF AMERICA"],
+      "uei": []
+    },
+    {
+      "tickers": ["WFC"],
+      "names": ["WELLS FARGO AND"],
+      "uei": []
+    },
+    {
+      "tickers": ["C"],
+      "names": ["CITIGROUP"],
+      "uei": []
+    },
+    {
+      "tickers": ["GS"],
+      "names": ["THE GOLDMAN SACHS GROUP", "GOLDMAN SACHS"],
+      "uei": []
+    },
+    {
+      "tickers": ["MS"],
+      "names": ["MORGAN STANLEY"],
+      "uei": []
+    },
+    {
+      "tickers": ["SWK"],
+      "names": ["STANLEY BLACK AND DECKER"],
+      "uei": []
+    },
+    {
+      "tickers": ["USB"],
+      "names": ["U S BANCORP"],
+      "uei": []
+    },
+    {
+      "tickers": ["PNC"],
+      "names": ["THE PNC FINANCIAL SERVICES GROUP"],
+      "uei": []
+    },
+    {
+      "tickers": ["TFC"],
+      "names": ["TRUIST FINANCIAL", "TRUIST"],
+      "uei": []
+    },
+    {
+      "tickers": ["COF"],
+      "names": ["CAPITAL ONE FINANCIAL", "CAPITAL ONE"],
+      "uei": []
+    },
+    {
+      "tickers": ["AXP"],
+      "names": ["AMERICAN EXPRESS"],
+      "uei": []
+    },
+    {
+      "tickers": ["SCHW"],
+      "names": ["CHARLES SCHWAB"],
+      "uei": []
+    },
+    {
+      "tickers": ["BLK"],
+      "names": ["BLACKROCK"],
+      "uei": []
+    },
+    {
+      "tickers": ["SPGI"],
+      "names": ["S AND P GLOBAL"],
+      "uei": []
+    },
+    {
+      "tickers": ["ICE"],
+      "names": ["INTERCONTINENTAL EXCHANGE"],
+      "uei": []
+    },
+    {
+      "tickers": ["CME"],
+      "names": ["CME GROUP"],
+      "uei": []
+    },
+    {
+      "tickers": ["NDAQ"],
+      "names": ["NASDAQ"],
+      "uei": []
+    },
+    {
+      "tickers": ["MET"],
+      "names": ["METLIFE"],
+      "uei": []
+    },
+    {
+      "tickers": ["PRU"],
+      "names": ["PRUDENTIAL FINANCIAL"],
+      "uei": []
+    },
+    {
+      "tickers": ["AIG"],
+      "names": ["AMERICAN INTERNATIONAL GROUP"],
+      "uei": []
+    },
+    {
+      "tickers": ["ALL"],
+      "names": ["ALLSTATE"],
+      "uei": []
+    },
+    {
+      "tickers": ["AFL"],
+      "names": ["AFLAC"],
+      "uei": []
+    },
+    {
+      "tickers": ["BX"],
+      "names": ["BLACKSTONE"],
+      "uei": []
+    },
+    {
+      "tickers": ["KKR"],
+      "names": ["KKR AND"],
+      "uei": []
+    },
+    {
+      "tickers": ["APO"],
+      "names": ["APOLLO GLOBAL MANAGEMENT"],
+      "uei": []
+    },
+    {
+      "tickers": ["ARES"],
+      "names": ["ARES MANAGEMENT"],
+      "uei": []
+    },
+    {
+      "tickers": ["CG"],
+      "names": ["THE CARLYLE GROUP"],
+      "uei": []
+    },
+    {
+      "tickers": ["HIG"],
+      "names": ["THE HARTFORD FINANCIAL SERVICES GROUP"],
+      "uei": []
+    },
+    {
+      "tickers": ["MDT"],
+      "names": ["MEDTRONIC"],
+      "uei": []
+    },
+    {
+      "tickers": ["ABT"],
+      "names": ["ABBOTT LABORATORIES"],
+      "uei": []
+    },
+    {
+      "tickers": ["SYK"],
+      "names": ["STRYKER"],
+      "uei": []
+    },
+    {
+      "tickers": ["BSX"],
+      "names": ["BOSTON SCIENTIFIC"],
+      "uei": []
+    },
+    {
+      "tickers": ["BDX"],
+      "names": ["BECTON DICKINSON AND"],
+      "uei": []
+    },
+    {
+      "tickers": ["ISRG"],
+      "names": ["INTUITIVE SURGICAL"],
+      "uei": []
+    },
+    {
+      "tickers": ["EW"],
+      "names": ["EDWARDS LIFESCIENCES"],
+      "uei": []
+    },
+    {
+      "tickers": ["ZBH"],
+      "names": ["ZIMMER BIOMET HOLDINGS"],
+      "uei": []
+    },
+    {
+      "tickers": ["DXCM"],
+      "names": ["DEXCOM"],
+      "uei": []
+    },
+    {
+      "tickers": ["ALGN"],
+      "names": ["ALIGN TECHNOLOGY"],
+      "uei": []
+    },
+    {
+      "tickers": ["IDXX"],
+      "names": ["IDEXX LABORATORIES", "IDEXX"],
+      "uei": []
+    },
+    {
+      "tickers": ["RMD"],
+      "names": ["RESMED"],
+      "uei": []
+    },
+    {
+      "tickers": ["PODD"],
+      "names": ["INSULET"],
+      "uei": []
+    },
+    {
+      "tickers": ["TFX"],
+      "names": ["TELEFLEX"],
+      "uei": []
+    },
+    {
+      "tickers": ["STE"],
+      "names": ["STERIS"],
+      "uei": []
+    },
+    {
+      "tickers": ["HOLX"],
+      "names": ["HOLOGIC"],
+      "uei": []
+    },
+    {
+      "tickers": ["COO"],
+      "names": ["THE COOPER COMPANIES"],
+      "uei": []
+    },
+    {
+      "tickers": ["A"],
+      "names": ["AGILENT TECHNOLOGIES", "AGILENT"],
+      "uei": []
+    },
+    {
+      "tickers": ["CRL"],
+      "names": ["CHARLES RIVER LABORATORIES INTERNATIONAL"],
+      "uei": []
+    },
+    {
+      "tickers": ["LH"],
+      "names": ["LABORATORY CORPORATION OF AMERICA HOLDINGS", "LABCORP"],
+      "uei": []
+    },
+    {
+      "tickers": ["DGX"],
+      "names": ["QUEST DIAGNOSTICS"],
+      "uei": []
+    },
+    {
+      "tickers": ["HCA"],
+      "names": ["HCA HEALTHCARE"],
+      "uei": []
+    },
+    {
+      "tickers": ["UHS"],
+      "names": ["UNIVERSAL HEALTH SERVICES"],
+      "uei": []
+    },
+    {
+      "tickers": ["THC"],
+      "names": ["TENET HEALTHCARE"],
+      "uei": []
+    },
+    {
+      "tickers": ["DVA"],
+      "names": ["DAVITA"],
+      "uei": []
+    },
+    {
+      "tickers": ["CAH"],
+      "names": ["CARDINAL HEALTH"],
+      "uei": []
+    },
+    {
+      "tickers": ["ADBE"],
+      "names": ["ADOBE"],
+      "uei": []
+    },
+    {
+      "tickers": ["NFLX"],
+      "names": ["NETFLIX"],
+      "uei": []
+    },
+    {
+      "tickers": ["UBER"],
+      "names": ["UBER TECHNOLOGIES"],
+      "uei": []
+    },
+    {
+      "tickers": ["ABNB"],
+      "names": ["AIRBNB"],
+      "uei": []
+    },
+    {
+      "tickers": ["PYPL"],
+      "names": ["PAYPAL HOLDINGS", "PAYPAL"],
+      "uei": []
+    },
+    {
+      "tickers": ["SHOP"],
+      "names": ["SHOPIFY"],
+      "uei": []
+    },
+    {
+      "tickers": ["SNOW"],
+      "names": ["SNOWFLAKE"],
+      "uei": []
+    },
+    {
+      "tickers": ["CRWD"],
+      "names": ["CROWDSTRIKE HOLDINGS", "CROWDSTRIKE"],
+      "uei": []
+    },
+    {
+      "tickers": ["PANW"],
+      "names": ["PALO ALTO NETWORKS"],
+      "uei": []
+    },
+    {
+      "tickers": ["FTNT"],
+      "names": ["FORTINET"],
+      "uei": []
+    },
+    {
+      "tickers": ["ZS"],
+      "names": ["ZSCALER"],
+      "uei": []
+    },
+    {
+      "tickers": ["NET"],
+      "names": ["CLOUDFLARE"],
+      "uei": []
+    },
+    {
+      "tickers": ["DDOG"],
+      "names": ["DATADOG"],
+      "uei": []
+    },
+    {
+      "tickers": ["MDB"],
+      "names": ["MONGODB"],
+      "uei": []
+    },
+    {
+      "tickers": ["TEAM"],
+      "names": ["ATLASSIAN"],
+      "uei": []
+    },
+    {
+      "tickers": ["WDAY"],
+      "names": ["WORKDAY"],
+      "uei": []
+    },
+    {
+      "tickers": ["INTU"],
+      "names": ["INTUIT"],
+      "uei": []
+    },
+    {
+      "tickers": ["ADSK"],
+      "names": ["AUTODESK"],
+      "uei": []
+    },
+    {
+      "tickers": ["ANSS"],
+      "names": ["ANSYS"],
+      "uei": []
+    },
+    {
+      "tickers": ["CDNS"],
+      "names": ["CADENCE DESIGN SYSTEMS"],
+      "uei": []
+    },
+    {
+      "tickers": ["SNPS"],
+      "names": ["SYNOPSYS"],
+      "uei": []
+    },
+    {
+      "tickers": ["KLAC"],
+      "names": ["KLA"],
+      "uei": []
+    },
+    {
+      "tickers": ["LRCX"],
+      "names": ["LAM RESEARCH"],
+      "uei": []
+    },
+    {
+      "tickers": ["ON"],
+      "names": ["ON SEMICONDUCTOR", "ONSEMI"],
+      "uei": []
+    },
+    {
+      "tickers": ["SWKS"],
+      "names": ["SKYWORKS SOLUTIONS", "SKYWORKS"],
+      "uei": []
+    },
+    {
+      "tickers": ["QRVO"],
+      "names": ["QORVO"],
+      "uei": []
+    },
+    {
+      "tickers": ["MCHP"],
+      "names": ["MICROCHIP TECHNOLOGY"],
+      "uei": []
+    },
+    {
+      "tickers": ["MPWR"],
+      "names": ["MONOLITHIC POWER SYSTEMS"],
+      "uei": []
+    },
+    {
+      "tickers": ["ENTG"],
+      "names": ["ENTEGRIS"],
+      "uei": []
+    },
+    {
+      "tickers": ["TER"],
+      "names": ["TERADYNE"],
+      "uei": []
+    }
+  ]
+}

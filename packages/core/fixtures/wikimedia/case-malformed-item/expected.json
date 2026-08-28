@@ -1,0 +1,34 @@
+[
+  {
+    "id": "en.wikipedia:Ford_Motor_Company:2026-08-18",
+    "project": "en.wikipedia",
+    "article": "Ford_Motor_Company",
+    "day": "2026-08-18",
+    "views": 9130,
+    "tickers": ["F"],
+    "provenance": {
+      "source": "wikimedia",
+      "sourceUrl": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Ford_Motor_Company/daily/2026081800/2026082000",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "wikimedia-pageviews@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "en.wikipedia:Ford_Motor_Company:2026-08-20",
+    "project": "en.wikipedia",
+    "article": "Ford_Motor_Company",
+    "day": "2026-08-20",
+    "views": 8825,
+    "tickers": ["F"],
+    "provenance": {
+      "source": "wikimedia",
+      "sourceUrl": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Ford_Motor_Company/daily/2026081800/2026082000",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "wikimedia-pageviews@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  }
+]

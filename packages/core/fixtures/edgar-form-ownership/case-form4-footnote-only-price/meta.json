@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic Form 4 where transactionPricePerShare contains only a <footnoteId/> reference (weighted-average-price disclosure). The parser must emit pricePerShare null — footnote-only values are never fabricated.",
+  "sourceUrl": null,
+  "parser": "form-ownership-xml@1",
+  "parseInput": {
+    "accessionNumber": "0001127602-26-020404",
+    "filedAt": "2026-09-01",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/123456/0001127602-26-020404-index.htm",
+    "retrievedAt": "2026-09-01T00:00:00.000Z"
+  }
+}

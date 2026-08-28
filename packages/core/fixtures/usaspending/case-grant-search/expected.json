@@ -1,0 +1,104 @@
+[
+  {
+    "id": "ASST_NON_SYNTHGRANT0001_7529_-NONE-_-NONE-",
+    "awardId": "5R01AI999999-02",
+    "awardType": "PROJECT GRANT",
+    "agency": "Department of Health and Human Services",
+    "subAgency": "National Institutes of Health",
+    "recipient": {
+      "name": "PFIZER INC",
+      "uei": "SYNTHPFEUEI1",
+      "tickers": [
+        "PFE"
+      ]
+    },
+    "amountUsd": 4200000.75,
+    "actionDate": "2026-08-18",
+    "description": "MRNA PLATFORM BIODEFENSE RESEARCH GRANT",
+    "naicsCode": null,
+    "naicsDescription": null,
+    "provenance": {
+      "source": "usaspending",
+      "sourceUrl": "https://www.usaspending.gov/award/ASST_NON_SYNTHGRANT0001_7529_-NONE-_-NONE-",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "usaspending-awards@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "ASST_NON_SYNTHGRANT0002_7529_-NONE-_-NONE-",
+    "awardId": "90ABC1234-01-00",
+    "awardType": "FORMULA GRANT",
+    "agency": "Department of Education",
+    "subAgency": "Office of Postsecondary Education",
+    "recipient": {
+      "name": "TRUENORTH STATE UNIVERSITY",
+      "uei": null,
+      "tickers": []
+    },
+    "amountUsd": 615000,
+    "actionDate": "2026-08-19",
+    "description": "STEM WORKFORCE DEVELOPMENT PROGRAM GRANT",
+    "naicsCode": null,
+    "naicsDescription": null,
+    "provenance": {
+      "source": "usaspending",
+      "sourceUrl": "https://www.usaspending.gov/award/ASST_NON_SYNTHGRANT0002_7529_-NONE-_-NONE-",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "usaspending-awards@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "ASST_NON_SYNTHGRANT0003_7529_-NONE-_-NONE-",
+    "awardId": "1P01AI888888-01",
+    "awardType": "COOPERATIVE AGREEMENT",
+    "agency": "Department of Health and Human Services",
+    "subAgency": "Biomedical Advanced Research and Development Authority",
+    "recipient": {
+      "name": "MODERNATX BIODEFENSE DIVISION",
+      "uei": "SYNTHMRNAUEI4",
+      "tickers": []
+    },
+    "amountUsd": null,
+    "actionDate": "2026-08-20",
+    "description": null,
+    "naicsCode": null,
+    "naicsDescription": null,
+    "provenance": {
+      "source": "usaspending",
+      "sourceUrl": "https://www.usaspending.gov/award/ASST_NON_SYNTHGRANT0003_7529_-NONE-_-NONE-",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "usaspending-awards@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "ASST_NON_SYNTHGRANT0004_7529_-NONE-_-NONE-",
+    "awardId": "CFDA-93.859-0007",
+    "awardType": "BLOCK GRANT",
+    "agency": "Department of Health and Human Services",
+    "subAgency": "Health Resources and Services Administration",
+    "recipient": {
+      "name": "COMMUNITY HEALTH INITIATIVE OF THE PLAINS",
+      "uei": "SYNTHCHIPUEI5",
+      "tickers": []
+    },
+    "amountUsd": 89250.4,
+    "actionDate": "2026-08-21",
+    "description": "RURAL MATERNAL HEALTH OUTREACH GRANT",
+    "naicsCode": null,
+    "naicsDescription": null,
+    "provenance": {
+      "source": "usaspending",
+      "sourceUrl": "https://www.usaspending.gov/award/ASST_NON_SYNTHGRANT0004_7529_-NONE-_-NONE-",
+      "retrievedAt": "2026-08-24T12:00:00.000Z",
+      "parser": "usaspending-awards@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  }
+]

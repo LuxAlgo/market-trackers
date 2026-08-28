@@ -1,0 +1,17 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic CHRG discovery + metadata fixture. sitemap-index.xml mirrors the live sitemapindex shape (per-year <sitemap> with <loc>https://www.govinfo.gov/sitemap/CHRG_{year}_sitemap.xml</loc> and a <lastmod> refresh hint — old years get regenerated, so lastmod is never an event-date signal) plus one non-CHRG loc that must be skipped silently. sitemap-2026.xml mirrors the live urlset shape (each <loc> a package details page); it exercises a duplicate loc (deduped) and a non-details loc (unrecognized: warned, never fetched). CHRG-119hhrg90001-mods.xml is the rich house case verified against a live mods.xml fragment: entity-encoded title, Content Detail/HTML rendition/PDF rendition urls by displayLabel, docClass/accessId/chamber/congress/session/heldDate/preferredCitation in an <extension>, 2 <witness> elements, a <congCommittee authorityId> with authority-standard + authority-short names, 2 <congMember bioGuideId> elements, and a trailing <relatedItem> granule whose own titleInfo/heldDate/witness/congMember must never leak into the package row (the parser truncates at the first <relatedItem>). CHRG-119shrg90002-mods.xml is the senate minimal case: CDATA title, no heldDate (falls back to originInfo/dateIssued), no session/citation/committees/witnesses/members, PDF rendition only. CHRG-119jhrg80001-mods.xml is a joint hearing (chamber JOINT → null, docClass kept raw), committee with only an authority-short name, and two <heldDate> elements (multi-day: the first wins). CHRG-119hhrg99999-mods.xml has an accessId but no titleInfo — a deliberate per-document parse failure (skip-and-count, never stored, holds the 2026 watermark back).",
+  "sourceUrl": null,
+  "parser": "govinfo-hearings-mods@1",
+  "parseInput": {
+    "request": {
+      "sitemapIndexUrl": "https://www.govinfo.gov/sitemap/CHRG_sitemap_index.xml",
+      "yearSitemapUrl": "https://www.govinfo.gov/sitemap/CHRG_{year}_sitemap.xml",
+      "modsUrl": "https://www.govinfo.gov/metadata/pkg/{packageId}/mods.xml",
+      "years": [2025, 2026]
+    },
+    "retrievedAt": "2026-08-24T12:00:00.000Z"
+  },
+  "expectedStats": { "attempted": 4, "succeeded": 3 }
+}

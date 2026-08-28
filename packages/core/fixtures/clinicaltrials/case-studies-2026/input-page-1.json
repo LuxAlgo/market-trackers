@@ -1,0 +1,119 @@
+{
+  "studies": [
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT05512345",
+          "orgStudyIdInfo": { "id": "C1234-301" },
+          "briefTitle": "A Study of Elzafenib in Adults With Type 2 Diabetes Mellitus",
+          "officialTitle": "A Phase 3, Randomized, Double-Blind Study of Elzafenib in Adults With Type 2 Diabetes Mellitus"
+        },
+        "statusModule": {
+          "statusVerifiedDate": "2026-08",
+          "overallStatus": "RECRUITING",
+          "startDateStruct": { "date": "2025-11-03", "type": "ACTUAL" },
+          "primaryCompletionDateStruct": { "date": "2027-09", "type": "ESTIMATED" },
+          "completionDateStruct": { "date": "2028-01", "type": "ESTIMATED" },
+          "lastUpdatePostDateStruct": { "date": "2026-08-10", "type": "ACTUAL" },
+          "studyFirstSubmitDate": "2022-08-19"
+        },
+        "sponsorCollaboratorsModule": {
+          "responsibleParty": { "type": "SPONSOR" },
+          "leadSponsor": { "name": "Pfizer", "class": "INDUSTRY" },
+          "collaborators": []
+        },
+        "designModule": {
+          "studyType": "INTERVENTIONAL",
+          "phases": ["PHASE3"],
+          "designInfo": {
+            "allocation": "RANDOMIZED",
+            "interventionModel": "PARALLEL",
+            "primaryPurpose": "TREATMENT",
+            "maskingInfo": { "masking": "DOUBLE" }
+          },
+          "enrollmentInfo": { "count": 640, "type": "ESTIMATED" }
+        },
+        "conditionsModule": {
+          "conditions": ["Type 2 Diabetes Mellitus"],
+          "keywords": ["T2DM", "glycemic control"]
+        }
+      },
+      "hasResults": false
+    },
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT05598877",
+          "orgStudyIdInfo": { "id": "FH-AML-22-04" },
+          "briefTitle": "Venetoclax Plus Azacitidine Maintenance in Older Adults With Acute Myeloid Leukemia",
+          "officialTitle": "A Phase 2 Study of Venetoclax Plus Azacitidine Maintenance Therapy in Older Adults With Acute Myeloid Leukemia in Remission"
+        },
+        "statusModule": {
+          "statusVerifiedDate": "2026-07",
+          "overallStatus": "ACTIVE_NOT_RECRUITING",
+          "startDateStruct": { "date": "2024-06-01", "type": "ACTUAL" },
+          "primaryCompletionDateStruct": { "date": "2026-07-01", "type": "ESTIMATED" },
+          "completionDateStruct": { "date": "2027-01-01", "type": "ESTIMATED" },
+          "lastUpdatePostDateStruct": { "date": "2026-08-01", "type": "ACTUAL" },
+          "studyFirstSubmitDate": "2022-10-03"
+        },
+        "sponsorCollaboratorsModule": {
+          "leadSponsor": { "name": "Fred Hutchinson Cancer Center", "class": "OTHER" },
+          "collaborators": [{ "name": "National Cancer Institute (NCI)", "class": "NIH" }]
+        },
+        "designModule": {
+          "studyType": "INTERVENTIONAL",
+          "phases": ["PHASE2"],
+          "designInfo": {
+            "allocation": "NA",
+            "interventionModel": "SINGLE_GROUP",
+            "primaryPurpose": "TREATMENT"
+          },
+          "enrollmentInfo": { "count": 60, "type": "ESTIMATED" }
+        },
+        "conditionsModule": {
+          "conditions": ["Acute Myeloid Leukemia"]
+        }
+      },
+      "hasResults": false
+    },
+    {
+      "protocolSection": {
+        "identificationModule": {
+          "nctId": "NCT05633221",
+          "orgStudyIdInfo": { "id": "mRNA-1230-P1" },
+          "briefTitle": "A Study of mRNA-1230 Seasonal Influenza Vaccine in Healthy Adults",
+          "officialTitle": "A Phase 1, Randomized, Observer-Blind Study of mRNA-1230 Seasonal Influenza Vaccine in Healthy Adults"
+        },
+        "statusModule": {
+          "statusVerifiedDate": "2026-08",
+          "overallStatus": "NOT_YET_RECRUITING",
+          "startDateStruct": { "date": "2026-05", "type": "ESTIMATED" },
+          "primaryCompletionDateStruct": { "date": "2027", "type": "ESTIMATED" },
+          "lastUpdatePostDateStruct": { "date": "2026-08-05", "type": "ACTUAL" },
+          "studyFirstSubmitDate": "2026-07-01"
+        },
+        "sponsorCollaboratorsModule": {
+          "leadSponsor": { "name": "ModernaTX, Inc.", "class": "INDUSTRY" },
+          "collaborators": []
+        },
+        "designModule": {
+          "studyType": "INTERVENTIONAL",
+          "phases": ["PHASE1"],
+          "designInfo": {
+            "allocation": "RANDOMIZED",
+            "interventionModel": "PARALLEL",
+            "primaryPurpose": "PREVENTION",
+            "maskingInfo": { "masking": "SINGLE" }
+          },
+          "enrollmentInfo": { "count": 180, "type": "ESTIMATED" }
+        },
+        "conditionsModule": {
+          "conditions": ["Seasonal Influenza"]
+        }
+      },
+      "hasResults": false
+    }
+  ],
+  "nextPageToken": "page-2"
+}

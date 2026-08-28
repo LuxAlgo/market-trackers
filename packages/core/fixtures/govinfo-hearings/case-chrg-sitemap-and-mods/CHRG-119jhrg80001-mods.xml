@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mods xmlns="http://www.loc.gov/mods/v3" version="3.7" ID="id-CHRG-119jhrg80001">
+  <titleInfo>
+    <title>JOINT HEARING ON EXAMPLE ECONOMIC REPORTING</title>
+  </titleInfo>
+  <location>
+    <url displayLabel="Content Detail" access="object in context">https://www.govinfo.gov/app/details/CHRG-119jhrg80001</url>
+    <url displayLabel="HTML rendition" access="raw object">https://www.govinfo.gov/content/pkg/CHRG-119jhrg80001/html/CHRG-119jhrg80001.htm</url>
+    <url displayLabel="PDF rendition" access="raw object">https://www.govinfo.gov/content/pkg/CHRG-119jhrg80001/pdf/CHRG-119jhrg80001.pdf</url>
+  </location>
+  <originInfo>
+    <publisher>U.S. Government Publishing Office</publisher>
+    <dateIssued encoding="w3cdtf">2025-11-03</dateIssued>
+  </originInfo>
+  <extension>
+    <docClass>JHRG</docClass>
+    <accessId>CHRG-119jhrg80001</accessId>
+    <chamber>JOINT</chamber>
+    <congress>119</congress>
+    <session>1</session>
+    <heldDate>2025-09-17</heldDate>
+    <heldDate>2025-09-18</heldDate>
+  </extension>
+  <extension>
+    <witness>Dr. Casey Example, Chief Economist, Example Institute</witness>
+    <congCommittee authorityId="jsec00" congress="119" type="J">
+      <name type="authority-short">Example Joint Economic</name>
+    </congCommittee>
+  </extension>
+</mods>

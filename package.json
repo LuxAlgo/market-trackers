@@ -1,0 +1,32 @@
+{
+  "name": "@luxalgo/alt-data-workspace",
+  "private": true,
+  "version": "0.1.0",
+  "description": "LuxAlgo Alt Data — the public record of US markets, as open infrastructure. Workspace root.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20.9"
+  },
+  "scripts": {
+    "build": "tsc -b packages/core packages/mcp packages/cli",
+    "clean": "rm -rf packages/*/dist packages/*/tsconfig.tsbuildinfo",
+    "typecheck": "tsc -b packages/core packages/mcp packages/cli",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "pnpm build && pnpm lint && pnpm format:check && pnpm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "eslint": "^9.20.0",
+    "eslint-config-prettier": "^10.0.0",
+    "prettier": "^3.5.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.24.0",
+    "vitest": "^3.2.0"
+  }
+}

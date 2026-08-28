@@ -1,0 +1,64 @@
+{
+  "files": [
+    {
+      "displayLabel": "some-subfolder/",
+      "fileExtension": "",
+      "folder": true,
+      "formattedLastModifiedTime": "01-Jan-2026 00:00",
+      "formattedSize": "-",
+      "justFileName": "some-subfolder",
+      "link": "https://www.govinfo.gov/bulkdata/json/BILLSTATUS/119/hr/some-subfolder",
+      "mimeType": "",
+      "name": "some-subfolder",
+      "size": 0
+    },
+    {
+      "displayLabel": "BILLSTATUS-119hr1234.xml",
+      "fileExtension": "xml",
+      "folder": false,
+      "formattedLastModifiedTime": "12-Aug-2026 14:00",
+      "formattedSize": "4.7 KB",
+      "justFileName": "BILLSTATUS-119hr1234.xml",
+      "link": "https://www.govinfo.gov/bulkdata/BILLSTATUS/119/hr/BILLSTATUS-119hr1234.xml",
+      "mimeType": "application/xml",
+      "name": "BILLSTATUS-119hr1234.xml",
+      "size": 4821
+    },
+    {
+      "displayLabel": "BILLSTATUS-119hr5678.xml",
+      "fileExtension": "xml",
+      "folder": false,
+      "formattedLastModifiedTime": "20-Aug-2026 09:30",
+      "formattedSize": "2.2 KB",
+      "justFileName": "BILLSTATUS-119hr5678.xml",
+      "link": "https://www.govinfo.gov/bulkdata/BILLSTATUS/119/hr/BILLSTATUS-119hr5678.xml",
+      "mimeType": "application/xml",
+      "name": "BILLSTATUS-119hr5678.xml",
+      "size": 2210
+    },
+    {
+      "displayLabel": "not-a-billstatus-file.txt",
+      "fileExtension": "txt",
+      "folder": false,
+      "formattedLastModifiedTime": "01-Aug-2026 00:00",
+      "formattedSize": "10 B",
+      "justFileName": "not-a-billstatus-file.txt",
+      "link": "https://www.govinfo.gov/bulkdata/BILLSTATUS/119/hr/not-a-billstatus-file.txt",
+      "mimeType": "text/plain",
+      "name": "not-a-billstatus-file.txt",
+      "size": 10
+    },
+    {
+      "displayLabel": "BILLSTATUS-119hr9999.xml",
+      "fileExtension": "xml",
+      "folder": false,
+      "formattedLastModifiedTime": "22-Aug-2026 00:00",
+      "formattedSize": "1.5 KB",
+      "justFileName": "BILLSTATUS-119hr9999.xml",
+      "link": "https://www.govinfo.gov/bulkdata/BILLSTATUS/119/hr/BILLSTATUS-119hr9999.xml",
+      "mimeType": "application/xml",
+      "name": "BILLSTATUS-119hr9999.xml",
+      "size": 1500
+    }
+  ]
+}

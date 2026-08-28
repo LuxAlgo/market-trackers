@@ -1,0 +1,19 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic USPTO Open Data Portal quarterly release for the PVGPATDIS product: product metadata (live envelope shape, captured 2026-08 via verify-live) naming three per-table zips among decoy entries, plus the tables themselves. Exercises: selection by fileName (dictionary/clustering decoys lead the bag), a mapped assignee by exact name (Microsoft Corporation -> MSFT), an unmapped assignee (Example Innovations Inc.), an unassigned patent (no assignee rows, name stays null, kind null, cpcClass null), a multi-assignee design patent whose organization sits at sequence 1 behind a sequence-0 individual (first-listed ORG wins by sequence, assigneeCount keeps the total of 2, prefix-mapped Northrop Grumman Systems Corporation -> NOC), a reissue patent mapped after suffix-stripping (International Business Machines Corporation -> IBM) whose sequence-0 CPC row has an empty cpc_class (passed over for sequence 1, lowercased g06 uppercased to G06), CPC sequence order beating file order (11900001), a quoted title carrying escaped quotes plus an embedded tab and newline (11900002), a withdrawn patent that parses but is never emitted (11900004), an unparseable grant date counted as the one parse failure (11900006), and one assignee row with no patent_id counted as unusable.",
+  "sourceUrl": null,
+  "parser": "patentsview-odp@1",
+  "parseInput": {
+    "request": {
+      "productUrl": "https://api.uspto.gov/api/v1/datasets/products/pvgpatdis",
+      "fileDownloadURIs": [
+        "https://api.uspto.gov/api/v1/datasets/products/files/PVGPATDIS/g_patent.tsv.zip",
+        "https://api.uspto.gov/api/v1/datasets/products/files/PVGPATDIS/g_assignee_disambiguated.tsv.zip",
+        "https://api.uspto.gov/api/v1/datasets/products/files/PVGPATDIS/g_cpc_current.tsv.zip"
+      ]
+    },
+    "retrievedAt": "2026-08-20T12:00:00.000Z"
+  },
+  "expectedStats": { "attempted": 7, "succeeded": 6 }
+}

@@ -1,0 +1,9 @@
+patent_id	assignee_sequence	disambig_assignee_organization	disambig_assignee_individual_name_first	disambig_assignee_individual_name_last	assignee_type
+11900001	0	Microsoft Corporation			2
+11900002	0	Example Innovations Inc.			2
+D1023456	1	Northrop Grumman Systems Corporation			2
+D1023456	0		Jane	Inventor	4
+11900004	0	Microsoft Corporation			2
+RE50123	0	International Business Machines Corporation			2
+11900006	0	Whatever Corp			2
+	0	Orphan Row Without Patent			2

@@ -1,0 +1,33 @@
+name: DCO
+
+# Every commit on a pull request must carry a Developer Certificate of Origin
+# sign-off (`git commit -s` → "Signed-off-by: Name <email>"). See
+# CONTRIBUTING.md. Push builds are not checked — the DCO is an inbound
+# contribution attestation, so it gates PRs.
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  dco:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check Signed-off-by on every PR commit
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          missing=0
+          while read -r sha; do
+            if ! git log -1 --format=%B "$sha" | grep -qE '^Signed-off-by: .+ <.+@.+>$'; then
+              echo "::error::Commit $sha is missing a Signed-off-by line (git commit -s)."
+              missing=1
+            fi
+          done < <(git rev-list --no-merges "$BASE_SHA".."$HEAD_SHA")
+          exit $missing

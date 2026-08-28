@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic Form 4 full submission: two non-derivative transactions (option exercise M/A and indirect sale S/D with weighted-average-price footnote) plus one derivative transaction. Replace/augment with a real filing via its accession URL.",
+  "sourceUrl": null,
+  "parser": "form-ownership-xml@1",
+  "parseInput": {
+    "accessionNumber": "0001127602-26-019876",
+    "filedAt": "2026-08-20",
+    "sourceUrl": "https://www.sec.gov/Archives/edgar/data/123456/0001127602-26-019876-index.htm",
+    "retrievedAt": "2026-08-24T00:00:00.000Z"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Decimal-era (2026-02-23 onward) daily file — fractional volumes must normalize identically to the integer era.",
+  "sourceUrl": null,
+  "parser": "finra-shortvol@1",
+  "parseInput": {
+    "market": "CNMS",
+    "sourceUrl": "https://cdn.finra.org/equity/regsho/daily/CNMSshvol20260302.txt",
+    "retrievedAt": "2026-08-24T00:00:00.000Z"
+  },
+  "expectedStats": { "attempted": 2, "succeeded": 2 }
+}

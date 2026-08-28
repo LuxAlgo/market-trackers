@@ -1,0 +1,57 @@
+{
+  "rows": [
+    {
+      "id": "0009876543-23-000104:0",
+      "accessionNumber": "0009876543-23-000104",
+      "managerCik": "0009876543",
+      "managerName": "EXAMPLE CAPITAL MANAGEMENT LP",
+      "periodEnd": "2022-12-31",
+      "filedAt": "2023-02-14",
+      "cusip": "30303M102",
+      "ticker": null,
+      "issuerName": "EXAMPLECORP INC",
+      "shareType": "SH",
+      "shares": 2500000,
+      "valueUsd": 104650000,
+      "putCall": null,
+      "provenance": {
+        "source": "edgar",
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/9876543/0009876543-23-000104-index.htm",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "thirteenf-xml@1",
+        "confidence": 1,
+        "needsReview": false
+      }
+    },
+    {
+      "id": "0009876543-23-000104:1",
+      "accessionNumber": "0009876543-23-000104",
+      "managerCik": "0009876543",
+      "managerName": "EXAMPLE CAPITAL MANAGEMENT LP",
+      "periodEnd": "2022-12-31",
+      "filedAt": "2023-02-14",
+      "cusip": "79589LAB2",
+      "ticker": null,
+      "issuerName": "SAMPLE ENERGY CORP",
+      "shareType": "PRN",
+      "shares": 5000000,
+      "valueUsd": 4980000,
+      "putCall": null,
+      "provenance": {
+        "source": "edgar",
+        "sourceUrl": "https://www.sec.gov/Archives/edgar/data/9876543/0009876543-23-000104-index.htm",
+        "retrievedAt": "2026-08-24T00:00:00.000Z",
+        "parser": "thirteenf-xml@1",
+        "confidence": 1,
+        "needsReview": false
+      }
+    }
+  ],
+  "managerCik": "0009876543",
+  "managerName": "EXAMPLE CAPITAL MANAGEMENT LP",
+  "periodEnd": "2022-12-31",
+  "cusips": [
+    "30303M102",
+    "79589LAB2"
+  ]
+}

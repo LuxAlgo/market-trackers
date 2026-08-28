@@ -1,0 +1,20 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Two-page PTR: wrapped asset description and wrapped amount range merging into the row above, a row whose continuation lands on page 2 below the repeated table header (header + its wrapped words must be skipped, not merged), an exchange row, a crypto asset, a dotted foreign ticker, and a SUBHOLDING OF annotation. Hand-verified expected output.",
+  "sourceUrl": null,
+  "sourceUrlPattern": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/{YYYY}/{DocID}.pdf",
+  "parser": "house-ptr-pdf@1",
+  "parseInput": {
+    "docId": "20035678",
+    "filedAt": "2026-08-21",
+    "member": {
+      "name": "Hon. Lucia Ramirez-Ortega",
+      "bioguideId": "R000901",
+      "party": "Democrat",
+      "state": "TX"
+    },
+    "sourceUrl": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20035678.pdf",
+    "retrievedAt": "2026-08-24T00:00:00.000Z"
+  }
+}

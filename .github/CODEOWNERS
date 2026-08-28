@@ -1,0 +1,7 @@
+# Changes to licensing, trademarks, and CI/publish plumbing require LuxAlgo review.
+/LICENSE @smack369
+/data-licenses/ @smack369
+/TRADEMARKS.md @smack369
+/SECURITY.md @smack369
+/.github/workflows/ @smack369
+/.github/CODEOWNERS @smack369

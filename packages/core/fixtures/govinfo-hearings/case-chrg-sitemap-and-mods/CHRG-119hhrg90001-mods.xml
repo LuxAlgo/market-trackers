@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mods xmlns="http://www.loc.gov/mods/v3" xmlns:xlink="http://www.w3.org/1999/xlink" version="3.7" ID="id-CHRG-119hhrg90001">
+  <extension>
+    <collectionCode>CHRG</collectionCode>
+    <category>Congressional Committee Materials</category>
+    <waisDatabaseName>119_house_hearings</waisDatabaseName>
+    <branch>legislative</branch>
+  </extension>
+  <titleInfo>
+    <title>OVERSIGHT OF THE EXAMPLE DATA BUREAU &amp; ITS PROGRAMS</title>
+  </titleInfo>
+  <location>
+    <url displayLabel="Content Detail" access="object in context">https://www.govinfo.gov/app/details/CHRG-119hhrg90001</url>
+    <url displayLabel="HTML rendition" access="raw object">https://www.govinfo.gov/content/pkg/CHRG-119hhrg90001/html/CHRG-119hhrg90001.htm</url>
+    <url displayLabel="PDF rendition" access="raw object">https://www.govinfo.gov/content/pkg/CHRG-119hhrg90001/pdf/CHRG-119hhrg90001.pdf</url>
+  </location>
+  <originInfo>
+    <publisher>U.S. Government Publishing Office</publisher>
+    <dateIssued encoding="w3cdtf">2026-07-01</dateIssued>
+  </originInfo>
+  <physicalDescription>
+    <extent>1 online resource.</extent>
+  </physicalDescription>
+  <extension>
+    <docClass>HHRG</docClass>
+    <accessId>CHRG-119hhrg90001</accessId>
+    <type>O</type>
+    <chamber>HOUSE</chamber>
+    <congress>119</congress>
+    <session>2</session>
+    <heldDate>2026-06-10</heldDate>
+    <preferredCitation>Serial No. 119-42</preferredCitation>
+  </extension>
+  <extension>
+    <searchTitle>Oversight of the Example Data Bureau and Its Programs</searchTitle>
+    <witness>Jane Q. Witness, Director, Example Data Bureau</witness>
+    <witness>Robert R. Witness, Inspector General, Example Data Bureau</witness>
+    <congCommittee authorityId="hsex00" chamber="H" congress="119" type="S">
+      <name type="authority-standard">Committee on Example Matters</name>
+      <name type="authority-short">Example Matters</name>
+    </congCommittee>
+    <congMember bioGuideId="E000001" chamber="H" congress="119" party="I" role="CHAIR" state="VT">
+      <name type="authority-fnf">Jane Example</name>
+      <name type="authority-lnf">Example, Jane</name>
+    </congMember>
+    <congMember bioGuideId="E000002" chamber="H" congress="119" party="I" state="ME">
+      <name type="authority-fnf">John Example</name>
+      <name type="authority-lnf">Example, John</name>
+    </congMember>
+  </extension>
+  <relatedItem type="constituent" ID="id-CHRG-119hhrg90001-granule">
+    <titleInfo>
+      <title>GRANULE TITLE THAT MUST NEVER BE READ AS THE PACKAGE TITLE</title>
+    </titleInfo>
+    <extension>
+      <accessId>CHRG-119hhrg90001/CHRG-119hhrg90001</accessId>
+      <heldDate>1999-01-01</heldDate>
+      <witness>Granule Witness Who Must Not Appear In The Package Row</witness>
+      <congMember bioGuideId="Z999999" chamber="H" congress="119">
+        <name type="authority-fnf">Never Extracted</name>
+      </congMember>
+    </extension>
+  </relatedItem>
+</mods>

@@ -1,0 +1,45 @@
+# LuxAlgo Alt Datasets
+
+> Free, CC0-licensed daily dumps of the public record of US markets: congressional
+> trades, insider filings, 13F holdings, government contracts and grants, lobbying,
+> short-sale volume, committee assignments, federal bills, campaign finance, patents,
+> clinical trials, FDA drug approvals, futures positioning, congressional hearing
+> transcripts, Federal Reserve communications, and Wikipedia pageviews
+> for major tickers. Normalized JSON with Parquet siblings, republished daily by CI
+> from the pipeline at https://github.com/LuxAlgo/alt-data. Every row carries a
+> `provenance` object with a deep link to the primary-source document it was parsed
+> from. Data only — no signals, scores, or predictions.
+
+## How to read this repository
+
+- `manifest.json` at the repo root is the machine-readable index: every dataset's
+  directory, row count, snapshot shard list, freshness, and per-source health,
+  plus the schema version. Start there.
+- Each dataset directory follows one shape: `<YYYY>/<YYYY-MM-DD>.json` daily
+  deltas (rows ingested that UTC day), `latest.json` (newest delta at a stable
+  URL), `snapshot-<YYYY>.json.gz` year shards by event date, `snapshot.json.gz`
+  (whole dataset, only when small enough), and `feed.xml` (RSS of the newest
+  rows). Parquet siblings sit next to every snapshot.
+- Per-entity RSS lives at `<dataset-dir>/feeds/by-ticker/<TICKER>.xml` and, for
+  congressional trades, `feeds/by-member/<bioguideId>.xml`.
+- Deep-history archives too large for the working tree are attached to this
+  repository's GitHub Releases as `archive-<source>-<from>-<to>` tags, sharded
+  by event year; restore them with `alt-data import` from the pipeline repo.
+- Every file is a plain JSON array on one line; every row validates against the
+  zod schemas in the pipeline repo (`packages/core/src/schema/`), and amount
+  ranges from disclosure forms are preserved as ranges, never point-estimated.
+
+## Query it as an agent
+
+- The pipeline repo ships an MCP server (`@luxalgo/alt-data-mcp`) exposing these
+  datasets as typed tools over any store built from this data — the intended
+  interface for AI agents. See https://github.com/LuxAlgo/alt-data#readme.
+- For SQL, load the Parquet files directly (e.g. DuckDB over HTTPS) or rebuild a
+  SQLite/Postgres store from the dumps with `alt-data import`.
+
+## Files
+
+- [manifest.json](manifest.json): index of every dataset, row counts, health
+- [README.md](README.md): human-facing overview and dataset directory table
+- [explorer/index.html](explorer/index.html): self-contained browser UI over the data
+- [LICENSE](LICENSE): CC0-1.0 — no attribution required

@@ -1,0 +1,152 @@
+{
+  "meta": {
+    "disclaimer": "Do not rely on openFDA to make decisions regarding medical care.",
+    "terms": "https://open.fda.gov/terms/",
+    "license": "https://open.fda.gov/license/",
+    "last_updated": "2026-08-20",
+    "results": { "skip": 0, "limit": 100, "total": 4 }
+  },
+  "results": [
+    {
+      "application_number": "NDA021436",
+      "sponsor_name": "PFIZER INC",
+      "openfda": {
+        "brand_name": ["EXAMPLETA"],
+        "manufacturer_name": ["Pfizer Inc."],
+        "product_type": ["HUMAN PRESCRIPTION DRUG"]
+      },
+      "products": [
+        {
+          "product_number": "001",
+          "reference_drug": "Yes",
+          "brand_name": "EXAMPLETA",
+          "active_ingredients": [{ "name": "EXAMPLINIB", "strength": "50MG" }],
+          "dosage_form": "TABLET",
+          "route": "ORAL",
+          "marketing_status": "Prescription"
+        }
+      ],
+      "submissions": [
+        {
+          "submission_type": "ORIG",
+          "submission_number": "1",
+          "submission_status": "AP",
+          "submission_status_date": "20260803",
+          "submission_class_code": "N",
+          "review_priority": "STANDARD"
+        }
+      ]
+    },
+    {
+      "application_number": "NDA021555",
+      "sponsor_name": "MERCK SHARP DOHME LLC",
+      "products": [
+        {
+          "product_number": "001",
+          "reference_drug": "Yes",
+          "brand_name": "EXAMPLEDOSE",
+          "active_ingredients": [{ "name": "EXAMPLASTAT", "strength": "20MG" }],
+          "dosage_form": "TABLET",
+          "route": "ORAL",
+          "marketing_status": "Prescription"
+        }
+      ],
+      "submissions": [
+        {
+          "submission_type": "ORIG",
+          "submission_number": "1",
+          "submission_status": "AP",
+          "submission_status_date": "20250102",
+          "submission_class_code": "N"
+        },
+        {
+          "submission_type": "SUPPL",
+          "submission_number": "12",
+          "submission_status": "AP",
+          "submission_status_date": "20260805",
+          "submission_class_code": "S",
+          "review_priority": "STANDARD"
+        }
+      ]
+    },
+    {
+      "application_number": "BLA125514",
+      "sponsor_name": "PFIZER INC",
+      "openfda": {
+        "brand_name": ["BRANDONE", "BRANDTWO"],
+        "product_type": ["HUMAN PRESCRIPTION DRUG"]
+      },
+      "products": [
+        {
+          "product_number": "001",
+          "reference_drug": "Yes",
+          "brand_name": "BRANDONE",
+          "active_ingredients": [{ "name": "EXAMPLIZUMAB", "strength": "100MG/ML" }],
+          "dosage_form": "INJECTABLE",
+          "route": "INTRAVENOUS",
+          "marketing_status": "Prescription"
+        },
+        {
+          "product_number": "002",
+          "reference_drug": "No",
+          "brand_name": "BRANDTWO",
+          "active_ingredients": [{ "name": "EXAMPLIZUMAB", "strength": "200MG/ML" }],
+          "dosage_form": "INJECTABLE",
+          "route": "INTRAVENOUS",
+          "marketing_status": "Prescription"
+        }
+      ],
+      "submissions": [
+        {
+          "submission_type": "ORIG",
+          "submission_number": "1",
+          "submission_status": "AP",
+          "submission_status_date": "20260806",
+          "submission_class_code": "N",
+          "review_priority": "PRIORITY"
+        }
+      ]
+    },
+    {
+      "application_number": "NDA099887",
+      "sponsor_name": "EXAMPLE BIOSCIENCES INC",
+      "openfda": {
+        "manufacturer_name": ["Example Biosciences Inc."]
+      },
+      "products": [
+        {
+          "product_number": "001",
+          "reference_drug": "Yes",
+          "brand_name": "EXAMPLECILLIN",
+          "active_ingredients": [{ "name": "EXAMPLECILLIN", "strength": "500MG" }],
+          "dosage_form": "CAPSULE",
+          "route": "ORAL",
+          "marketing_status": "Prescription"
+        }
+      ],
+      "submissions": [
+        {
+          "submission_type": "ORIG",
+          "submission_number": "1",
+          "submission_status": "AP",
+          "submission_status_date": "20260808",
+          "submission_class_code": "N"
+        },
+        {
+          "submission_type": "SUPPL",
+          "submission_number": "2",
+          "submission_status": "TA",
+          "submission_class_code": "S"
+        },
+        {
+          "submission_type": "SUPPL",
+          "submission_number": "3",
+          "submission_status": "AP",
+          "submission_status_date": "20260820",
+          "submission_class_code": "S",
+          "review_priority": "STANDARD"
+        }
+      ]
+    }
+  ]
+}

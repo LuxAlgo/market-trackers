@@ -1,0 +1,95 @@
+[
+  {
+    "id": "11900001",
+    "patentId": "11900001",
+    "title": "Method for secure query routing in a virtualization layer",
+    "grantDate": "2026-05-12",
+    "assignee": { "name": "Microsoft Corporation", "tickers": ["MSFT"] },
+    "assigneeCount": 1,
+    "kind": "B2",
+    "cpcClass": "H04",
+    "provenance": {
+      "source": "patentsview",
+      "sourceUrl": "https://data.uspto.gov/patents/11900001",
+      "retrievedAt": "2026-08-20T12:00:00.000Z",
+      "parser": "patentsview-odp@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "11900002",
+    "patentId": "11900002",
+    "title": "Adaptive \"thermal\" regulation\nsystem for portable\telectronics",
+    "grantDate": "2026-05-12",
+    "assignee": { "name": "Example Innovations Inc.", "tickers": [] },
+    "assigneeCount": 1,
+    "kind": "B2",
+    "cpcClass": "H05",
+    "provenance": {
+      "source": "patentsview",
+      "sourceUrl": "https://data.uspto.gov/patents/11900002",
+      "retrievedAt": "2026-08-20T12:00:00.000Z",
+      "parser": "patentsview-odp@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "11900003",
+    "patentId": "11900003",
+    "title": "Ergonomic hand tool grip",
+    "grantDate": "2026-05-12",
+    "assignee": { "name": null, "tickers": [] },
+    "assigneeCount": 0,
+    "kind": null,
+    "cpcClass": null,
+    "provenance": {
+      "source": "patentsview",
+      "sourceUrl": "https://data.uspto.gov/patents/11900003",
+      "retrievedAt": "2026-08-20T12:00:00.000Z",
+      "parser": "patentsview-odp@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "D1023456",
+    "patentId": "D1023456",
+    "title": "Display screen with animated graphical user interface",
+    "grantDate": "2026-05-19",
+    "assignee": { "name": "Northrop Grumman Systems Corporation", "tickers": ["NOC"] },
+    "assigneeCount": 2,
+    "kind": "S1",
+    "cpcClass": null,
+    "provenance": {
+      "source": "patentsview",
+      "sourceUrl": "https://data.uspto.gov/patents/D1023456",
+      "retrievedAt": "2026-08-20T12:00:00.000Z",
+      "parser": "patentsview-odp@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "RE50123",
+    "patentId": "RE50123",
+    "title": "Optical interconnect for stacked memory devices",
+    "grantDate": "2026-06-30",
+    "assignee": {
+      "name": "International Business Machines Corporation",
+      "tickers": ["IBM"]
+    },
+    "assigneeCount": 1,
+    "kind": "E1",
+    "cpcClass": "G06",
+    "provenance": {
+      "source": "patentsview",
+      "sourceUrl": "https://data.uspto.gov/patents/RE50123",
+      "retrievedAt": "2026-08-20T12:00:00.000Z",
+      "parser": "patentsview-odp@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  }
+]

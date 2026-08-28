@@ -1,0 +1,64 @@
+name: Verify live
+
+# Manual probe for checking a source's live HTTP behavior from a runner —
+# status codes and response head for a list of URLs. Sources keep quirks
+# that only show up against the real endpoints (403-for-missing files,
+# moved listings, drifted shapes); this gives a documented, rate-polite way
+# to check them without shipping guesswork. Read-only: fetches, prints,
+# changes nothing.
+on:
+  workflow_dispatch:
+    inputs:
+      urls:
+        description: "Whitespace-separated URLs to probe"
+        required: true
+      accept:
+        description: "Accept header to send"
+        default: "application/json"
+      use_patentsview_key:
+        description: "Send secrets.ALT_DATA_PATENTSVIEW_KEY as an x-api-key header (for probing the USPTO Open Data Portal API)"
+        required: false
+        type: boolean
+        default: false
+      head_bytes:
+        description: "How many bytes of each response body to print (fixture capture needs more than a shape check)"
+        required: false
+        default: "400"
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Probe
+        env:
+          URLS: ${{ inputs.urls }}
+          ACCEPT: ${{ inputs.accept }}
+          HEAD_BYTES: ${{ inputs.head_bytes }}
+          # Only exposed when explicitly requested; GitHub masks the secret's
+          # value in logs, and the probe never prints request headers anyway.
+          API_KEY: ${{ inputs.use_patentsview_key && secrets.ALT_DATA_PATENTSVIEW_KEY || '' }}
+        run: |
+          key_args=()
+          [ -n "$API_KEY" ] && key_args=(-H "x-api-key: $API_KEY")
+          for url in $URLS; do
+            echo "=== $url"
+            # One polite request per URL; print status, final URL after
+            # redirects, and the first bytes of the body for shape checks.
+            # Truncate the body file first: a curl that dies before writing
+            # (DNS failure, refused connection) must not leave the previous
+            # URL's body behind — or, worse, no file at all for `head` to
+            # read, which under `set -e` would abort the loop and skip every
+            # remaining URL.
+            : > body.out
+            curl -sS -L -o body.out -w "status=%{http_code} final=%{url_effective}\n" \
+              -H "accept: $ACCEPT" \
+              -H "user-agent: alt-data verify-live (github-actions)" \
+              "${key_args[@]}" \
+              --max-time 30 "$url" || echo "curl failed"
+            head -c "${HEAD_BYTES:-400}" body.out; echo; echo
+            sleep 1
+          done

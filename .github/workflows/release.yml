@@ -1,0 +1,79 @@
+name: Release
+
+# Manual npm publish of the workspace packages (@luxalgo/alt-data-core, -mcp,
+# -cli). Runs the full gate (build, lint, test) first, then publishes with
+# npm provenance.
+#
+# No-op until configured: without secrets.NPM_TOKEN the run ends
+# successfully after logging that publishing is skipped. The token is only
+# ever passed to pnpm via NODE_AUTH_TOKEN — never printed.
+on:
+  workflow_dispatch:
+    inputs:
+      dist_tag:
+        description: "npm dist-tag to publish under"
+        required: false
+        default: "latest"
+
+# id-token is what lets npm attach provenance attestations to the publish.
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      # Secrets are not allowed in job-level `if`, so gate every step on the
+      # output of this env-mapped presence check instead.
+      - name: Check npm credentials
+        id: npm
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -n "$NPM_TOKEN" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "NPM_TOKEN not configured; skipping publish."
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.npm.outputs.available == 'true'
+
+      - uses: pnpm/action-setup@v4
+        if: steps.npm.outputs.available == 'true'
+
+      - uses: actions/setup-node@v4
+        if: steps.npm.outputs.available == 'true'
+        with:
+          node-version: "22"
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install
+        if: steps.npm.outputs.available == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        if: steps.npm.outputs.available == 'true'
+        run: pnpm build
+
+      - name: Lint
+        if: steps.npm.outputs.available == 'true'
+        run: pnpm lint
+
+      - name: Test
+        if: steps.npm.outputs.available == 'true'
+        run: pnpm test
+
+      - name: Publish
+        if: steps.npm.outputs.available == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          DIST_TAG: ${{ inputs.dist_tag }}
+        run: pnpm publish -r --access public --no-git-checks --provenance --tag "${DIST_TAG:-latest}"

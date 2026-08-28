@@ -1,0 +1,21 @@
+[
+  {
+    "id": { "bioguide": "K000715" },
+    "name": { "first": "Robert", "last": "Kestrel", "official_full": "Robert Kestrel" },
+    "terms": [{ "type": "rep", "party": "Republican", "state": "OH" }]
+  },
+  {
+    "id": { "bioguide": "R000901" },
+    "name": {
+      "first": "Lucia",
+      "last": "Ramirez-Ortega",
+      "official_full": "Lucia Ramirez-Ortega"
+    },
+    "terms": [{ "type": "rep", "party": "Democrat", "state": "TX" }]
+  },
+  {
+    "id": { "bioguide": "V000222" },
+    "name": { "first": "Priya", "last": "Vann", "official_full": "Priya Vann" },
+    "terms": [{ "type": "rep", "party": "Democrat", "state": "WA" }]
+  }
+]

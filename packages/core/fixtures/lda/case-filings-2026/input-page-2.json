@@ -1,0 +1,86 @@
+{
+  "count": 5,
+  "next": null,
+  "previous": "https://lda.senate.gov/api/v1/filings/?filing_year=2026&ordering=-dt_posted&page=1&page_size=25",
+  "results": [
+    {
+      "url": "https://lda.senate.gov/api/v1/filings/8d3e9f50-1b2c-4d5e-9f60-718293a4b5c6/",
+      "filing_uuid": "8d3e9f50-1b2c-4d5e-9f60-718293a4b5c6",
+      "filing_type": "Q2",
+      "filing_type_display": "2nd Quarter - Report",
+      "filing_year": 2026,
+      "filing_period": "second_quarter",
+      "filing_period_display": "2nd Quarter (Apr 1 - Jun 30)",
+      "filing_document_url": "https://lda.senate.gov/filings/public/filing/8d3e9f50-1b2c-4d5e-9f60-718293a4b5c6/print/",
+      "income": "1250000.00",
+      "expenses": null,
+      "expenses_method": null,
+      "posted_by_name": "Sam Ortiz",
+      "dt_posted": "2026-07-20T11:05:56.331000-04:00",
+      "registrant": {
+        "id": 404,
+        "name": "Meridian Public Affairs, LLC",
+        "country": "US"
+      },
+      "client": {
+        "id": 9004,
+        "name": "Oracle America, Inc.",
+        "general_description": "Enterprise software and cloud infrastructure"
+      },
+      "lobbying_activities": [
+        {
+          "general_issue_code": "TAX",
+          "general_issue_code_display": "Taxation/Internal Revenue Code",
+          "description": "Corporate tax policy."
+        },
+        {
+          "general_issue_code": "TEC",
+          "general_issue_code_display": "Telecommunications",
+          "description": "Cloud procurement policy."
+        },
+        {
+          "general_issue_code": "TAX",
+          "general_issue_code_display": "Taxation/Internal Revenue Code",
+          "description": "R&D amortization."
+        },
+        {
+          "general_issue_code": "CPI",
+          "general_issue_code_display": "Computer Industry",
+          "description": "Federal software acquisition."
+        }
+      ]
+    },
+    {
+      "url": "https://lda.senate.gov/api/v1/filings/9e4f0a61-2c3d-4e5f-a071-8293a4b5c6d7/",
+      "filing_uuid": "9e4f0a61-2c3d-4e5f-a071-8293a4b5c6d7",
+      "filing_type": "RR",
+      "filing_type_display": "Registration",
+      "filing_year": 2026,
+      "filing_period": "second_quarter",
+      "filing_period_display": "2nd Quarter (Apr 1 - Jun 30)",
+      "filing_document_url": null,
+      "income": null,
+      "expenses": null,
+      "expenses_method": null,
+      "posted_by_name": "Robin Vance",
+      "dt_posted": "2026-04-19T10:22:41.007000-04:00",
+      "registrant": {
+        "id": 405,
+        "name": "Summit Ridge Government Relations",
+        "country": "US"
+      },
+      "client": {
+        "id": 9005,
+        "name": "Summit Ridge Energy Cooperative",
+        "general_description": "Rural electric cooperative"
+      },
+      "lobbying_activities": [
+        {
+          "general_issue_code": "ENG",
+          "general_issue_code_display": "Energy/Nuclear",
+          "description": "Transmission siting."
+        }
+      ]
+    }
+  ]
+}

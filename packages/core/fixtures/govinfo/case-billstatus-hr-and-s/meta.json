@@ -1,0 +1,16 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Format-faithful synthetic BILLSTATUS bulk-data fixture for congress 119, covering the hr and s directory listings together (the other 6 types return an empty {files:[]} listing in the test's mock, not fixtured here). The listing rows mirror the live GovInfo JSON directory listing shape verified via the repo's verify-live workflow: displayLabel, fileExtension, folder, formattedLastModifiedTime, formattedSize, justFileName, link, mimeType, name, size — file name reads from justFileName, modification time from the formatted-timestamp field. listing-hr.json exercises a folder entry (skipped), a non-BILLSTATUS file name (skipped, discovery-time only — never counted as a fetch), and 3 real BILLSTATUS files. BILLSTATUS-119hr1234.xml is the rich case: a sponsor, 2 cosponsors, a latestAction, a policyArea, and a <titles> list whose nested alternate <title> must not be picked over the top-level one. BILLSTATUS-119hr5678.xml is the sparse case: no cosponsors/latestAction/policyArea (all null/zero), a CDATA-wrapped title, and a full-timestamp introducedDate sliced to a date. BILLSTATUS-119hr9999.xml has no <title> and is a deliberate parse failure (skip-and-count, never stored). listing-s.json + BILLSTATUS-119s200.xml is the second bill type, proving per-type watermark/fingerprint independence: an empty-but-present <cosponsors></cosponsors> (0, not a failure) and a normal populated bill otherwise.",
+  "sourceUrl": null,
+  "parser": "govinfo-billstatus@1",
+  "parseInput": {
+    "request": {
+      "congress": 119,
+      "billTypes": ["hr", "s"],
+      "listingUrl": "https://www.govinfo.gov/bulkdata/json/BILLSTATUS/119/{billType}"
+    },
+    "retrievedAt": "2026-08-24T12:00:00.000Z"
+  },
+  "expectedStats": { "attempted": 4, "succeeded": 3 }
+}

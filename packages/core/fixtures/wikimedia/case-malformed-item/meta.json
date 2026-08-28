@@ -1,0 +1,17 @@
+{
+  "synthetic": true,
+  "verified": true,
+  "notes": "Mixed-quality synthetic response for one article's ranged request: a normal day, a day with a non-numeric 'views' value (must fail as a whole item, never zeroed), a normal day, and a fourth item whose echoed 'article' field does not match the requested article ('General_Motors' inside a 'Ford_Motor_Company' response) — the integrity guard against a misattributed item. Exercises parse-stat accounting across two distinct failure modes.",
+  "sourceUrl": null,
+  "parser": "wikimedia-pageviews@1",
+  "parseInput": {
+    "project": "en.wikipedia",
+    "article": "Ford_Motor_Company",
+    "tickers": ["F"],
+    "start": "2026-08-18",
+    "end": "2026-08-20",
+    "sourceUrl": "https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/Ford_Motor_Company/daily/2026081800/2026082000",
+    "retrievedAt": "2026-08-24T12:00:00.000Z"
+  },
+  "expectedStats": { "attempted": 4, "succeeded": 2 }
+}

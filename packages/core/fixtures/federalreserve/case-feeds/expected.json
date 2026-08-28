@@ -1,0 +1,116 @@
+[
+  {
+    "id": "pressreleases/monetary20260729a",
+    "type": "minutes",
+    "date": "2026-07-29",
+    "title": "Minutes of the Federal Open Market Committee, July 8-9, 2026",
+    "speaker": null,
+    "venue": null,
+    "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260729a.htm",
+    "videoUrl": null,
+    "note": null,
+    "provenance": {
+      "source": "federalreserve",
+      "sourceUrl": "https://www.federalreserve.gov/json/ne-press.json",
+      "retrievedAt": "2026-08-27T12:00:00.000Z",
+      "parser": "federalreserve-json@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "pressreleases/monetary20260810a",
+    "type": "statement",
+    "date": "2026-08-10",
+    "title": "Federal Reserve issues FOMC statement",
+    "speaker": null,
+    "venue": null,
+    "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260810a.htm",
+    "videoUrl": null,
+    "note": null,
+    "provenance": {
+      "source": "federalreserve",
+      "sourceUrl": "https://www.federalreserve.gov/json/ne-press.json",
+      "retrievedAt": "2026-08-27T12:00:00.000Z",
+      "parser": "federalreserve-json@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "pressreleases/monetary20260825a",
+    "type": "pressRelease",
+    "date": "2026-08-25",
+    "title": "Minutes of the Board's discount rate meetings on July 20 and July 29, 2026",
+    "speaker": null,
+    "venue": null,
+    "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260825a.htm",
+    "videoUrl": null,
+    "note": null,
+    "provenance": {
+      "source": "federalreserve",
+      "sourceUrl": "https://www.federalreserve.gov/json/ne-press.json",
+      "retrievedAt": "2026-08-27T12:00:00.000Z",
+      "parser": "federalreserve-json@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "speech/example20260710a",
+    "type": "speech",
+    "date": "2026-07-10",
+    "title": "Example Remarks on Payments Innovation",
+    "speaker": "Vice Chair Pat Example",
+    "venue": null,
+    "url": "https://www.federalreserve.gov/newsevents/speech/example20260710a.htm",
+    "videoUrl": "https://www.federalreserve.gov/newsevents/media/example20260710a-video.htm",
+    "note": "Accessible version corrected July 11, 2026",
+    "provenance": {
+      "source": "federalreserve",
+      "sourceUrl": "https://www.federalreserve.gov/json/ne-speeches.json",
+      "retrievedAt": "2026-08-27T12:00:00.000Z",
+      "parser": "federalreserve-json@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "speech/example20260805a",
+    "type": "speech",
+    "date": "2026-08-05",
+    "title": "Outlook for the Example Economy",
+    "speaker": "Governor Jane Example",
+    "venue": "At the 2026 Example Economic Luncheon, Example City, Alaska",
+    "url": "https://www.federalreserve.gov/newsevents/speech/example20260805a.htm",
+    "videoUrl": null,
+    "note": null,
+    "provenance": {
+      "source": "federalreserve",
+      "sourceUrl": "https://www.federalreserve.gov/json/ne-speeches.json",
+      "retrievedAt": "2026-08-27T12:00:00.000Z",
+      "parser": "federalreserve-json@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  },
+  {
+    "id": "testimony/example20260615a",
+    "type": "testimony",
+    "date": "2026-06-15",
+    "title": "Semiannual Example Policy Report to the Congress",
+    "speaker": "Chair Alex Example",
+    "venue": "Before the Committee on Example Services, U.S. House of Representatives",
+    "url": "https://www.federalreserve.gov/newsevents/testimony/example20260615a.htm",
+    "videoUrl": null,
+    "note": null,
+    "provenance": {
+      "source": "federalreserve",
+      "sourceUrl": "https://www.federalreserve.gov/json/ne-testimony.json",
+      "retrievedAt": "2026-08-27T12:00:00.000Z",
+      "parser": "federalreserve-json@1",
+      "confidence": 1,
+      "needsReview": false
+    }
+  }
+]
