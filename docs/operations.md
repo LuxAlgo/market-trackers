@@ -14,12 +14,12 @@ configured yet: every workflow is a safe no-op until its variables and secrets e
 | `publish-dumps.yml` | daily cron, manual                | `ALT_DATASETS_REPO`, `ALT_DATASETS_TOKEN`, `MARKET_TRACKERS_CONTACT`               | job skipped without the repo var; builds but does not push without the token                                                                       |
 | `sync-fast.yml`     | ~2-hourly cron (weekdays), manual | same as `publish-dumps.yml`                                                        | job skipped without `ALT_DATASETS_REPO`; syncs but does not push without the token                                                                 |
 | `mirror-hf.yml`     | weekly cron, manual               | `ALT_DATASETS_REPO`, `ALT_DATASETS_TOKEN`, `HF_DATASET_REPO`, `HF_TOKEN`           | job skipped without `ALT_DATASETS_REPO`/`HF_DATASET_REPO`; skips the push (with a log line) without either token                                   |
-| `release.yml`       | manual (`workflow_dispatch`)      | `NPM_TOKEN`                                                                        | ends successfully after logging "NPM_TOKEN not configured; skipping publish."                                                                      |
+| `release.yml`       | manual (`workflow_dispatch`)      | npm trusted publisher (configured on npmjs.com; no repo secret)                    | a package without a configured trusted publisher fails its publish with an auth error                                                              |
 | `backfill.yml`      | manual (`workflow_dispatch`)      | `MARKET_TRACKERS_CONTACT` (EDGAR only), `ALT_DATASETS_REPO` + `ALT_DATASETS_TOKEN` | backfills and uploads the dumps as a run artifact either way; the archive-release publish step onto the data repo is skipped without the var/token |
 
 All workflows keep `permissions:` minimal, never print secrets, and pass secrets only through
 env vars (`ALT_DATASETS_TOKEN` to checkout/push, `HF_TOKEN` to authenticate the Hugging Face
-mirror push, `NPM_TOKEN` as `NODE_AUTH_TOKEN`).
+mirror push). npm publishing holds no token at all — see the release notes below.
 
 ## Repository variables and secrets
 
@@ -33,7 +33,6 @@ Set variables under **Settings → Secrets and variables → Actions → Variabl
 | `ALT_DATASETS_TOKEN`      | secret   | Push access to the data repo. Enables checkout of the data repo, the first-publish README/LICENSE bootstrap, and the daily data push — and also unlocks `sync-fast.yml`'s pushes and `mirror-hf.yml`'s read of the data repo. | Dumps are still built (and the store cache still accumulates), but nothing is pushed; a log line says so.  |
 | `HF_DATASET_REPO`         | variable | The target Hugging Face dataset repo for `mirror-hf.yml`, e.g. `LuxAlgo/market-trackers-data`. Gates the mirror job.                                                                                                          | `mirror-hf.yml` is skipped entirely.                                                                       |
 | `HF_TOKEN`                | secret   | A Hugging Face token with write access to `HF_DATASET_REPO`. Enables `mirror-hf.yml`'s weekly push.                                                                                                                           | `mirror-hf.yml`'s job is skipped entirely (both it and `HF_DATASET_REPO` are checked before the job runs). |
-| `NPM_TOKEN`               | secret   | Publishing `@luxalgo/market-trackers-core`, `@luxalgo/market-trackers-mcp`, `@luxalgo/market-trackers-cli` to npm via `release.yml`.                                                                                          | The release run ends green after "NPM_TOKEN not configured; skipping publish." Nothing is published.       |
 
 The contact email is only ever sent inside the EDGAR User-Agent header — LuxAlgo Market Trackers has no
 telemetry (see `buildUserAgent` in `packages/core/src/config.ts`, which refuses to sync EDGAR
@@ -267,8 +266,12 @@ README as input) so the real README is never touched by CI.
 
 `release.yml` is manual only. It takes a `dist_tag` input (default `latest`), runs the full
 gate (frozen-lockfile install, build, lint, test) and then
-`pnpm publish -r --access public --no-git-checks --provenance --tag <dist_tag>` with
-`NODE_AUTH_TOKEN`. The workflow requests `id-token: write` so npm records provenance
-attestations linking the packages to the exact commit and run that built them. Version bumps
-happen in the package.json files before dispatching; without `NPM_TOKEN` the run is a green
-no-op.
+`pnpm publish -r --access public --no-git-checks --provenance --tag <dist_tag>` via **npm
+trusted publishing**: the job's GitHub OIDC identity (`id-token: write`) is exchanged for a
+short-lived npm credential at publish time, and npm records provenance attestations linking
+the packages to the exact commit and run that built them. No npm token exists anywhere — no
+`NPM_TOKEN` secret, no `.npmrc` auth lines. A human configures the trusted publisher once per
+package on npmjs.com (package → Settings → Trusted publisher → GitHub Actions → owner
+`LuxAlgo`, repository `market-trackers`, workflow `release.yml`). Version bumps happen in the
+package.json files before dispatching; a package without a configured trusted publisher fails
+its publish with an auth error and nothing partial happens.

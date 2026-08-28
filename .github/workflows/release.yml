@@ -1,12 +1,16 @@
 name: Release
 
-# Manual npm publish of the workspace packages (@luxalgo/market-trackers-core, -mcp,
-# -cli). Runs the full gate (build, lint, test) first, then publishes with
-# npm provenance.
+# Manual npm publish of the workspace packages (@luxalgo/market-trackers-core,
+# -mcp, -cli). Runs the full gate (build, lint, test) first, then publishes
+# via npm trusted publishing: the job's GitHub OIDC identity is exchanged for
+# a short-lived npm credential at publish time, and npm attaches provenance
+# attestations automatically. No npm tokens exist anywhere in this repo — no
+# NPM_TOKEN secret, no .npmrc auth lines — per the @luxalgo publishing policy.
 #
-# No-op until configured: without secrets.NPM_TOKEN the run ends
-# successfully after logging that publishing is skipped. The token is only
-# ever passed to pnpm via NODE_AUTH_TOKEN — never printed.
+# Human setup (once per package, on npmjs.com): package → Settings →
+# Trusted publisher → GitHub Actions → owner "LuxAlgo", repository
+# "market-trackers", workflow "release.yml". Until that is configured for a
+# package, its publish fails with an auth error and nothing partial happens.
 on:
   workflow_dispatch:
     inputs:
@@ -15,7 +19,8 @@ on:
         required: false
         default: "latest"
 
-# id-token is what lets npm attach provenance attestations to the publish.
+# id-token is what lets the job mint the OIDC identity that npm's trusted
+# publishing exchanges for publish access (and what signs the provenance).
 permissions:
   contents: read
   id-token: write
@@ -28,52 +33,28 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      # Secrets are not allowed in job-level `if`, so gate every step on the
-      # output of this env-mapped presence check instead.
-      - name: Check npm credentials
-        id: npm
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if [ -n "$NPM_TOKEN" ]; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "NPM_TOKEN not configured; skipping publish."
-          fi
-
       - uses: actions/checkout@v4
-        if: steps.npm.outputs.available == 'true'
 
       - uses: pnpm/action-setup@v4
-        if: steps.npm.outputs.available == 'true'
 
       - uses: actions/setup-node@v4
-        if: steps.npm.outputs.available == 'true'
         with:
           node-version: "22"
           cache: pnpm
-          registry-url: "https://registry.npmjs.org"
 
       - name: Install
-        if: steps.npm.outputs.available == 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Build
-        if: steps.npm.outputs.available == 'true'
         run: pnpm build
 
       - name: Lint
-        if: steps.npm.outputs.available == 'true'
         run: pnpm lint
 
       - name: Test
-        if: steps.npm.outputs.available == 'true'
         run: pnpm test
 
-      - name: Publish
-        if: steps.npm.outputs.available == 'true'
+      - name: Publish (trusted publishing)
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           DIST_TAG: ${{ inputs.dist_tag }}
         run: pnpm publish -r --access public --no-git-checks --provenance --tag "${DIST_TAG:-latest}"
