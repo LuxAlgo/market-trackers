@@ -1,13 +1,13 @@
 # alt-datasets (Python)
 
 A small, dependency-light reader for [LuxAlgo Alt Data](https://github.com/LuxAlgo/alt-data)'s published
-dumps — the public record of US markets (congress trades, insider filings, 13F holdings,
+dumps: the public record of US markets (congress trades, insider filings, 13F holdings,
 government contracts and grants, lobbying, short-sale volume, committee assignments, patents,
 clinical trials, FDA events, CFTC positioning) published as free CC0 JSON at
 [LuxAlgo/alt-datasets](https://github.com/LuxAlgo/alt-datasets), with per-row primary-source
 provenance.
 
-This package reads those dumps. It computes nothing — no scores, no signals, no predictions.
+This package reads those dumps. It computes nothing: no scores, no signals, no predictions.
 Stdlib only; pandas is an optional extra.
 
 ## Install
@@ -29,7 +29,7 @@ print(manifest["schemaVersion"], manifest["generatedAt"])
 for dataset_id, info in manifest["datasets"].items():
     print(dataset_id, info["rows"], "rows, stale:", info["stale"])
 
-# The whole congressional-trades dataset, resolved through the manifest — works
+# The whole congressional-trades dataset, resolved through the manifest. Works
 # whether the dataset is small enough for one combined snapshot file, or big
 # enough to need year-sharded files; either way you get one flat list back.
 rows = load_snapshot(ROOT, dataset="congress-trades")
@@ -41,8 +41,8 @@ print(df.head())
 
 ## Loading one file directly
 
-Every file in the layout — a daily delta, `latest.json`, or a specific
-`snapshot-YYYY.json.gz` shard — is also just a URL (or local path) you can hand to
+Every file in the layout (a daily delta, `latest.json`, or a specific
+`snapshot-YYYY.json.gz` shard) is also just a URL (or local path) you can hand to
 `load_snapshot` directly, with no `dataset=`:
 
 ```python
@@ -57,7 +57,7 @@ one_day = load_snapshot(
     "https://raw.githubusercontent.com/LuxAlgo/alt-datasets/main/congress/trades/2026/2026-08-24.json"
 )
 
-# A local alt-datasets checkout works identically — no scheme needed.
+# A local alt-datasets checkout works identically: no scheme needed.
 local = load_snapshot("/path/to/alt-datasets/short-volume/daily/latest.json")
 ```
 
@@ -68,11 +68,11 @@ local = load_snapshot("/path/to/alt-datasets/short-volume/daily/latest.json")
   main LuxAlgo Alt Data package (TypeScript) for the bring-your-own-prices arithmetic, or see
   [`notebooks/`](https://github.com/LuxAlgo/alt-data/tree/main/notebooks) in that repo for the
   equivalent worked in plain pandas once you have `rows` here.
-- It does not cache, retry, or rate-limit — each call makes one plain HTTP GET (via
+- It does not cache, retry, or rate-limit; each call makes one plain HTTP GET (via
   `urllib`) or one local file read. For heavy or repeated use, clone
   [LuxAlgo/alt-datasets](https://github.com/LuxAlgo/alt-datasets) and pass local paths instead
-  of URLs — both work identically.
-- It does not validate row shapes against LuxAlgo Alt Data's schemas — rows are returned exactly as
+  of URLs; both work identically.
+- It does not validate row shapes against LuxAlgo Alt Data's schemas; rows are returned exactly as
   published. See
   [docs/alt-datasets.md](https://github.com/LuxAlgo/alt-data/blob/main/docs/alt-datasets.md) in
   the main repo for the published-record contract, and
@@ -81,7 +81,7 @@ local = load_snapshot("/path/to/alt-datasets/short-volume/daily/latest.json")
 
 ## Every row has receipts
 
-Every row carries a `provenance.sourceUrl` — a deep link to the primary document (the SEC
+Every row carries a `provenance.sourceUrl`: a deep link to the primary document (the SEC
 filing, the disclosure, the daily file) it was parsed from:
 
 ```python
@@ -95,10 +95,10 @@ for row in rows[:5]:
 python3 -m unittest discover python/tests
 ```
 
-Fully offline, against fixture files checked into `python/tests/fixtures/` — no network
+Fully offline, against fixture files checked into `python/tests/fixtures/`: no network
 access, no live dumps repo required.
 
 ## License
 
-MIT for this reader. The data itself (at alt-datasets) is CC0 — public domain, no attribution
+MIT for this reader. The data itself (at alt-datasets) is CC0: public domain, no attribution
 required.

@@ -6,7 +6,7 @@ file shape.
 
 ## How it was assembled
 
-Built with Python's standard-library `zipfile` module — a different
+Built with Python's standard-library `zipfile` module, a different
 implementation from `zip.ts`, so a successful read here is a genuine
 cross-implementation check:
 
@@ -25,9 +25,9 @@ with zipfile.ZipFile("mixed-methods.zip", "w") as zf:
 
 Two entries, two compression methods:
 
-- `stored.txt` — compression method 0 (stored/uncompressed), at the archive
+- `stored.txt`: compression method 0 (stored/uncompressed), at the archive
   root.
-- `nested/deflated.TXT` — compression method 8 (deflate), inside a
+- `nested/deflated.TXT`: compression method 8 (deflate), inside a
   subdirectory and upper-cased extension, to also exercise
   `findZipEntry`'s case-insensitive, path-tolerant basename lookup (the same
   lookup convention `house-clerk/client.ts`'s `extractYearIndexXml` uses).

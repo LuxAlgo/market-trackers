@@ -47,7 +47,7 @@ const rows = report.sources
   .map((s) => {
     const title = TITLES[s.source] ?? s.source;
     const badge = BADGES[s.status] ?? s.status;
-    const when = s.status === "skip" ? "—" : (s.ranAt ?? report.generatedAt);
+    const when = s.status === "skip" ? "n/a" : (s.ranAt ?? report.generatedAt);
     return `| ${title} | ${badge} | ${when} |`;
   })
   .join("\n");
