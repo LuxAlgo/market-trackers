@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { edgarSource, THIRTEENF_XML_SINCE } from "./source.js";
+import { edgarSource, indexFingerprintLines, THIRTEENF_XML_SINCE } from "./source.js";
 import { COMPANY_TICKERS_URL } from "./client.js";
 import { TrackerStore } from "../../store/store.js";
 import { DATASETS } from "../../schema/datasets.js";
@@ -172,6 +172,26 @@ describe("edgarSource.sync", () => {
     await edgarSource.sync(ctx, { since: FIXTURE_DAY, until: FIXTURE_DAY });
     expect(await store.getWatermark("edgar", "daily-index.lastCompletedDay")).toBe("2026-08-25");
     await store.close();
+  });
+});
+
+describe("indexFingerprintLines", () => {
+  // Regression: the preamble's "Last Data Received: <date>" line changes
+  // every day; fingerprinting it made the drift canary permanently red.
+  it("is stable across days but still catches real format drift", () => {
+    const monday = [
+      "Description:           Daily Index of the EDGAR Dissemination Feed",
+      "Last Data Received:    August 25, 2026",
+      "Comments:              webmaster@sec.gov",
+      "CIK|Company Name|Form Type|Date Filed|File Name",
+    ];
+    const tuesday = [...monday];
+    tuesday[1] = "Last Data Received:    August 26, 2026";
+    expect(indexFingerprintLines(monday)).toEqual(indexFingerprintLines(tuesday));
+
+    const drifted = [...monday];
+    drifted[3] = "CIK|Company Name|Form Type|Date Filed|Accession Number|File Name";
+    expect(indexFingerprintLines(drifted)).not.toEqual(indexFingerprintLines(monday));
   });
 });
 

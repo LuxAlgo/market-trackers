@@ -53,6 +53,19 @@ function hashLines(lines: string[]): string {
   return createHash("sha256").update(lines.join("\n")).digest("hex").slice(0, 16);
 }
 
+/**
+ * The stable subset of the daily-index preamble. The second header line is
+ * "Last Data Received: <date>" — it changes every day, so fingerprinting the
+ * first N lines wholesale turns the drift canary permanently red. Real drift
+ * still trips this: a renamed feed (Description line) or a changed column
+ * layout (the pipe-delimited header row) both alter the fingerprint.
+ */
+export function indexFingerprintLines(headerLines: string[]): string[] {
+  return headerLines.filter(
+    (line) => line.startsWith("Description:") || (line.includes("|") && /\bCIK\b/i.test(line)),
+  );
+}
+
 export const edgarSource: TrackerSource = {
   id: "edgar",
   title: "SEC EDGAR (Forms 3/4/5, 13F-HR)",
@@ -112,7 +125,11 @@ export const edgarSource: TrackerSource = {
         continue;
       }
       const { entries, headerLines } = parseMasterIndex(indexText);
-      await ctx.store.setFingerprint("edgar", FINGERPRINT_KEY, hashLines(headerLines.slice(0, 2)));
+      await ctx.store.setFingerprint(
+        "edgar",
+        FINGERPRINT_KEY,
+        hashLines(indexFingerprintLines(headerLines)),
+      );
 
       const wanted = entries.filter((e) => {
         if (wantInsider && isOwnershipForm(e.formType)) return true;
@@ -246,7 +263,7 @@ export const edgarSource: TrackerSource = {
                 severity: "hard",
                 note: `${day}: ${entries.length} entries`,
               });
-              const hash = hashLines(headerLines.slice(0, 2));
+              const hash = hashLines(indexFingerprintLines(headerLines));
               const stored = await ctx.store.getFingerprint("edgar", FINGERPRINT_KEY);
               if (stored === null) {
                 await ctx.store.setFingerprint("edgar", FINGERPRINT_KEY, hash);

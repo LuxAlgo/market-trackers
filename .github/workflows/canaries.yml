@@ -38,6 +38,18 @@ jobs:
       - name: Build
         run: pnpm build
 
+      # Read-only snapshot of the publish store, so freshness checks measure
+      # the real pipeline instead of reporting "no rows" against an empty
+      # scratch store. Restore only — this job must never save the cache
+      # back; the publish workflow owns it.
+      - name: Restore store (read-only)
+        uses: actions/cache/restore@v4
+        with:
+          path: publish.db
+          key: alt-data-store-v1-${{ github.run_id }}
+          restore-keys: |
+            alt-data-store-v1-
+
       # A shallow sync gives the canaries real parse-rate stats to judge.
       # MARKET_TRACKERS_CONTACT is a repo variable (Settings → Variables); without it
       # the EDGAR sync is skipped and its canary reports the gap honestly.
@@ -46,9 +58,9 @@ jobs:
           MARKET_TRACKERS_CONTACT: ${{ vars.MARKET_TRACKERS_CONTACT || vars.ALT_DATA_CONTACT }}
           MARKET_TRACKERS_PATENTSVIEW_KEY: ${{ secrets.MARKET_TRACKERS_PATENTSVIEW_KEY || secrets.ALT_DATA_PATENTSVIEW_KEY }}
         run: |
-          node packages/cli/dist/index.js sync --source finra --db canary.db --json || true
+          node packages/cli/dist/index.js sync --source finra --db publish.db --json || true
           if [ -n "$MARKET_TRACKERS_CONTACT" ]; then
-            node packages/cli/dist/index.js sync --source edgar --db canary.db --limit 300 --json || true
+            node packages/cli/dist/index.js sync --source edgar --db publish.db --limit 300 --json || true
           fi
 
       - name: Run canaries
@@ -58,7 +70,7 @@ jobs:
           MARKET_TRACKERS_PATENTSVIEW_KEY: ${{ secrets.MARKET_TRACKERS_PATENTSVIEW_KEY || secrets.ALT_DATA_PATENTSVIEW_KEY }}
         run: |
           set +e
-          node packages/cli/dist/index.js canary --db canary.db --out canary-report.json --json
+          node packages/cli/dist/index.js canary --db publish.db --out canary-report.json --json
           echo "exit_code=$?" >> "$GITHUB_OUTPUT"
 
       - name: Upload report
