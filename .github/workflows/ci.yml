@@ -42,8 +42,10 @@ jobs:
         run: pnpm format:check
 
       # Copyleft or unknown dependency licenses fail the build — see the
-      # allowlist in the script.
+      # allowlist in the script. Dependency licenses don't vary by Node
+      # version, so one matrix leg carries the gate.
       - name: Dependency license gate
+        if: matrix.node == '22'
         run: node scripts/check-dep-licenses.mjs
 
       # The suite is fully offline: fixtures + mocked fetch, no keys, no network.

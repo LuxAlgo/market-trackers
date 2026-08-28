@@ -13,6 +13,10 @@ name: Publish dumps
 on:
   schedule:
     - cron: "41 12 * * 1-6"
+    # Catch-up slot: GitHub's cron regularly fires this repo's 12:41 slot
+    # hours late or not at all; a second slot bounds the worst case. The
+    # concurrency group below keeps the two from ever overlapping.
+    - cron: "0 15 * * 1-6"
   workflow_dispatch:
 
 permissions:

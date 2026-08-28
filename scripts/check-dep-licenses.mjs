@@ -38,10 +38,26 @@ function expressionAllowed(expr) {
   return false;
 }
 
-const raw = execSync("pnpm licenses list --json", {
-  encoding: "utf8",
-  maxBuffer: 64 * 1024 * 1024,
-});
+function listLicenses() {
+  return execSync("pnpm licenses list --json", {
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024,
+  });
+}
+
+let raw;
+try {
+  raw = listLicenses();
+} catch (error) {
+  // A stale/partial pnpm store (e.g. a cached runner missing one optional
+  // platform package's index file) makes `pnpm licenses` error even though
+  // the install itself succeeded. Repair the store once, then re-run; a
+  // second failure is real.
+  console.error("pnpm licenses failed once; repairing the store and retrying…");
+  console.error(String(error.message ?? error).slice(0, 500));
+  execSync("pnpm install --frozen-lockfile --prefer-offline", { stdio: "inherit" });
+  raw = listLicenses();
+}
 const byLicense = JSON.parse(raw);
 
 const violations = [];
