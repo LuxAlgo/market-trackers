@@ -10,7 +10,7 @@ coverage/
 *.db-journal
 *.db-wal
 *.db-shm
-.alt-data/
+.market-trackers/
 dumps/
 
 .DS_Store

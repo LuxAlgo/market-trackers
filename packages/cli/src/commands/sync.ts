@@ -4,7 +4,7 @@ import {
   isDatasetId,
   type DatasetId,
   type SourceId,
-} from "@luxalgo/alt-data-core";
+} from "@luxalgo/market-trackers-core";
 import { openContext, printJson, type GlobalFlags } from "../context.js";
 
 export interface SyncFlags extends GlobalFlags {

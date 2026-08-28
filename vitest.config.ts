@@ -9,8 +9,8 @@ export default defineConfig({
   resolve: {
     // Tests run against package sources, so a stale dist/ can never lie to us.
     alias: {
-      "@luxalgo/alt-data-core": r("packages/core/src/index.ts"),
-      "@luxalgo/alt-data-mcp": r("packages/mcp/src/index.ts"),
+      "@luxalgo/market-trackers-core": r("packages/core/src/index.ts"),
+      "@luxalgo/market-trackers-mcp": r("packages/mcp/src/index.ts"),
     },
   },
   test: {

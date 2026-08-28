@@ -1,13 +1,13 @@
 name: Publish dumps
 
 # Daily: sync all implemented sources into a cached store, export the
-# alt-datasets layout (daily deltas + snapshots + manifest), and push it to
+# market-trackers-data layout (daily deltas + snapshots + manifest), and push it to
 # the data repository. Humans never hand-edit data — only this workflow
-# writes to alt-datasets.
+# writes to market-trackers-data.
 #
 # No-ops until configured:
-#   vars.ALT_DATA_CONTACT       — contact email for the SEC EDGAR User-Agent
-#   vars.ALT_DATASETS_REPO     — e.g. "LuxAlgo/alt-datasets" (job skipped without it)
+#   vars.MARKET_TRACKERS_CONTACT       — contact email for the SEC EDGAR User-Agent
+#   vars.ALT_DATASETS_REPO     — e.g. "LuxAlgo/market-trackers-data" (job skipped without it)
 #   secrets.ALT_DATASETS_TOKEN — token with push access to the data repo
 #                               (without it, dumps build but nothing is pushed)
 on:
@@ -79,8 +79,8 @@ jobs:
       # fails this step.
       - name: Sync
         env:
-          ALT_DATA_CONTACT: ${{ vars.ALT_DATA_CONTACT }}
-          ALT_DATA_PATENTSVIEW_KEY: ${{ secrets.ALT_DATA_PATENTSVIEW_KEY }}
+          MARKET_TRACKERS_CONTACT: ${{ vars.MARKET_TRACKERS_CONTACT || vars.ALT_DATA_CONTACT }}
+          MARKET_TRACKERS_PATENTSVIEW_KEY: ${{ secrets.MARKET_TRACKERS_PATENTSVIEW_KEY || secrets.ALT_DATA_PATENTSVIEW_KEY }}
         run: node packages/cli/dist/index.js sync --db publish.db --allow-partial --json
 
       - name: Export
@@ -123,7 +123,7 @@ jobs:
               repo,
               path: "README.md",
               message: "data: seed repository for the first publish",
-              content: fs.readFileSync("templates/alt-datasets/README.md").toString("base64"),
+              content: fs.readFileSync("templates/market-trackers-data/README.md").toString("base64"),
             });
             core.info("Seeded the empty data repo with the template README.");
 
@@ -136,14 +136,14 @@ jobs:
           path: data-repo
 
       # First-publish bootstrap: install the data repo's landing README and
-      # CC0 LICENSE from templates/alt-datasets/ — only when missing, so a
+      # CC0 LICENSE from templates/market-trackers-data/ — only when missing, so a
       # maintainer's later edits in the data repo are never overwritten.
       - name: Install data-repo README/LICENSE when missing
         if: steps.creds.outputs.push == 'true'
         run: |
           for f in README.md LICENSE; do
             if [ ! -f "data-repo/$f" ]; then
-              cp "templates/alt-datasets/$f" "data-repo/$f"
+              cp "templates/market-trackers-data/$f" "data-repo/$f"
               echo "Installed $f into the data repo (first publish)."
             fi
           done
@@ -156,8 +156,8 @@ jobs:
         run: |
           rsync -a --delete --exclude ".git" --exclude "README.md" --exclude "LICENSE" --exclude "/explorer" --exclude "/llms.txt" dumps/ data-repo/
           cd data-repo
-          git config user.name "alt-data-publish[bot]"
-          git config user.email "alt-data-publish@users.noreply.github.com"
+          git config user.name "market-trackers-publish[bot]"
+          git config user.email "market-trackers-publish@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then
             echo "No data changes today."
@@ -168,24 +168,24 @@ jobs:
 
       # Installs/refreshes the static data explorer at explorer/index.html in
       # the data repo (a self-contained page that reads ../manifest.json and
-      # the dataset files next to it — see docs/alt-datasets.md). Its own
+      # the dataset files next to it — see docs/market-trackers-data.md). Its own
       # commit, separate from the dumps push; the dumps rsync above excludes
       # "/explorer" so its --delete can never wipe this between refreshes.
       - name: Install data-repo explorer when present
         if: steps.creds.outputs.push == 'true'
         run: |
-          if [ ! -d "templates/alt-datasets/explorer" ]; then
-            echo "No explorer template (templates/alt-datasets/explorer/ not present); skipping."
+          if [ ! -d "templates/market-trackers-data/explorer" ]; then
+            echo "No explorer template (templates/market-trackers-data/explorer/ not present); skipping."
             exit 0
           fi
-          rsync -a templates/alt-datasets/explorer/ data-repo/explorer/
+          rsync -a templates/market-trackers-data/explorer/ data-repo/explorer/
           # llms.txt is maintained documentation like the explorer (refreshed
           # every publish, excluded from the dumps rsync's --delete), unlike
           # README/LICENSE which are installed once and left to maintainers.
-          cp templates/alt-datasets/llms.txt data-repo/llms.txt
+          cp templates/market-trackers-data/llms.txt data-repo/llms.txt
           cd data-repo
-          git config user.name "alt-data-publish[bot]"
-          git config user.email "alt-data-publish@users.noreply.github.com"
+          git config user.name "market-trackers-publish[bot]"
+          git config user.email "market-trackers-publish@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then
             echo "No explorer changes today."
@@ -196,8 +196,8 @@ jobs:
 
       - name: Update README health board
         env:
-          ALT_DATA_CONTACT: ${{ vars.ALT_DATA_CONTACT }}
-          ALT_DATA_PATENTSVIEW_KEY: ${{ secrets.ALT_DATA_PATENTSVIEW_KEY }}
+          MARKET_TRACKERS_CONTACT: ${{ vars.MARKET_TRACKERS_CONTACT || vars.ALT_DATA_CONTACT }}
+          MARKET_TRACKERS_PATENTSVIEW_KEY: ${{ secrets.MARKET_TRACKERS_PATENTSVIEW_KEY || secrets.ALT_DATA_PATENTSVIEW_KEY }}
         run: |
           node packages/cli/dist/index.js canary --db publish.db --out canary-report.json --json || true
           node scripts/update-health-board.mjs canary-report.json README.md
@@ -206,8 +206,8 @@ jobs:
           # unformatted and Format check ambushes the NEXT human push.
           pnpm exec prettier --write README.md
           if ! git diff --quiet README.md; then
-            git config user.name "alt-data-publish[bot]"
-            git config user.email "alt-data-publish@users.noreply.github.com"
+            git config user.name "market-trackers-publish[bot]"
+            git config user.email "market-trackers-publish@users.noreply.github.com"
             git add README.md
             git commit -m "docs: refresh health board [skip ci]"
             git push

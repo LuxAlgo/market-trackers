@@ -15,7 +15,7 @@ import { silentLogger } from "../../lib/logger.js";
  * 3xx hops are never lost.
  *
  * Politeness: shared RateLimiter at ≤2 requests per rolling second and a
- * declared alt-data User-Agent on every request.
+ * declared market-trackers User-Agent on every request.
  */
 
 export const SENATE_EFD_BASE = "https://efdsearch.senate.gov";

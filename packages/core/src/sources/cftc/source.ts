@@ -1,8 +1,8 @@
-import type { AltDataSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
+import type { TrackerSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import { cotReportId, type CotReport } from "../../schema/cot-report.js";
-import { ALT_DATA_VERSION } from "../../config.js";
+import { MARKET_TRACKERS_VERSION } from "../../config.js";
 import { addDays, hoursSince, toDateString } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
 import {
@@ -44,7 +44,7 @@ const CANARY_PROBE_DAYS = 30;
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createCftcFetch({
-    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `market-trackers/${MARKET_TRACKERS_VERSION}`,
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("cftc"),
   });
@@ -116,7 +116,7 @@ export function normalizeCotRow(raw: Record<string, unknown>, retrievedAt: strin
   };
 }
 
-export const cftcSource: AltDataSource = {
+export const cftcSource: TrackerSource = {
   id: "cftc",
   title: "CFTC Commitments of Traders (legacy futures-only)",
   datasets: ["cot-reports"],

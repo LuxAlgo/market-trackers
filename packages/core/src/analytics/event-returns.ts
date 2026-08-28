@@ -3,7 +3,7 @@ import type { PriceSeries } from "./prices.js";
 
 /**
  * Deterministic arithmetic between a public-record event and a
- * user-supplied price series — nothing more. LuxAlgo Alt Data computes no scores,
+ * user-supplied price series — nothing more. LuxAlgo Market Trackers computes no scores,
  * signals, ratings, or predictions; this module reports a plain percentage
  * change between two closes the caller's own data already contains,
  * alongside every event it could *not* price (never dropped silently, always

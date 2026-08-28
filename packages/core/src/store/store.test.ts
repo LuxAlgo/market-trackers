@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DATASETS } from "../schema/datasets.js";
-import { AltDataStore } from "./store.js";
+import { TrackerStore } from "./store.js";
 import { MIGRATIONS } from "./migrate.js";
 import {
   makeInsiderTransaction,
@@ -10,18 +10,18 @@ import {
 } from "../test-helpers.js";
 import { join } from "node:path";
 
-async function memoryStore(): Promise<AltDataStore> {
-  return AltDataStore.open(":memory:");
+async function memoryStore(): Promise<TrackerStore> {
+  return TrackerStore.open(":memory:");
 }
 
-describe("AltDataStore (sqlite)", () => {
+describe("TrackerStore (sqlite)", () => {
   it("migrates idempotently on reopen", async () => {
     const { dir, cleanup } = makeTmpDir("store");
     try {
-      const file = join(dir, "alt-data.db");
-      const first = await AltDataStore.open(file);
+      const file = join(dir, "market-trackers.db");
+      const first = await TrackerStore.open(file);
       await first.close();
-      const second = await AltDataStore.open(file);
+      const second = await TrackerStore.open(file);
       const applied = await second.driver.all<{ id: string }>(
         `SELECT "id" FROM "schema_migrations"`,
       );

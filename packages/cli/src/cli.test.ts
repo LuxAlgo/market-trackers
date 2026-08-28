@@ -17,7 +17,7 @@ const BIN = join(PKG_ROOT, "dist", "index.js");
 
 let tmp: string;
 
-function altData(args: string[], env: Record<string, string> = {}): string {
+function trackers(args: string[], env: Record<string, string> = {}): string {
   return execFileSync(process.execPath, [BIN, ...args], {
     encoding: "utf8",
     env: { ...process.env, ...env },
@@ -44,20 +44,20 @@ afterAll(() => {
   rmSync(tmp, { recursive: true, force: true });
 });
 
-describe("alt-data CLI", () => {
+describe("market-trackers CLI", () => {
   it("--version prints the version", () => {
-    expect(altData(["--version"]).trim()).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(trackers(["--version"]).trim()).toMatch(/^\d+\.\d+\.\d+$/);
   });
 
   it("--help lists all five commands", () => {
-    const help = altData(["--help"]);
+    const help = trackers(["--help"]);
     for (const cmd of ["sync", "status", "export", "canary", "serve"]) {
       expect(help).toContain(cmd);
     }
   });
 
   it("status --json creates the store, migrates, and reports all datasets empty", () => {
-    const out = altData(["status", "--json", "--db", "cli-test.db"]);
+    const out = trackers(["status", "--json", "--db", "cli-test.db"]);
     const report = JSON.parse(out);
     expect(report.datasets).toHaveLength(18);
     expect(report.datasets.every((d: { rowCount: number }) => d.rowCount === 0)).toBe(true);
@@ -67,7 +67,7 @@ describe("alt-data CLI", () => {
   it("sync with a dataset filter a source doesn't produce is an offline no-op", () => {
     // finra only produces short-volume; the filter short-circuits before any
     // network access, so this exercises the CLI sync path fully offline.
-    const out = altData([
+    const out = trackers([
       "sync",
       "--source",
       "finra",
@@ -86,7 +86,7 @@ describe("alt-data CLI", () => {
 
   it("sync --allow-partial exits 0 on a partial success and still 1 when everything fails", () => {
     // Success side: the offline no-op filter counts as a succeeding source.
-    const out = altData([
+    const out = trackers([
       "sync",
       "--source",
       "finra",
@@ -103,8 +103,8 @@ describe("alt-data CLI", () => {
     // email, so even --allow-partial exits 1.
     let failed = false;
     try {
-      altData(["sync", "--source", "edgar", "--allow-partial", "--json", "--db", "cli-test.db"], {
-        ALT_DATA_CONTACT: "",
+      trackers(["sync", "--source", "edgar", "--allow-partial", "--json", "--db", "cli-test.db"], {
+        MARKET_TRACKERS_CONTACT: "",
       });
     } catch (error) {
       failed = true;
@@ -118,8 +118,8 @@ describe("alt-data CLI", () => {
   it("sync --source edgar without a contact email fails with the fair-access explanation", () => {
     let failed = false;
     try {
-      altData(["sync", "--source", "edgar", "--json", "--db", "cli-test.db"], {
-        ALT_DATA_CONTACT: "",
+      trackers(["sync", "--source", "edgar", "--json", "--db", "cli-test.db"], {
+        MARKET_TRACKERS_CONTACT: "",
       });
     } catch (error) {
       failed = true;
@@ -131,7 +131,7 @@ describe("alt-data CLI", () => {
   });
 
   it("export writes a manifest even for an empty store", () => {
-    const out = altData(["export", "--json", "--db", "cli-test.db", "--out", join(tmp, "dumps")]);
+    const out = trackers(["export", "--json", "--db", "cli-test.db", "--out", join(tmp, "dumps")]);
     const summary = JSON.parse(out);
     expect(summary.filesWritten.some((f: string) => f.endsWith("manifest.json"))).toBe(true);
     const manifest = JSON.parse(readFileSync(join(tmp, "dumps", "manifest.json"), "utf8"));
@@ -167,9 +167,9 @@ describe("alt-data CLI", () => {
     ];
     const deltaPath = join(tmp, "snapshots-only-delta.json");
     writeFileSync(deltaPath, JSON.stringify(delta));
-    altData(["import", deltaPath, "--dataset", "congress-trades", "--db", "snapshots-only.db"]);
+    trackers(["import", deltaPath, "--dataset", "congress-trades", "--db", "snapshots-only.db"]);
 
-    altData([
+    trackers([
       "export",
       "--dataset",
       "congress-trades",
@@ -190,13 +190,13 @@ describe("alt-data CLI", () => {
   });
 
   it("rejects unknown sources and datasets by name", () => {
-    expect(() => altData(["sync", "--source", "not-a-source", "--db", "cli-test.db"])).toThrow();
-    expect(() => altData(["export", "--dataset", "nope", "--db", "cli-test.db"])).toThrow();
+    expect(() => trackers(["sync", "--source", "not-a-source", "--db", "cli-test.db"])).toThrow();
+    expect(() => trackers(["export", "--dataset", "nope", "--db", "cli-test.db"])).toThrow();
   });
 
   it("resolve cusips --json reports all zeros on a store with nothing unresolved", () => {
     // Fully offline: with no unresolved CUSIPs the command never calls OpenFIGI.
-    const out = altData(["resolve", "cusips", "--json", "--db", "resolve-test.db"]);
+    const out = trackers(["resolve", "cusips", "--json", "--db", "resolve-test.db"]);
     expect(JSON.parse(out)).toEqual({
       unresolvedCusips: 0,
       resolved: 0,
@@ -206,14 +206,14 @@ describe("alt-data CLI", () => {
   });
 
   it("resolve rejects unknown targets and bad limits", () => {
-    expect(() => altData(["resolve", "tickers", "--db", "resolve-test.db"])).toThrow();
+    expect(() => trackers(["resolve", "tickers", "--db", "resolve-test.db"])).toThrow();
     expect(() =>
-      altData(["resolve", "cusips", "--limit", "zero", "--db", "resolve-test.db"]),
+      trackers(["resolve", "cusips", "--limit", "zero", "--db", "resolve-test.db"]),
     ).toThrow();
   });
 
   it("--help lists the resolve command", () => {
-    expect(altData(["--help"])).toContain("resolve");
+    expect(trackers(["--help"])).toContain("resolve");
   });
 
   // Backfill's chunking/resume/limit behavior is covered at the engine
@@ -223,7 +223,7 @@ describe("alt-data CLI", () => {
   it("backfill requires --from", () => {
     let failed = false;
     try {
-      altData(["backfill", "--source", "finra", "--db", "cli-test.db"]);
+      trackers(["backfill", "--source", "finra", "--db", "cli-test.db"]);
     } catch (error) {
       failed = true;
       const err = error as { status: number; stderr: string };
@@ -235,7 +235,7 @@ describe("alt-data CLI", () => {
 
   it("backfill rejects an unknown source", () => {
     expect(() =>
-      altData([
+      trackers([
         "backfill",
         "--source",
         "not-a-source",
@@ -249,10 +249,10 @@ describe("alt-data CLI", () => {
 
   it("backfill rejects a malformed --from/--to date and a --to before --from", () => {
     expect(() =>
-      altData(["backfill", "--source", "finra", "--from", "not-a-date", "--db", "cli-test.db"]),
+      trackers(["backfill", "--source", "finra", "--from", "not-a-date", "--db", "cli-test.db"]),
     ).toThrow();
     expect(() =>
-      altData([
+      trackers([
         "backfill",
         "--source",
         "finra",
@@ -267,19 +267,19 @@ describe("alt-data CLI", () => {
   });
 
   it("--help lists the backfill command", () => {
-    expect(altData(["--help"])).toContain("backfill");
+    expect(trackers(["--help"])).toContain("backfill");
   });
 });
 
-describe("alt-data analyze", () => {
+describe("market-trackers analyze", () => {
   it("rejects an unknown analyze target", () => {
-    expect(() => altData(["analyze", "not-a-target", "--db", "analyze-validation.db"])).toThrow();
+    expect(() => trackers(["analyze", "not-a-target", "--db", "analyze-validation.db"])).toThrow();
   });
 
   it("requires --prices and names the expected CSV shape", () => {
     let failed = false;
     try {
-      altData(["analyze", "congress", "--db", "analyze-validation.db"]);
+      trackers(["analyze", "congress", "--db", "analyze-validation.db"]);
     } catch (error) {
       failed = true;
       const err = error as { status: number; stderr: string };
@@ -292,7 +292,7 @@ describe("alt-data analyze", () => {
   it("rejects a non-positive --window", () => {
     writeFileSync(join(tmp, "any-prices.csv"), "date,ticker,close\n2026-08-18,ACME,10\n");
     expect(() =>
-      altData([
+      trackers([
         "analyze",
         "congress",
         "--prices",
@@ -334,7 +334,7 @@ describe("alt-data analyze", () => {
     ];
     const deltaPath = join(tmp, "congress-delta.json");
     writeFileSync(deltaPath, JSON.stringify(delta));
-    altData(["import", deltaPath, "--dataset", "congress-trades", "--db", "analyze-e2e.db"]);
+    trackers(["import", deltaPath, "--dataset", "congress-trades", "--db", "analyze-e2e.db"]);
 
     const pricesPath = join(tmp, "prices.csv");
     writeFileSync(
@@ -342,7 +342,7 @@ describe("alt-data analyze", () => {
       ["date,ticker,close", "2026-08-18,ACME,40.00", "2026-09-17,ACME,44.00", ""].join("\n"),
     );
 
-    const out = altData([
+    const out = trackers([
       "analyze",
       "congress",
       "--prices",
@@ -355,7 +355,7 @@ describe("alt-data analyze", () => {
     expect(out).toContain("Descriptive arithmetic over public records");
     expect(out).toContain("10.00%");
 
-    const jsonOut = altData([
+    const jsonOut = trackers([
       "analyze",
       "congress",
       "--prices",
@@ -373,7 +373,7 @@ describe("alt-data analyze", () => {
     expect(result.rows[0].event.citation).toBe("https://example.gov/primary/cli-test-doc");
 
     const outPath = join(tmp, "analyze-result.json");
-    altData([
+    trackers([
       "analyze",
       "congress",
       "--prices",
@@ -392,19 +392,21 @@ describe("alt-data analyze", () => {
   });
 
   it("--help lists the analyze command", () => {
-    expect(altData(["--help"])).toContain("analyze");
+    expect(trackers(["--help"])).toContain("analyze");
   });
 });
 
-describe("alt-data backtest", () => {
+describe("market-trackers backtest", () => {
   it("rejects an unknown backtest target", () => {
-    expect(() => altData(["backtest", "not-a-target", "--db", "backtest-validation.db"])).toThrow();
+    expect(() =>
+      trackers(["backtest", "not-a-target", "--db", "backtest-validation.db"]),
+    ).toThrow();
   });
 
   it("requires --prices and names the expected CSV shape", () => {
     let failed = false;
     try {
-      altData(["backtest", "congress", "--db", "backtest-validation.db"]);
+      trackers(["backtest", "congress", "--db", "backtest-validation.db"]);
     } catch (error) {
       failed = true;
       const err = error as { status: number; stderr: string };
@@ -419,7 +421,7 @@ describe("alt-data backtest", () => {
     writeFileSync(emptyPricesPath, "date,ticker,close\n");
     let failed = false;
     try {
-      altData([
+      trackers([
         "backtest",
         "congress",
         "--prices",
@@ -441,7 +443,7 @@ describe("alt-data backtest", () => {
     writeFileSync(pricesPath, "date,ticker,close\n2026-08-18,ACME,10\n");
     let failed = false;
     try {
-      altData([
+      trackers([
         "backtest",
         "congress",
         "--prices",
@@ -494,7 +496,7 @@ describe("alt-data backtest", () => {
       const delta = [tradeFor(0, "ACME"), tradeFor(1, "BETA"), tradeFor(2, "GAMMA")];
       const deltaPath = join(tmp, "backtest-delta.json");
       writeFileSync(deltaPath, JSON.stringify(delta));
-      altData(["import", deltaPath, "--dataset", "congress-trades", "--db", "backtest-e2e.db"]);
+      trackers(["import", deltaPath, "--dataset", "congress-trades", "--db", "backtest-e2e.db"]);
 
       const pricesPath = join(tmp, "backtest-prices.csv");
       writeFileSync(
@@ -509,7 +511,7 @@ describe("alt-data backtest", () => {
         ].join("\n"),
       );
 
-      const out = altData([
+      const out = trackers([
         "backtest",
         "congress",
         "--prices",
@@ -524,7 +526,7 @@ describe("alt-data backtest", () => {
       expect(out).toContain("winRate: 50.00%");
       expect(out).toContain("skipped: entry price unavailable");
 
-      const jsonOut = altData([
+      const jsonOut = trackers([
         "backtest",
         "congress",
         "--prices",
@@ -554,6 +556,6 @@ describe("alt-data backtest", () => {
   );
 
   it("--help lists the backtest command", () => {
-    expect(altData(["--help"])).toContain("backtest");
+    expect(trackers(["--help"])).toContain("backtest");
   });
 });

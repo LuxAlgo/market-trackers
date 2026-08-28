@@ -1,4 +1,4 @@
-# LuxAlgo Alt Datasets
+# LuxAlgo Market Trackerssets
 
 > Free, CC0-licensed daily dumps of the public record of US markets: congressional
 > trades, insider filings, 13F holdings, government contracts and grants, lobbying,
@@ -6,7 +6,7 @@
 > clinical trials, FDA drug approvals, futures positioning, congressional hearing
 > transcripts, Federal Reserve communications, and Wikipedia pageviews
 > for major tickers. Normalized JSON with Parquet siblings, republished daily by CI
-> from the pipeline at https://github.com/LuxAlgo/alt-data. Every row carries a
+> from the pipeline at https://github.com/LuxAlgo/market-trackers. Every row carries a
 > `provenance` object with a deep link to the primary-source document it was parsed
 > from. Data only — no signals, scores, or predictions.
 
@@ -24,18 +24,18 @@
   congressional trades, `feeds/by-member/<bioguideId>.xml`.
 - Deep-history archives too large for the working tree are attached to this
   repository's GitHub Releases as `archive-<source>-<from>-<to>` tags, sharded
-  by event year; restore them with `alt-data import` from the pipeline repo.
+  by event year; restore them with `market-trackers import` from the pipeline repo.
 - Every file is a plain JSON array on one line; every row validates against the
   zod schemas in the pipeline repo (`packages/core/src/schema/`), and amount
   ranges from disclosure forms are preserved as ranges, never point-estimated.
 
 ## Query it as an agent
 
-- The pipeline repo ships an MCP server (`@luxalgo/alt-data-mcp`) exposing these
+- The pipeline repo ships an MCP server (`@luxalgo/market-trackers-mcp`) exposing these
   datasets as typed tools over any store built from this data — the intended
-  interface for AI agents. See https://github.com/LuxAlgo/alt-data#readme.
+  interface for AI agents. See https://github.com/LuxAlgo/market-trackers#readme.
 - For SQL, load the Parquet files directly (e.g. DuckDB over HTTPS) or rebuild a
-  SQLite/Postgres store from the dumps with `alt-data import`.
+  SQLite/Postgres store from the dumps with `market-trackers import`.
 
 ## Files
 

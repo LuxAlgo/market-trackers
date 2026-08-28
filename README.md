@@ -1,28 +1,28 @@
 <div align="center">
 
-<img src="docs/assets/banner.svg" alt="LuxAlgo Alt Data: public record → rows → agents" width="100%" />
+<img src="docs/assets/banner.svg" alt="LuxAlgo Market Trackers: public record → rows → agents" width="100%" />
 
 **The public record, as infrastructure.**
 
 What Congress trades, what insiders file, who wins federal contracts, what the Fed said:
-LuxAlgo Alt Data turns the public record of US markets into one clean dataset you can query,
+LuxAlgo Market Trackers turns the public record of US markets into one clean dataset you can query,
 subscribe to, or hand to an AI agent. Every row links back to the government document it came
 from.
 
-[![CI](https://github.com/LuxAlgo/alt-data/actions/workflows/ci.yml/badge.svg)](https://github.com/LuxAlgo/alt-data/actions/workflows/ci.yml)
+[![CI](https://github.com/LuxAlgo/market-trackers/actions/workflows/ci.yml/badge.svg)](https://github.com/LuxAlgo/market-trackers/actions/workflows/ci.yml)
 [![Code: MIT](https://img.shields.io/badge/code-MIT-blue.svg)](LICENSE)
 [![Data: CC0](https://img.shields.io/badge/data-CC0-blue.svg)](data-licenses/DATA-LICENSE)
 [![No telemetry](https://img.shields.io/badge/telemetry-none-brightgreen.svg)](#principles)
 
-LuxAlgo Alt Data is a LuxAlgo open-source project. The official repository is
-[github.com/LuxAlgo/alt-data](https://github.com/LuxAlgo/alt-data), and the published data lives
-at [github.com/LuxAlgo/alt-datasets](https://github.com/LuxAlgo/alt-datasets).
+LuxAlgo Market Trackers is a LuxAlgo open-source project. The official repository is
+[github.com/LuxAlgo/market-trackers](https://github.com/LuxAlgo/market-trackers), and the published data lives
+at [github.com/LuxAlgo/market-trackers-data](https://github.com/LuxAlgo/market-trackers-data).
 
 </div>
 
 ---
 
-LuxAlgo Alt Data ingests 18 datasets from **primary sources only**, normalizes them into one
+LuxAlgo Market Trackers ingests 18 datasets from **primary sources only**, normalizes them into one
 schema, stores them in a local database, serves them to AI agents over **MCP**, and republishes
 everything as **free daily data dumps**. Every row carries provenance: a working deep link to
 the primary document it was parsed from. No accounts, no telemetry, and every source is keyless
@@ -30,39 +30,39 @@ except patents (a free USPTO Open Data Portal key).
 
 ## Quickstart
 
-The only identity LuxAlgo Alt Data ever sends is a contact email inside the User-Agent that the
+The only identity LuxAlgo Market Trackers ever sends is a contact email inside the User-Agent that the
 SEC's fair-access policy requires for EDGAR.
 
 ```bash
-git clone https://github.com/LuxAlgo/alt-data && cd alt-data
+git clone https://github.com/LuxAlgo/market-trackers && cd market-trackers
 pnpm install && pnpm build
-alias alt-data="node packages/cli/dist/index.js"
+alias market-trackers="node packages/cli/dist/index.js"
 
 # 1. Pull data. Short-sale volume needs nothing at all:
-alt-data sync --source finra
+market-trackers sync --source finra
 
 # 2. Insider filings need the SEC-required contact email:
-alt-data sync --source edgar --contact you@example.com --limit 500
+market-trackers sync --source edgar --contact you@example.com --limit 500
 
 # 3. See what you have:
-alt-data status
+market-trackers status
 
 # 4. Serve it to your AI agent over MCP:
-alt-data serve
+market-trackers serve
 ```
 
-The same commands ship on npm as `npx @luxalgo/alt-data-cli …` when you'd rather not hold a
+The same commands ship on npm as `npx @luxalgo/market-trackers-cli …` when you'd rather not hold a
 checkout.
 
-Or skip ingestion entirely: the published dumps are a rebuildable archive, and `alt-data import`
-is the exact mirror image of `alt-data export`:
+Or skip ingestion entirely: the published dumps are a rebuildable archive, and `market-trackers import`
+is the exact mirror image of `market-trackers export`:
 
 ```bash
-git clone https://github.com/LuxAlgo/alt-datasets
-alt-data import ./alt-datasets
+git clone https://github.com/LuxAlgo/market-trackers-data
+market-trackers import ./market-trackers-data
 ```
 
-Everything is incremental and idempotent: `alt-data sync` picks up where it left off (per-source
+Everything is incremental and idempotent: `market-trackers sync` picks up where it left off (per-source
 watermarks) and re-running never duplicates a row (natural-key upserts). SQLite by default;
 `--db postgres://…` is the same store behind one flag.
 
@@ -89,12 +89,12 @@ watermarks) and re-running never duplicates a row (natural-key upserts). SQLite 
 | **Fed communications**              | Federal Reserve Board public JSON feeds        | FOMC statements/minutes announcements, speeches, testimony, as an index with links | ✅ ingesting            |
 | **Wikipedia pageviews**             | Wikimedia REST pageviews API                   | Daily article views for a curated public-company map: attention, measured          | ✅ ingesting            |
 
-`alt-data status` always tells you exactly what your build ingests; sources that aren't implemented
+`market-trackers status` always tells you exactly what your build ingests; sources that aren't implemented
 yet say so out loud instead of pretending.
 
 ## Ask your agent, get receipts
 
-`alt-data-mcp` serves the whole store to any MCP client, locally over stdio or hosted over
+`market-trackers-mcp` serves the whole store to any MCP client, locally over stdio or hosted over
 stateless streamable HTTP. Every answer carries primary-source citations: when an agent tells you
 what Congress bought this week, it can show you the actual filings.
 
@@ -102,53 +102,53 @@ what Congress bought this week, it can show you the actual filings.
 // Claude Desktop / Claude Code / any MCP client
 {
   "mcpServers": {
-    "alt-data": {
+    "market-trackers": {
       "command": "npx",
-      "args": ["-y", "@luxalgo/alt-data-mcp"],
-      "env": { "ALT_DATA_DB": "/path/to/alt-data.db" },
+      "args": ["-y", "@luxalgo/market-trackers-mcp"],
+      "env": { "MARKET_TRACKERS_DB": "/path/to/market-trackers.db" },
     },
   },
 }
 ```
 
-| Tool                           | What it answers                                                               |
-| ------------------------------ | ----------------------------------------------------------------------------- |
-| `alt_data_congress_trades`     | "What did Congress buy this week?", with per-filing citations                 |
-| `alt_data_congress_members`    | Resolve member names; who trades most                                         |
-| `alt_data_member_profile`      | One member's whole public footprint: trades, committees, top tickers          |
-| `alt_data_committees`          | Committee rosters: who sits where, joined to what they trade                  |
-| `alt_data_insider_trades`      | Form 3/4/5 rows by ticker/insider/code/value, with the SEC code legend        |
-| `alt_data_insider_summary`     | Buys vs sells, net shares, notable insiders for a ticker (arithmetic only)    |
-| `alt_data_13f_holders`         | Who holds a security, with share changes vs the prior quarter                 |
-| `alt_data_13f_manager`         | One manager's holdings ("what does Berkshire hold?")                          |
-| `alt_data_gov_contracts`       | Federal contract awards by ticker/recipient/agency                            |
-| `alt_data_gov_grants`          | Federal grant awards by ticker/recipient/agency                               |
-| `alt_data_gov_contract_totals` | Government revenue over time: award counts + sums per year/quarter            |
-| `alt_data_lobbying`            | Lobbying filings by ticker/client/registrant                                  |
-| `alt_data_short_volume`        | Daily short-sale volume series for a ticker                                   |
-| `alt_data_patents`             | Granted patents by ticker/assignee                                            |
-| `alt_data_clinical_trials`     | Studies by ticker/sponsor/status/phase                                        |
-| `alt_data_fda_approvals`       | Drugs@FDA approval actions by ticker/company/drug                             |
-| `alt_data_cot`                 | Weekly futures positioning series for a market                                |
-| `alt_data_bills`               | Bill status by title/sponsor/policy area, plus who lobbies on that bill       |
-| `alt_data_campaign_finance`    | Candidate money: FEC totals + itemized committee→candidate contributions      |
-| `alt_data_congress_hearings`   | Hearing transcripts by committee/witness/chamber: "who testified about X?"    |
-| `alt_data_fed_communications`  | FOMC statements, minutes, speeches, testimony: what the Fed published, linked |
-| `alt_data_wiki_pageviews`      | Wikipedia attention series for a company, by ticker or article                |
-| `alt_data_search`              | One query across tickers, members, managers, insiders                         |
-| `alt_data_freshness`           | How old every dataset is, so agents can check before they answer              |
+| Tool                          | What it answers                                                               |
+| ----------------------------- | ----------------------------------------------------------------------------- |
+| `tracker_congress_trades`     | "What did Congress buy this week?", with per-filing citations                 |
+| `tracker_congress_members`    | Resolve member names; who trades most                                         |
+| `tracker_member_profile`      | One member's whole public footprint: trades, committees, top tickers          |
+| `tracker_committees`          | Committee rosters: who sits where, joined to what they trade                  |
+| `tracker_insider_trades`      | Form 3/4/5 rows by ticker/insider/code/value, with the SEC code legend        |
+| `tracker_insider_summary`     | Buys vs sells, net shares, notable insiders for a ticker (arithmetic only)    |
+| `tracker_13f_holders`         | Who holds a security, with share changes vs the prior quarter                 |
+| `tracker_13f_manager`         | One manager's holdings ("what does Berkshire hold?")                          |
+| `tracker_gov_contracts`       | Federal contract awards by ticker/recipient/agency                            |
+| `tracker_gov_grants`          | Federal grant awards by ticker/recipient/agency                               |
+| `tracker_gov_contract_totals` | Government revenue over time: award counts + sums per year/quarter            |
+| `tracker_lobbying`            | Lobbying filings by ticker/client/registrant                                  |
+| `tracker_short_volume`        | Daily short-sale volume series for a ticker                                   |
+| `tracker_patents`             | Granted patents by ticker/assignee                                            |
+| `tracker_clinical_trials`     | Studies by ticker/sponsor/status/phase                                        |
+| `tracker_fda_approvals`       | Drugs@FDA approval actions by ticker/company/drug                             |
+| `tracker_cot`                 | Weekly futures positioning series for a market                                |
+| `tracker_bills`               | Bill status by title/sponsor/policy area, plus who lobbies on that bill       |
+| `tracker_campaign_finance`    | Candidate money: FEC totals + itemized committee→candidate contributions      |
+| `tracker_congress_hearings`   | Hearing transcripts by committee/witness/chamber: "who testified about X?"    |
+| `tracker_fed_communications`  | FOMC statements, minutes, speeches, testimony: what the Fed published, linked |
+| `tracker_wiki_pageviews`      | Wikipedia attention series for a company, by ticker or article                |
+| `tracker_search`              | One query across tickers, members, managers, insiders                         |
+| `tracker_freshness`           | How old every dataset is, so agents can check before they answer              |
 
-`alt_data_freshness` is first-class on purpose: an agent quoting stale congress data without knowing
+`tracker_freshness` is first-class on purpose: an agent quoting stale congress data without knowing
 it is the failure mode that kills trust. And the committee tools exist because the most-asked
 question about congressional trading, "do they trade what they oversee?", is a **join**, not a
-score: LuxAlgo Alt Data gives you both sides of it with receipts and leaves the conclusion to you.
+score: LuxAlgo Market Trackers gives you both sides of it with receipts and leaves the conclusion to you.
 
 ## The dumps
 
-`alt-data export` writes the full store as versioned JSON: daily deltas per dataset, full snapshots
+`market-trackers export` writes the full store as versioned JSON: daily deltas per dataset, full snapshots
 sharded by event year, an RSS feed per dataset, and a manifest with row counts, watermarks, and
 per-source health. A scheduled CI workflow publishes them to a public data repository
-([`LuxAlgo/alt-datasets`](https://github.com/LuxAlgo/alt-datasets)) so analysts and journalists who
+([`LuxAlgo/market-trackers-data`](https://github.com/LuxAlgo/market-trackers-data)) so analysts and journalists who
 will never run code still get the data: one URL, no signup.
 
 ```
@@ -166,7 +166,7 @@ explorer/index.html                       # zero-build data browser (works on Gi
 The two most time-sensitive datasets (congress trades, insider transactions) also get an intraday
 fast lane that tops up their deltas between daily publishes, and a weekly workflow mirrors the
 whole data repo to a Hugging Face dataset for `datasets.load_dataset(...)` consumers. The full
-contract is in [`docs/alt-datasets.md`](docs/alt-datasets.md).
+contract is in [`docs/market-trackers-data.md`](docs/market-trackers-data.md).
 
 Code is MIT; **the dumps are CC0**: public-domain-derived government data stays public domain.
 See [`data-licenses/`](data-licenses/).
@@ -187,24 +187,24 @@ so the cap is never silent).
 
 ## Deep history
 
-`alt-data backfill --source edgar --from 2004-01-01` walks a source as far back as its free history
+`market-trackers backfill --source edgar --from 2004-01-01` walks a source as far back as its free history
 goes: chunked, resumable, watermark-driven, so an interrupted run picks up exactly where it
 stopped instead of re-walking covered ground. The `backfill.yml` workflow runs the same engine on
 CI and publishes the resulting year-sharded snapshots as release assets on the data repo, so
-nobody has to re-crawl a decade of filings that CI already crawled. And because `alt-data import`
+nobody has to re-crawl a decade of filings that CI already crawled. And because `market-trackers import`
 rebuilds a store from published dumps, the archive is not a pile of downloads; it's a restorable
 database. Per-source depth notes: [`docs/backfill.md`](docs/backfill.md).
 
 ## Bring your own prices
 
-`alt-data analyze congress --prices your-prices.csv` joins disclosed trades against a price series
+`market-trackers analyze congress --prices your-prices.csv` joins disclosed trades against a price series
 **you supply** (`date,ticker,close`) and reports the price change over a window after each
-disclosure: the classic "what happened after they filed?" table. LuxAlgo Alt Data ships no market
+disclosure: the classic "what happened after they filed?" table. LuxAlgo Market Trackers ships no market
 data and computes no scores; the output is arithmetic between public records and your own inputs,
 every result carries a disclaimer saying exactly that, disclosed amounts stay ranges, and the
 timeline anchors on the **filing** date, because that's when the public actually learned.
 
-`alt-data backtest congress --prices your-prices.csv --member <name> --window 30` goes one step
+`market-trackers backtest congress --prices your-prices.csv --member <name> --window 30` goes one step
 further: one fixed, fully disclosed strategy (enter at the first close after the disclosure,
 exit after the window, equal weight per event) with win rate, mean/median change, and every
 skipped event kept in the output with its reason. No parameter fitting, no optimization, no
@@ -213,14 +213,14 @@ honest baseline you can reproduce, not a pitch. Details: [`docs/analytics.md`](d
 
 ## Python
 
-The dumps are plain JSON with Parquet siblings, so nothing about LuxAlgo Alt Data requires
+The dumps are plain JSON with Parquet siblings, so nothing about LuxAlgo Market Trackers requires
 JavaScript. The dependency-light reader in [`python/`](python/) (pandas optional) loads them from
 a URL or a checkout:
 
 ```python
-from alt_datasets import load_snapshot, to_dataframe
+from market_trackers_data import load_snapshot, to_dataframe
 
-rows = load_snapshot("https://raw.githubusercontent.com/LuxAlgo/alt-datasets/main", "congress-trades")
+rows = load_snapshot("https://raw.githubusercontent.com/LuxAlgo/market-trackers-data/main", "congress-trades")
 df = to_dataframe(rows)  # plain list[dict] if pandas isn't installed
 ```
 
@@ -270,24 +270,24 @@ misparses. This board is generated from the latest canary run:
 - **Receipts everywhere.** Every row carries `provenance`: the primary-source URL, retrieval time,
   parser identity, and a confidence tier. Rows extracted from scanned documents are flagged
   `needsReview` instead of silently trusted.
-- **No telemetry.** LuxAlgo Alt Data never phones home. The only outbound identity is the
+- **No telemetry.** LuxAlgo Market Trackers never phones home. The only outbound identity is the
   SEC-required contact email in the EDGAR User-Agent, and it goes to the SEC, nobody else.
 - **Fair access, enforced in code.** The EDGAR client is hard-capped at 10 requests/second by a
   rate limiter with a unit test, not by a sentence in a README.
 
 ## Non-goals
 
-Things LuxAlgo Alt Data deliberately does not do:
+Things LuxAlgo Market Trackers deliberately does not do:
 
-- **No predictions, signals, scores, or "conviction" ratings.** LuxAlgo Alt Data is data with receipts, not
-  advice. `shortRatio`, buy/sell counts, and `alt-data analyze`'s price changes are arithmetic, not
+- **No predictions, signals, scores, or "conviction" ratings.** LuxAlgo Market Trackers is data with receipts, not
+  advice. `shortRatio`, buy/sell counts, and `market-trackers analyze`'s price changes are arithmetic, not
   recommendations.
-- **No fabricated precision.** Congressional amounts are disclosed as ranges; LuxAlgo Alt Data stores the
+- **No fabricated precision.** Congressional amounts are disclosed as ranges; LuxAlgo Market Trackers stores the
   range bounds and never invents midpoints, not even in analytics output.
 - **No social/Reddit sentiment.** Redistribution restrictions make it unshippable in dumps; it
   doesn't belong here.
-- **No scraping of commercial data products.** If it isn't a primary source, it isn't in LuxAlgo Alt Data.
-- **No editorially curated calendars presented as public record.** LuxAlgo Alt Data ships the FDA's own
+- **No scraping of commercial data products.** If it isn't a primary source, it isn't in LuxAlgo Market Trackers.
+- **No editorially curated calendars presented as public record.** LuxAlgo Market Trackers ships the FDA's own
   record of approval actions (Drugs@FDA); it does not ship hand-maintained future-decision-date
   calendars or any other dataset that needs human curation to exist.
 - **No data whose license forbids open redistribution.** Free-to-view is not free-to-republish:
@@ -299,16 +299,16 @@ Things LuxAlgo Alt Data deliberately does not do:
 
 ```
 packages/
-  core/   @luxalgo/alt-data-core   ingestors, parsers, zod schemas (source of truth),
+  core/   @luxalgo/market-trackers-core   ingestors, parsers, zod schemas (source of truth),
                                    storage (SQLite default / Postgres via one flag),
                                    entity resolution, backfill, dump export/import,
                                    BYO-prices analytics, canaries
-  mcp/    @luxalgo/alt-data-mcp    MCP server: stdio + stateless streamable HTTP
-  cli/    @luxalgo/alt-data-cli    alt-data sync | status | export | import | backfill |
+  mcp/    @luxalgo/market-trackers-mcp    MCP server: stdio + stateless streamable HTTP
+  cli/    @luxalgo/market-trackers-cli    market-trackers sync | status | export | import | backfill |
                                    resolve | analyze | backtest | canary | serve
-python/   alt-datasets             dependency-light reader for the published dumps
+python/   market-trackers-data             dependency-light reader for the published dumps
 notebooks/                         worked examples over the dumps (no keys, reproducible)
-templates/alt-datasets/            the data repo's README, LICENSE, and static explorer
+templates/market-trackers-data/            the data repo's README, LICENSE, and static explorer
 ```
 
 Design decisions are documented in [`docs/decisions/`](docs/decisions/), per-source

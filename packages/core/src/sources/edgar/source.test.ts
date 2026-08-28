@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { edgarSource, THIRTEENF_XML_SINCE } from "./source.js";
 import { COMPANY_TICKERS_URL } from "./client.js";
-import { AltDataStore } from "../../store/store.js";
+import { TrackerStore } from "../../store/store.js";
 import { DATASETS } from "../../schema/datasets.js";
 import { resolveConfig } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
@@ -58,8 +58,8 @@ function mockEdgarFetch(options: { companyTickersStatus?: number } = {}): {
 async function makeCtx(
   fetchImpl: typeof fetch,
   overrides: { contactEmail?: string } = { contactEmail: "test@example.com" },
-): Promise<{ ctx: SourceContext; store: AltDataStore }> {
-  const store = await AltDataStore.open(":memory:");
+): Promise<{ ctx: SourceContext; store: TrackerStore }> {
+  const store = await TrackerStore.open(":memory:");
   const ctx: SourceContext = {
     store,
     config: resolveConfig({ logLevel: "silent", ...overrides }, { cwd: "/nonexistent", env: {} }),
@@ -92,7 +92,7 @@ describe("edgarSource.sync", () => {
     // Conditional-GET plumbing captured the validator for the ticker map.
     expect((await store.getFetchCache(COMPANY_TICKERS_URL))?.etag).toBe('"tickers-v1"');
 
-    // The cached CUSIP resolved; the uncached one is what `alt-data resolve cusips` would pick up.
+    // The cached CUSIP resolved; the uncached one is what `market-trackers resolve cusips` would pick up.
     expect(await store.distinctUnresolvedCusips()).toEqual(["79589L106"]);
 
     // Idempotent re-walk: same rows, no dupes.

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { cftcSource, CFTC_COT_LEGACY_FUTURES_URL } from "./source.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { CotReport } from "../../schema/cot-report.js";
-import { AltDataStore } from "../../store/store.js";
+import { TrackerStore } from "../../store/store.js";
 import { resolveConfig } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
 import { readFixture, readFixtureJson } from "../../test-helpers.js";
@@ -65,10 +65,10 @@ function mockFetch(captured: CapturedRequest[]): typeof fetch {
 
 async function makeCtx(): Promise<{
   ctx: SourceContext;
-  store: AltDataStore;
+  store: TrackerStore;
   captured: CapturedRequest[];
 }> {
-  const store = await AltDataStore.open(":memory:");
+  const store = await TrackerStore.open(":memory:");
   const captured: CapturedRequest[] = [];
   const ctx: SourceContext = {
     store,

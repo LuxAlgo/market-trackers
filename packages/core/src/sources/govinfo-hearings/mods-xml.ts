@@ -4,7 +4,7 @@ import { hearingDetailsUrl, hearingModsUrl } from "./client.js";
 
 /**
  * Parser for one CHRG package's MODS metadata document (GPO GovInfo). Pulls
- * the index fields LuxAlgo Alt Data publishes — title, chamber, congress/session,
+ * the index fields LuxAlgo Market Trackers publishes — title, chamber, congress/session,
  * held date, committees, witnesses, member bioguide ids, renditions —
  * leaving the transcript itself (and everything else in the MODS record)
  * unread. Built from the same tolerant tag/block primitives as the

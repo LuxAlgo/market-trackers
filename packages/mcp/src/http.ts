@@ -5,4 +5,4 @@
 import { serveHttp } from "./server.js";
 
 const { port } = await serveHttp();
-console.error(`alt-data-mcp listening on :${port}/mcp`);
+console.error(`market-trackers-mcp listening on :${port}/mcp`);

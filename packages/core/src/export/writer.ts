@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { gzipSync, createGzip } from "node:zlib";
 import type { DatasetId } from "../schema/datasets.js";
 import { ALL_DATASETS, SCHEMA_VERSION, type DatasetDefinition } from "../schema/datasets.js";
-import type { AltDataStore } from "../store/store.js";
+import type { TrackerStore } from "../store/store.js";
 import { freshnessReport } from "../store/queries.js";
 import { addDays, todayUtc } from "../lib/dates.js";
 import type { Logger } from "../lib/logger.js";
@@ -23,7 +23,7 @@ import { writeEntityFeeds, type EntityFeedCounts } from "./entity-feeds.js";
  * days are immutable once written; only recent days are rewritten, because
  * late rows can still land on the current day. Year shards keep every file
  * well under git/CDN limits even at full-history depth — and because
- * `alt-data import` reads them back, the published dumps are the durable
+ * `market-trackers import` reads them back, the published dumps are the durable
  * archive a store can always be rebuilt from.
  */
 
@@ -150,7 +150,7 @@ async function writeJsonArrayFile(path: string, rows: AsyncIterable<unknown>): P
 }
 
 export async function exportDumps(
-  store: AltDataStore,
+  store: TrackerStore,
   options: ExportOptions,
 ): Promise<ExportSummary> {
   const datasets: DatasetDefinition[] = (options.datasets ?? ALL_DATASETS.map((d) => d.id)).map(
@@ -341,7 +341,7 @@ export interface DumpManifest {
 }
 
 export async function buildManifest(
-  store: AltDataStore,
+  store: TrackerStore,
   snapshotIndex: Map<DatasetId, { file: string; rows: number }[]> = new Map(),
   entityFeedIndex: Map<DatasetId, EntityFeedCounts> = new Map(),
   now: Date = new Date(),

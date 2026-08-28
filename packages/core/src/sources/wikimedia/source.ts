@@ -1,8 +1,8 @@
-import type { AltDataSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
+import type { TrackerSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { WikiPageview } from "../../schema/wiki-pageview.js";
-import { ALT_DATA_VERSION } from "../../config.js";
+import { MARKET_TRACKERS_VERSION } from "../../config.js";
 import { addDays, hoursSince, toDateString } from "../../lib/dates.js";
 import type { PoliteFetch } from "../../lib/http.js";
 import { wikiArticleMap } from "./article-map.js";
@@ -41,7 +41,7 @@ function watermarkKey(project: string, article: string): string {
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createWikimediaFetch({
-    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `market-trackers/${MARKET_TRACKERS_VERSION}`,
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("wikimedia"),
   });
@@ -55,7 +55,7 @@ async function advanceWatermark(ctx: SourceContext, key: string, day: string): P
   }
 }
 
-export const wikimediaSource: AltDataSource = {
+export const wikimediaSource: TrackerSource = {
   id: "wikimedia",
   title: "Wikimedia pageviews",
   datasets: ["wiki-pageviews"],

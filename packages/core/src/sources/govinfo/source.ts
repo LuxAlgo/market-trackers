@@ -1,5 +1,5 @@
 import type {
-  AltDataSource,
+  TrackerSource,
   ParseStats,
   SourceContext,
   SourceSyncResult,
@@ -8,7 +8,7 @@ import type {
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import { billId, billSchema, type Bill } from "../../schema/bill.js";
-import { ALT_DATA_VERSION } from "../../config.js";
+import { MARKET_TRACKERS_VERSION } from "../../config.js";
 import { hoursSince, toDateString } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
 import {
@@ -65,7 +65,7 @@ const CANARY_PROBE_TYPE: BillType = "hr";
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createGovinfoFetch({
-    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `market-trackers/${MARKET_TRACKERS_VERSION}`,
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("govinfo"),
   });
@@ -269,7 +269,7 @@ async function syncBillType(
   return out;
 }
 
-export const govinfoSource: AltDataSource = {
+export const govinfoSource: TrackerSource = {
   id: "govinfo",
   title: "GovInfo (bill status)",
   datasets: ["bills"],

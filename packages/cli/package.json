@@ -1,11 +1,11 @@
 {
-  "name": "@luxalgo/alt-data-cli",
+  "name": "@luxalgo/market-trackers-cli",
   "version": "0.1.0",
-  "description": "The LuxAlgo Alt Data CLI \u2014 sync the public record of US markets to a local database, serve it over MCP, and export it as JSON dumps. `alt-data sync | serve | export | status | canary`.",
+  "description": "The LuxAlgo Market Trackers CLI \u2014 sync the public record of US markets to a local database, serve it over MCP, and export it as JSON dumps. `market-trackers sync | serve | export | status | canary`.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "alt-data": "dist/index.js"
+    "market-trackers": "dist/index.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,11 +15,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LuxAlgo/alt-data.git",
+    "url": "git+https://github.com/LuxAlgo/market-trackers.git",
     "directory": "packages/cli"
   },
-  "homepage": "https://github.com/LuxAlgo/alt-data#readme",
-  "bugs": "https://github.com/LuxAlgo/alt-data/issues",
+  "homepage": "https://github.com/LuxAlgo/market-trackers#readme",
+  "bugs": "https://github.com/LuxAlgo/market-trackers/issues",
   "keywords": [
     "cli",
     "congress-trades",
@@ -33,8 +33,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@luxalgo/alt-data-core": "workspace:^",
-    "@luxalgo/alt-data-mcp": "workspace:^",
+    "@luxalgo/market-trackers-core": "workspace:^",
+    "@luxalgo/market-trackers-mcp": "workspace:^",
     "commander": "^13.1.0"
   },
   "devDependencies": {

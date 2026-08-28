@@ -1,4 +1,4 @@
-import { exportDumps, isDatasetId, type DatasetId } from "@luxalgo/alt-data-core";
+import { exportDumps, isDatasetId, type DatasetId } from "@luxalgo/market-trackers-core";
 import { openContext, printJson, type GlobalFlags } from "../context.js";
 
 export interface ExportFlags extends GlobalFlags {

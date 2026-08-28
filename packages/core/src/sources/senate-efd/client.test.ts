@@ -87,7 +87,7 @@ function mockEfdServer(): { fetchImpl: typeof fetch; requests: RecordedRequest[]
 
 function makeClient(fetchImpl: typeof fetch): SenateEfdClient {
   return new SenateEfdClient({
-    userAgent: "alt-data-test/0.0",
+    userAgent: "market-trackers-test/0.0",
     fetchImpl,
     sleep: async () => {},
   });
@@ -182,7 +182,7 @@ describe("SenateEfdClient", () => {
       `POST ${SENATE_EFD_SEARCH_DATA}`,
     ]);
     for (const request of requests) {
-      expect(request.headers.get("user-agent")).toBe("alt-data-test/0.0");
+      expect(request.headers.get("user-agent")).toBe("market-trackers-test/0.0");
     }
     const search = requests[3] as RecordedRequest;
     const form = new URLSearchParams(search.body);

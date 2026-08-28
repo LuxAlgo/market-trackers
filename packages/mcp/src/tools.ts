@@ -1,6 +1,6 @@
 /*
-  The LuxAlgo Alt Data MCP tool surface — the public record of US markets for AI
-  agents. All read-only, keyless, and served from a local (or hosted) LuxAlgo Alt Data
+  The LuxAlgo Market Trackers MCP tool surface — the public record of US markets for AI
+  agents. All read-only, keyless, and served from a local (or hosted) LuxAlgo Market Trackers
   store. Every payload carries primary-source citation URLs: agents can (and
   should) show the receipt. Amounts that are disclosed as ranges stay ranges.
 */
@@ -34,8 +34,8 @@ import {
   queryThirteenfManager,
   queryWikiPageviews,
   searchEntities,
-  type AltDataStore,
-} from "@luxalgo/alt-data-core";
+  type TrackerStore,
+} from "@luxalgo/market-trackers-core";
 
 function json(payload: unknown) {
   return { content: [{ type: "text" as const, text: JSON.stringify(payload) }] };
@@ -66,9 +66,9 @@ function withCitation<T extends { provenance: { sourceUrl: string } }>(rows: T[]
   return rows.map((row) => ({ ...row, citation: row.provenance.sourceUrl }));
 }
 
-export function registerAltDataTools(server: McpServer, store: AltDataStore): void {
+export function registerTrackerTools(server: McpServer, store: TrackerStore): void {
   server.registerTool(
-    "alt_data_congress_trades",
+    "tracker_congress_trades",
     {
       title: "Congressional trades",
       description:
@@ -102,11 +102,11 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_congress_members",
+    "tracker_congress_members",
     {
       title: "Congress members with trade activity",
       description:
-        "Members of Congress that appear in the trades dataset, with trade counts and last-transaction dates. Use to resolve a fuzzy name ('whitehouse') before calling alt_data_congress_trades, or to see who trades most. bioguideId is the canonical member identifier (null when unresolved).",
+        "Members of Congress that appear in the trades dataset, with trade counts and last-transaction dates. Use to resolve a fuzzy name ('whitehouse') before calling tracker_congress_trades, or to see who trades most. bioguideId is the canonical member identifier (null when unresolved).",
       inputSchema: {
         q: z.string().optional().describe("Name filter (substring); omit to list by trade count"),
         limit: LIMIT,
@@ -119,7 +119,7 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_insider_trades",
+    "tracker_insider_trades",
     {
       title: "Insider transactions (SEC Forms 3/4/5)",
       description:
@@ -166,11 +166,11 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_insider_summary",
+    "tracker_insider_summary",
     {
       title: "Insider activity summary for a ticker",
       description:
-        "Aggregates insider activity for one ticker over a window: counts and share totals per raw transaction code, open-market buys vs sells (codes P and S) with net shares, and the insiders with the largest transaction value. Pure arithmetic over the filings — no scores, no signals. For row-level detail call alt_data_insider_trades.",
+        "Aggregates insider activity for one ticker over a window: counts and share totals per raw transaction code, open-market buys vs sells (codes P and S) with net shares, and the insiders with the largest transaction value. Pure arithmetic over the filings — no scores, no signals. For row-level detail call tracker_insider_trades.",
       inputSchema: {
         ticker: z.string().min(1),
         window_days: z
@@ -200,7 +200,7 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_13f_holders",
+    "tracker_13f_holders",
     {
       title: "13F holders of a security",
       description:
@@ -227,7 +227,7 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_13f_manager",
+    "tracker_13f_manager",
     {
       title: "A 13F manager's holdings",
       description:
@@ -259,7 +259,7 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_gov_contracts",
+    "tracker_gov_contracts",
     {
       title: "Government contract awards",
       description:
@@ -287,7 +287,7 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_lobbying",
+    "tracker_lobbying",
     {
       title: "Lobbying filings",
       description:
@@ -313,7 +313,7 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_short_volume",
+    "tracker_short_volume",
     {
       title: "Daily short-sale volume",
       description:
@@ -339,11 +339,11 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_gov_grants",
+    "tracker_gov_grants",
     {
       title: "Government grant awards",
       description:
-        "Federal GRANT awards from USAspending (the non-contract award universe: research grants, subsidies, program funding), filterable exactly like alt_data_gov_contracts — recipient ticker (curated public-company subsidiary map), recipient name, awarding agency, date, and amount floor. recipient.tickers is empty when unmapped; absence of a ticker is not absence of the award. Each row cites its USAspending record.",
+        "Federal GRANT awards from USAspending (the non-contract award universe: research grants, subsidies, program funding), filterable exactly like tracker_gov_contracts — recipient ticker (curated public-company subsidiary map), recipient name, awarding agency, date, and amount floor. recipient.tickers is empty when unmapped; absence of a ticker is not absence of the award. Each row cites its USAspending record.",
       inputSchema: {
         ticker: z.string().optional(),
         recipient: z.string().optional().describe("Recipient name (substring match)"),
@@ -367,7 +367,7 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_member_profile",
+    "tracker_member_profile",
     {
       title: "Member of Congress — full profile",
       description:
@@ -389,11 +389,11 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_committees",
+    "tracker_committees",
     {
       title: "Committee roster with trade activity",
       description:
-        "Resolve a congressional committee by name or thomas id ('armed services', 'SSAS', 'energy and commerce') and get its full roster: every member with their leadership title, subcommittee seats, disclosed-trade count, and last trade date. Pair with alt_data_congress_trades (filter by the member names returned here) to pull the underlying filings. Facts only — the join between oversight and trading is presented, never scored.",
+        "Resolve a congressional committee by name or thomas id ('armed services', 'SSAS', 'energy and commerce') and get its full roster: every member with their leadership title, subcommittee seats, disclosed-trade count, and last trade date. Pair with tracker_congress_trades (filter by the member names returned here) to pull the underlying filings. Facts only — the join between oversight and trading is presented, never scored.",
       inputSchema: {
         q: z.string().min(1).describe("Committee name or thomas id (substring match)"),
       },
@@ -406,7 +406,7 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_patents",
+    "tracker_patents",
     {
       title: "Granted patents",
       description:
@@ -434,7 +434,7 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_clinical_trials",
+    "tracker_clinical_trials",
     {
       title: "Clinical trial registrations",
       description:
@@ -464,7 +464,7 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_fda_approvals",
+    "tracker_fda_approvals",
     {
       title: "FDA drug application events",
       description:
@@ -484,7 +484,7 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_cot",
+    "tracker_cot",
     {
       title: "CFTC Commitments of Traders",
       description:
@@ -510,7 +510,7 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_wiki_pageviews",
+    "tracker_wiki_pageviews",
     {
       title: "Wikipedia pageviews",
       description:
@@ -530,7 +530,7 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_bills",
+    "tracker_bills",
     {
       title: "Federal legislation (bill status)",
       description:
@@ -587,11 +587,11 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_congress_hearings",
+    "tracker_congress_hearings",
     {
       title: "Congressional hearing transcripts",
       description:
-        "Published hearing transcript packages from GPO GovInfo's CHRG collection: title, chamber, congress/session, held date, committees, witness list, and member bioguide ids, with deep links to the transcript (HTML/PDF stay at govinfo — every row carries `citation` plus detailUrl/htmlUrl/pdfUrl). Search by text over titles AND witness lines ('who testified about X'), or filter by congress, chamber, committee name, and held-date range. memberBioguideIds joins to alt_data_committees / alt_data_congress_trades. Facts as GPO published them — no summaries, no topic scoring; note GPO publishes transcripts weeks-to-months after the hearing date.",
+        "Published hearing transcript packages from GPO GovInfo's CHRG collection: title, chamber, congress/session, held date, committees, witness list, and member bioguide ids, with deep links to the transcript (HTML/PDF stay at govinfo — every row carries `citation` plus detailUrl/htmlUrl/pdfUrl). Search by text over titles AND witness lines ('who testified about X'), or filter by congress, chamber, committee name, and held-date range. memberBioguideIds joins to tracker_committees / tracker_congress_trades. Facts as GPO published them — no summaries, no topic scoring; note GPO publishes transcripts weeks-to-months after the hearing date.",
       inputSchema: {
         q: z
           .string()
@@ -631,11 +631,11 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_fed_communications",
+    "tracker_fed_communications",
     {
       title: "Federal Reserve communications",
       description:
-        "Federal Reserve Board monetary-policy communications from the Board's public feeds: FOMC statements and minutes announcements (type 'statement'/'minutes'), other Monetary Policy press releases, governor/chair speeches, and congressional testimony — title, speaker, date, venue, and a deep link to the full text at federalreserve.gov. Filter by type, speaker, date range, or title text. An index of what the Board published and when, verbatim — no rate expectations, no tone analysis, no interpretation. Coverage is what the Board's feeds carry (check alt_data_freshness); non-monetary-policy press releases (enforcement, banking applications) are out of scope.",
+        "Federal Reserve Board monetary-policy communications from the Board's public feeds: FOMC statements and minutes announcements (type 'statement'/'minutes'), other Monetary Policy press releases, governor/chair speeches, and congressional testimony — title, speaker, date, venue, and a deep link to the full text at federalreserve.gov. Filter by type, speaker, date range, or title text. An index of what the Board published and when, verbatim — no rate expectations, no tone analysis, no interpretation. Coverage is what the Board's feeds carry (check tracker_freshness); non-monetary-policy press releases (enforcement, banking applications) are out of scope.",
       inputSchema: {
         q: z.string().optional().describe("Title text (substring match), e.g. 'inflation'"),
         type: z
@@ -663,7 +663,7 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_campaign_finance",
+    "tracker_campaign_finance",
     {
       title: "FEC campaign finance",
       description:
@@ -714,11 +714,11 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_gov_contract_totals",
+    "tracker_gov_contract_totals",
     {
       title: "Government award totals over time",
       description:
-        "Award counts and amount sums per year or quarter for one recipient ticker or name — the 'government revenue over time' view, computed as plain arithmetic over stored USAspending award rows at query time. Choose contracts or grants via dataset. Buckets cover only awards this store has ingested (check alt_data_freshness); amounts sum disclosed obligations, and awards with no disclosed amount count toward `awards` but add 0 to the sum.",
+        "Award counts and amount sums per year or quarter for one recipient ticker or name — the 'government revenue over time' view, computed as plain arithmetic over stored USAspending award rows at query time. Choose contracts or grants via dataset. Buckets cover only awards this store has ingested (check tracker_freshness); amounts sum disclosed obligations, and awards with no disclosed amount count toward `awards` but add 0 to the sum.",
       inputSchema: {
         ticker: z.string().optional(),
         recipient: z.string().optional().describe("Recipient name (substring match)"),
@@ -743,11 +743,11 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_search",
+    "tracker_search",
     {
       title: "Search entities across all datasets",
       description:
-        "Cross-dataset entity search: one query over tickers/companies, members of Congress, 13F managers, and insiders, with per-dataset row counts for each hit. The natural first call when you have a name and don't yet know which dataset holds it — results tell you which alt_data_* tool to call next.",
+        "Cross-dataset entity search: one query over tickers/companies, members of Congress, 13F managers, and insiders, with per-dataset row counts for each hit. The natural first call when you have a name and don't yet know which dataset holds it — results tell you which tracker_* tool to call next.",
       inputSchema: {
         q: z.string().min(1).describe("Ticker, company, member, manager, or insider name"),
         limit: LIMIT,
@@ -760,7 +760,7 @@ export function registerAltDataTools(server: McpServer, store: AltDataStore): vo
   );
 
   server.registerTool(
-    "alt_data_freshness",
+    "tracker_freshness",
     {
       title: "Data freshness & pipeline health",
       description:

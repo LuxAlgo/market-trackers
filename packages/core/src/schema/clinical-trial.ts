@@ -4,7 +4,7 @@ import { provenanceSchema } from "./provenance.js";
 /**
  * One study registration from ClinicalTrials.gov (API v2, free, keyless).
  * These are registry facts as sponsors filed them — statuses, phases, and
- * dates come from the registry verbatim; LuxAlgo Alt Data adds no editorial calendar
+ * dates come from the registry verbatim; LuxAlgo Market Trackers adds no editorial calendar
  * on top (see the README's non-goals).
  */
 

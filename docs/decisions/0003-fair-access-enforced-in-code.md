@@ -2,7 +2,7 @@
 
 **Status:** accepted
 
-LuxAlgo Alt Data depends on the continued goodwill of free public endpoints. Politeness is therefore not
+LuxAlgo Market Trackers depends on the continued goodwill of free public endpoints. Politeness is therefore not
 documentation — it is construction:
 
 - **Strict sliding-window limiter** (`lib/rate-limiter.ts`): never more than N requests in any

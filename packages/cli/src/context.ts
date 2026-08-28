@@ -1,24 +1,24 @@
 import {
   createLogger,
-  AltDataStore,
+  TrackerStore,
   resolveConfig,
   type ConfigOverrides,
-  type AltDataConfig,
+  type TrackerConfig,
   type Logger,
   type SourceContext,
-} from "@luxalgo/alt-data-core";
+} from "@luxalgo/market-trackers-core";
 
 /** Flags shared by every command. */
 export interface GlobalFlags {
   db?: string;
   contact?: string;
-  log?: AltDataConfig["logLevel"];
+  log?: TrackerConfig["logLevel"];
   json?: boolean;
 }
 
 export interface CliContext extends SourceContext {
-  store: AltDataStore;
-  config: AltDataConfig;
+  store: TrackerStore;
+  config: TrackerConfig;
   logger: Logger;
   close: () => Promise<void>;
 }
@@ -32,7 +32,7 @@ export async function openContext(flags: GlobalFlags): Promise<CliContext> {
   if (flags.json && !flags.log) overrides.logLevel = "warn";
 
   const config = resolveConfig(overrides);
-  const store = await AltDataStore.open(config.db);
+  const store = await TrackerStore.open(config.db);
   const logger = createLogger(config.logLevel);
   return {
     store,

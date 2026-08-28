@@ -11,7 +11,7 @@ import {
 import { BILL_TYPES, GovinfoListingDriftError } from "./client.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { Bill } from "../../schema/bill.js";
-import { AltDataStore } from "../../store/store.js";
+import { TrackerStore } from "../../store/store.js";
 import { resolveConfig, type ConfigOverrides } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
 import { readFixture, readFixtureJson } from "../../test-helpers.js";
@@ -64,8 +64,8 @@ function mockFetch(captured: string[]): typeof fetch {
 async function makeCtx(
   overrides: ConfigOverrides = {},
   nowIso = NOW,
-): Promise<{ ctx: SourceContext; store: AltDataStore; captured: string[] }> {
-  const store = await AltDataStore.open(":memory:");
+): Promise<{ ctx: SourceContext; store: TrackerStore; captured: string[] }> {
+  const store = await TrackerStore.open(":memory:");
   const captured: string[] = [];
   const ctx: SourceContext = {
     store,
@@ -176,7 +176,7 @@ describe("govinfoSource.sync", () => {
   });
 
   it("--since spanning two congresses walks both, each gated only by its own watermark", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     const captured: string[] = [];
     const listingHr118 = JSON.stringify({
       files: [
@@ -272,7 +272,7 @@ describe("govinfoSource.sync", () => {
   });
 
   it("rejects (never a silent 0-row success) when a listing's field shape has drifted", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     const drifted = JSON.stringify({
       files: [{ folder: false, someRenamedField: "BILLSTATUS-119hr1.xml" }],
     });

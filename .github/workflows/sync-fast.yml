@@ -8,8 +8,8 @@ name: Sync fast lane
 #
 # No-ops until configured (identical requirements to publish-dumps.yml —
 # see docs/operations.md):
-#   vars.ALT_DATA_CONTACT       — contact email for the SEC EDGAR User-Agent
-#   vars.ALT_DATASETS_REPO     — e.g. "LuxAlgo/alt-datasets" (job skipped without it)
+#   vars.MARKET_TRACKERS_CONTACT       — contact email for the SEC EDGAR User-Agent
+#   vars.ALT_DATASETS_REPO     — e.g. "LuxAlgo/market-trackers-data" (job skipped without it)
 #   secrets.ALT_DATASETS_TOKEN — token with push access to the data repo
 #                               (without it, the store still syncs but nothing is pushed)
 #
@@ -102,8 +102,8 @@ jobs:
       # a flaky source must never fail this job before Export/Save-store run.
       - name: Sync (fast sources)
         env:
-          ALT_DATA_CONTACT: ${{ vars.ALT_DATA_CONTACT }}
-          ALT_DATA_PATENTSVIEW_KEY: ${{ secrets.ALT_DATA_PATENTSVIEW_KEY }}
+          MARKET_TRACKERS_CONTACT: ${{ vars.MARKET_TRACKERS_CONTACT || vars.ALT_DATA_CONTACT }}
+          MARKET_TRACKERS_PATENTSVIEW_KEY: ${{ secrets.MARKET_TRACKERS_PATENTSVIEW_KEY || secrets.ALT_DATA_PATENTSVIEW_KEY }}
         run: |
           node packages/cli/dist/index.js sync --db publish.db --source senate-efd,house-clerk,edgar --limit 2000 --json || true
 
@@ -127,7 +127,7 @@ jobs:
       # fast-lane run can only ever add or update files — it never removes
       # anything, so it can never wipe a dataset directory this run didn't
       # touch. manifest.json is additionally excluded outright: it's written
-      # unconditionally by every `alt-data export` run from a whole-store
+      # unconditionally by every `market-trackers export` run from a whole-store
       # freshness report (see buildManifest in
       # packages/core/src/export/writer.ts), regardless of --dataset, but
       # with --no-snapshot its `snapshots` listing comes back empty for
@@ -140,8 +140,8 @@ jobs:
         run: |
           rsync -a --exclude ".git" --exclude "README.md" --exclude "LICENSE" --exclude "manifest.json" dumps/ data-repo/
           cd data-repo
-          git config user.name "alt-data-publish[bot]"
-          git config user.email "alt-data-publish@users.noreply.github.com"
+          git config user.name "market-trackers-publish[bot]"
+          git config user.email "market-trackers-publish@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then
             echo "No fast-lane data changes this run."

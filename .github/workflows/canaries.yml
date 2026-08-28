@@ -39,23 +39,23 @@ jobs:
         run: pnpm build
 
       # A shallow sync gives the canaries real parse-rate stats to judge.
-      # ALT_DATA_CONTACT is a repo variable (Settings → Variables); without it
+      # MARKET_TRACKERS_CONTACT is a repo variable (Settings → Variables); without it
       # the EDGAR sync is skipped and its canary reports the gap honestly.
       - name: Sync (shallow)
         env:
-          ALT_DATA_CONTACT: ${{ vars.ALT_DATA_CONTACT }}
-          ALT_DATA_PATENTSVIEW_KEY: ${{ secrets.ALT_DATA_PATENTSVIEW_KEY }}
+          MARKET_TRACKERS_CONTACT: ${{ vars.MARKET_TRACKERS_CONTACT || vars.ALT_DATA_CONTACT }}
+          MARKET_TRACKERS_PATENTSVIEW_KEY: ${{ secrets.MARKET_TRACKERS_PATENTSVIEW_KEY || secrets.ALT_DATA_PATENTSVIEW_KEY }}
         run: |
           node packages/cli/dist/index.js sync --source finra --db canary.db --json || true
-          if [ -n "$ALT_DATA_CONTACT" ]; then
+          if [ -n "$MARKET_TRACKERS_CONTACT" ]; then
             node packages/cli/dist/index.js sync --source edgar --db canary.db --limit 300 --json || true
           fi
 
       - name: Run canaries
         id: canary
         env:
-          ALT_DATA_CONTACT: ${{ vars.ALT_DATA_CONTACT }}
-          ALT_DATA_PATENTSVIEW_KEY: ${{ secrets.ALT_DATA_PATENTSVIEW_KEY }}
+          MARKET_TRACKERS_CONTACT: ${{ vars.MARKET_TRACKERS_CONTACT || vars.ALT_DATA_CONTACT }}
+          MARKET_TRACKERS_PATENTSVIEW_KEY: ${{ secrets.MARKET_TRACKERS_PATENTSVIEW_KEY || secrets.ALT_DATA_PATENTSVIEW_KEY }}
         run: |
           set +e
           node packages/cli/dist/index.js canary --db canary.db --out canary-report.json --json

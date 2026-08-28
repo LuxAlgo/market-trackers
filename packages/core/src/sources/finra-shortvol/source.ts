@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { AltDataSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
+import type { TrackerSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import { createPoliteFetch, type PoliteFetch } from "../../lib/http.js";
@@ -13,7 +13,7 @@ import {
   isWeekend,
   toDateString,
 } from "../../lib/dates.js";
-import { ALT_DATA_VERSION } from "../../config.js";
+import { MARKET_TRACKERS_VERSION } from "../../config.js";
 import { parseShortVolumeFile } from "./parser.js";
 
 /**
@@ -34,7 +34,7 @@ function watermarkKey(market: string): string {
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createPoliteFetch({
-    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `market-trackers/${MARKET_TRACKERS_VERSION}`,
     limiter: new RateLimiter({ limit: 5, windowMs: 1_000 }),
     // FINRA's CDN answers 403 (not 404) for objects that don't exist —
     // observed live on the current day's not-yet-published file — so 403
@@ -45,7 +45,7 @@ function buildFetch(ctx: SourceContext): PoliteFetch {
   });
 }
 
-export const finraSource: AltDataSource = {
+export const finraSource: TrackerSource = {
   id: "finra",
   title: "FINRA Reg SHO daily short-sale volume",
   datasets: ["short-volume"],

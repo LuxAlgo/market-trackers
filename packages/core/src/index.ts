@@ -1,5 +1,5 @@
 /**
- * @luxalgo/alt-data-core — the public record of US markets, as a library.
+ * @luxalgo/market-trackers-core — the public record of US markets, as a library.
  *
  * Ingestors (primary sources only), zod schemas, storage (SQLite default /
  * Postgres optional), entity resolution, dump export, and the canary

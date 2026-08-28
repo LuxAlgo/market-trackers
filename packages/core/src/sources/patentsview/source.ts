@@ -1,14 +1,14 @@
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { AltDataSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
+import type { TrackerSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { Patent } from "../../schema/patent.js";
-import { ALT_DATA_VERSION } from "../../config.js";
+import { MARKET_TRACKERS_VERSION } from "../../config.js";
 import { hoursSince } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
-import type { AltDataStore } from "../../store/store.js";
+import type { TrackerStore } from "../../store/store.js";
 import { resolveEntityTickersTiered } from "../../resolve/sec-names.js";
 import {
   createPatentsviewFetch,
@@ -81,8 +81,8 @@ const TABLE_ENTRY = {
 } as const;
 
 export const PATENTSVIEW_MISSING_KEY_NOTE =
-  "skipped: no USPTO Open Data Portal API key configured (ALT_DATA_PATENTSVIEW_KEY, or " +
-  "patentsviewApiKey in alt-data.config.json — the key is free: create a USPTO.gov account, " +
+  "skipped: no USPTO Open Data Portal API key configured (MARKET_TRACKERS_PATENTSVIEW_KEY, or " +
+  "patentsviewApiKey in market-trackers.config.json — the key is free: create a USPTO.gov account, " +
   "complete the Open Data Portal fields on your profile, then Manage API Key at " +
   "https://data.uspto.gov)";
 
@@ -93,7 +93,7 @@ const CPC_COLUMNS = ["patent_id", "cpc_sequence", "cpc_class"];
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createPatentsviewFetch({
-    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `market-trackers/${MARKET_TRACKERS_VERSION}`,
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("patentsview"),
   });
@@ -152,7 +152,7 @@ export async function normalizePatentRow(
   raw: { patentId: string; grantDate: string; title: string; wipoKind: string },
   joined: PatentJoinLookup,
   retrievedAt: string,
-  store: AltDataStore,
+  store: TrackerStore,
   tickerMemo?: Map<string, string[]>,
 ): Promise<Patent> {
   const patentId = raw.patentId.trim();
@@ -262,7 +262,7 @@ async function loadCpcTable(zipPath: string, scratch: PatentJoinScratch): Promis
   return stats;
 }
 
-export const patentsviewSource: AltDataSource = {
+export const patentsviewSource: TrackerSource = {
   id: "patentsview",
   title: "PatentsView (granted US patents)",
   datasets: ["patents"],
@@ -327,7 +327,7 @@ export const patentsviewSource: AltDataSource = {
     };
 
     const limit = opts.limit ?? Number.POSITIVE_INFINITY;
-    const tmpDir = await mkdtemp(join(tmpdir(), "alt-data-patentsview-"));
+    const tmpDir = await mkdtemp(join(tmpdir(), "market-trackers-patentsview-"));
     try {
       const zipPaths = { patent: "", assignee: "", cpc: "" };
       for (const key of ["patent", "assignee", "cpc"] as const) {
@@ -462,8 +462,8 @@ export const patentsviewSource: AltDataSource = {
         ok: false,
         severity: "soft",
         note:
-          "skipped: no USPTO Open Data Portal API key configured (ALT_DATA_PATENTSVIEW_KEY, or " +
-          "patentsviewApiKey in alt-data.config.json — the key is free)",
+          "skipped: no USPTO Open Data Portal API key configured (MARKET_TRACKERS_PATENTSVIEW_KEY, or " +
+          "patentsviewApiKey in market-trackers.config.json — the key is free)",
       });
     } else {
       const politeFetch = buildFetch(ctx);

@@ -16,7 +16,7 @@ on:
         description: "Accept header to send"
         default: "application/json"
       use_patentsview_key:
-        description: "Send secrets.ALT_DATA_PATENTSVIEW_KEY as an x-api-key header (for probing the USPTO Open Data Portal API)"
+        description: "Send secrets.MARKET_TRACKERS_PATENTSVIEW_KEY as an x-api-key header (for probing the USPTO Open Data Portal API)"
         required: false
         type: boolean
         default: false
@@ -40,7 +40,7 @@ jobs:
           HEAD_BYTES: ${{ inputs.head_bytes }}
           # Only exposed when explicitly requested; GitHub masks the secret's
           # value in logs, and the probe never prints request headers anyway.
-          API_KEY: ${{ inputs.use_patentsview_key && secrets.ALT_DATA_PATENTSVIEW_KEY || '' }}
+          API_KEY: ${{ inputs.use_patentsview_key && secrets.MARKET_TRACKERS_PATENTSVIEW_KEY || '' }}
         run: |
           key_args=()
           [ -n "$API_KEY" ] && key_args=(-H "x-api-key: $API_KEY")
@@ -56,7 +56,7 @@ jobs:
             : > body.out
             curl -sS -L -o body.out -w "status=%{http_code} final=%{url_effective}\n" \
               -H "accept: $ACCEPT" \
-              -H "user-agent: alt-data verify-live (github-actions)" \
+              -H "user-agent: market-trackers verify-live (github-actions)" \
               "${key_args[@]}" \
               --max-time 30 "$url" || echo "curl failed"
             head -c "${HEAD_BYTES:-400}" body.out; echo; echo

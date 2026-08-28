@@ -3,7 +3,7 @@
 **Datasets:** `patents`
 **Status:** implemented
 **Auth:** free USPTO Open Data Portal (ODP) API key (config `patentsviewApiKey` /
-`ALT_DATA_PATENTSVIEW_KEY`), sent as the `x-api-key` header on every request. With no key
+`MARKET_TRACKERS_PATENTSVIEW_KEY`), sent as the `x-api-key` header on every request. With no key
 configured, `sync` skips the source with a polite note (keyless multi-source runs still ship
 every other source's data) and the canary reports a soft skipped-no-key note.
 
@@ -17,7 +17,7 @@ The legacy PatentsView PatentSearch API this source originally consumed is decom
 `search.patentsview.org` no longer resolves in DNS (**verified live**, 2026-08). There is no
 query-style search API on its replacement: PatentsView's granted-patent data now ships as a
 **bulk dataset product** on the USPTO Open Data Portal, and this source ingests it as bulk files.
-The same env var (`ALT_DATA_PATENTSVIEW_KEY`) carries over; only the host, model, and parser
+The same env var (`MARKET_TRACKERS_PATENTSVIEW_KEY`) carries over; only the host, model, and parser
 (`patentsview-odp@1`) changed. The emitted `patents` row shape is unchanged.
 
 ## Endpoints
@@ -60,7 +60,7 @@ present, so date-chunked walking makes no sense here. Sync is release-driven:
 Consequences, all deliberate:
 
 - **One completed sync IS the full 1976→present history.** There is no backfill ladder for
-  patents anymore: `alt-data backfill` skips this source (`DATE_UNBOUNDED_SOURCES`), and
+  patents anymore: `market-trackers backfill` skips this source (`DATE_UNBOUNDED_SOURCES`), and
   `--since`/`--until` are ignored by `sync` with an explanatory note.
 - `--limit N` caps patents **upserted** this run (smoke tests); hitting it stops the stream,
   notes it, and leaves the watermark untouched — a partial ingest must never mask the rest of

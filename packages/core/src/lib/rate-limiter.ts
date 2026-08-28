@@ -1,7 +1,7 @@
 /**
  * A sliding-window rate limiter used to enforce hard client-side request
  * ceilings — most importantly SEC EDGAR's fair-access limit of 10
- * requests/second, which LuxAlgo Alt Data enforces in code, not in docs.
+ * requests/second, which LuxAlgo Market Trackers enforces in code, not in docs.
  *
  * Semantics are strict: never more than `limit` grants inside any rolling
  * `windowMs` window (a plain token bucket would allow burst + refill = 2×

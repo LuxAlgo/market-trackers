@@ -25,7 +25,7 @@ function makeClient(byUrl: Record<string, number>): {
     return new Response(status === 200 ? "ok" : "nope", { status });
   }) as typeof fetch;
   const client = new EdgarClient({
-    userAgent: "alt-data-test test@example.com",
+    userAgent: "market-trackers-test test@example.com",
     fetchImpl,
     sleep: async () => {},
   });

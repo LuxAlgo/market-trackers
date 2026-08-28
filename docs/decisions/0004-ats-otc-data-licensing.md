@@ -3,7 +3,7 @@
 **Status:** accepted
 
 **Question:** can FINRA's OTC Transparency data — weekly per-symbol, per-ATS equity volume
-(Rule 4552) and non-ATS ("de minimis") OTC volume — be ingested by an `alt-data` source **and**
+(Rule 4552) and non-ATS ("de minimis") OTC volume — be ingested by an `market-trackers` source **and**
 republished, unmodified, in this project's CC0-1.0 dumps (see `data-licenses/README.md`)?
 
 This is scoped narrowly to that one FINRA product. It is **not** about the FINRA data this
@@ -15,7 +15,7 @@ ATS/OTC-Transparency source exists in this codebase, and this decision is why.
 
 ## Context
 
-Alt Data's CC0 dumps are built on the premise that the underlying records are public and the
+Market Trackers's CC0 dumps are built on the premise that the underlying records are public and the
 project adds no editorial content — see `data-licenses/README.md`. That premise only holds if
 the upstream source's own terms actually permit redistribution; it doesn't hold by default just
 because a regulator "publishes" something. OTC Transparency looked like a plausible next source
@@ -93,7 +93,7 @@ Data" guidelines:
 
 — [ATS Data Transparency Derived Data Guidelines](https://www.finra.org/sites/default/files/AppSupportDoc/p549764.pdf)
 (accessed via WebSearch, 2026-08-25). Republishing the weekly per-symbol/per-ATS volume figures
-themselves — exactly what an `alt-data` dump would do — is a "surrogate" for the underlying data
+themselves — exactly what an `market-trackers` dump would do — is a "surrogate" for the underlying data
 by construction, not a one-way-transformed derivative, so this carve-out would not obviously
 cover it even before reaching FINRA's discretionary sign-off.
 

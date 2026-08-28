@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto";
-import type { AltDataSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
+import type { TrackerSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { CongressTrade } from "../../schema/congress-trade.js";
-import { ALT_DATA_VERSION } from "../../config.js";
+import { MARKET_TRACKERS_VERSION } from "../../config.js";
 import { addDays, hoursSince, isoNow, toDateString } from "../../lib/dates.js";
 import type { Logger } from "../../lib/logger.js";
 import { matchMember, refreshMemberMapIfStale } from "../../resolve/members.js";
@@ -39,7 +39,7 @@ const CANARY_WINDOW_DAYS = 30;
 
 function buildClient(ctx: SourceContext, logger: Logger): SenateEfdClient {
   return new SenateEfdClient({
-    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `market-trackers/${MARKET_TRACKERS_VERSION}`,
     fetchImpl: ctx.fetchImpl,
     logger,
   });
@@ -78,7 +78,7 @@ async function collectSearchRows(
   );
 }
 
-export const senateEfdSource: AltDataSource = {
+export const senateEfdSource: TrackerSource = {
   id: "senate-efd",
   title: "Senate eFD (Periodic Transaction Reports)",
   datasets: ["congress-trades"],

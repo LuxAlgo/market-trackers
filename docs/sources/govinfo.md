@@ -112,7 +112,7 @@ BILLSTATUS bulk data covers the 108th Congress (2003) onward. `sync --since <dat
 <date>]` reaches any of it: the date window maps to a congress range (see "Ingestion" above),
 floored at the 108th as GovInfo's earliest congress with any BILLSTATUS coverage — a `--since`
 before 2003 just clamps up to 108 rather than erroring. With no `--since`, `sync` still walks
-only the current congress (daily behavior, unchanged). `alt-data backfill` drives a historical
+only the current congress (daily behavior, unchanged). `market-trackers backfill` drives a historical
 walk the same way it drives every other date-walking source (see `docs/backfill.md`); the 108th
 floor exists because that's where GovInfo's own directories stop, not because of any
 per-congress modification date (see "Why lastModified can't be a date filter" above).

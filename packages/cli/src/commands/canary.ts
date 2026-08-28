@@ -1,5 +1,5 @@
 import { writeFileSync } from "node:fs";
-import { runCanaries, isSourceId, type SourceId } from "@luxalgo/alt-data-core";
+import { runCanaries, isSourceId, type SourceId } from "@luxalgo/market-trackers-core";
 import { openContext, printJson, printTable, type GlobalFlags } from "../context.js";
 
 export interface CanaryFlags extends GlobalFlags {

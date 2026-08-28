@@ -11,7 +11,7 @@ import { setSenateEfdScanExtractor } from "./scan-extract.js";
 import { LEGISLATORS_CURRENT_URL } from "../../resolve/members.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { CongressTrade } from "../../schema/congress-trade.js";
-import { AltDataStore } from "../../store/store.js";
+import { TrackerStore } from "../../store/store.js";
 import { resolveConfig } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
 import { makeCongressTrade, makeProvenance, readFixture } from "../../test-helpers.js";
@@ -117,10 +117,10 @@ function mockEfdNetwork(options: { pageCap?: number } = {}): {
 
 async function makeCtx(options: { pageCap?: number } = {}): Promise<{
   ctx: SourceContext;
-  store: AltDataStore;
+  store: TrackerStore;
   requests: RecordedRequest[];
 }> {
-  const store = await AltDataStore.open(":memory:");
+  const store = await TrackerStore.open(":memory:");
   const { fetchImpl, requests } = mockEfdNetwork(options);
   const ctx: SourceContext = {
     store,
@@ -133,7 +133,7 @@ async function makeCtx(options: { pageCap?: number } = {}): Promise<{
   return { ctx, store, requests };
 }
 
-async function allTrades(store: AltDataStore): Promise<CongressTrade[]> {
+async function allTrades(store: TrackerStore): Promise<CongressTrade[]> {
   const rows: CongressTrade[] = [];
   for await (const row of store.iterate(DATASETS["congress-trades"])) rows.push(row);
   return rows;

@@ -2,14 +2,14 @@ name: Mirror to Hugging Face
 
 # Weekly best-effort mirror of the published data repo onto a Hugging Face
 # dataset repo, for people who'd rather `datasets.load_dataset(...)` or
-# browse the HF Hub than clone GitHub. GitHub (LuxAlgo/alt-datasets) stays
+# browse the HF Hub than clone GitHub. GitHub (LuxAlgo/market-trackers-data) stays
 # the source of truth; this is a read-only-on-our-side convenience copy of
 # it, not a second writer.
 #
 # No-op until configured:
-#   vars.ALT_DATASETS_REPO    — the repo to mirror, e.g. "LuxAlgo/alt-datasets"
+#   vars.ALT_DATASETS_REPO    — the repo to mirror, e.g. "LuxAlgo/market-trackers-data"
 #   secrets.ALT_DATASETS_TOKEN — read access to check it out
-#   vars.HF_DATASET_REPO     — target HF dataset repo, e.g. "LuxAlgo/alt-datasets"
+#   vars.HF_DATASET_REPO     — target HF dataset repo, e.g. "LuxAlgo/market-trackers-data"
 #   secrets.HF_TOKEN         — a Hugging Face token with write access to it
 #
 # Bootstrapping: create the target dataset repo on huggingface.co first
@@ -21,13 +21,13 @@ on:
   workflow_dispatch:
 
 # Only ever reads this repo's own checkout; every write goes to the two
-# *other* repos (alt-datasets, the HF dataset repo) via their own tokens.
+# *other* repos (market-trackers-data, the HF dataset repo) via their own tokens.
 permissions:
   contents: read
 
 # Guards against two mirror runs overlapping and racing each other for the
 # same Hugging Face ref. Independent of publish-dumps' group: this workflow
-# never touches the shared store cache or pushes to alt-datasets, so it has
+# never touches the shared store cache or pushes to market-trackers-data, so it has
 # nothing to race there.
 concurrency:
   group: mirror-hf
@@ -88,18 +88,18 @@ jobs:
 
           # --delete (unlike sync-fast.yml's rsync): this checks out the
           # *whole* data repo every run, not a narrow per-dataset subset, so
-          # an exact mirror — including files alt-datasets has since removed
+          # an exact mirror — including files market-trackers-data has since removed
           # — is the correct target here, with no risk of wiping something
           # this run didn't touch.
           rsync -a --delete --exclude ".git" data-repo/ hf-repo/
 
           cd hf-repo
-          git config user.name "alt-data-publish[bot]"
-          git config user.email "alt-data-publish@users.noreply.github.com"
+          git config user.name "market-trackers-publish[bot]"
+          git config user.email "market-trackers-publish@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then
             echo "No changes to mirror to Hugging Face this run."
           else
-            git commit -m "data: $(date -u +%F) mirror from LuxAlgo/alt-datasets"
+            git commit -m "data: $(date -u +%F) mirror from LuxAlgo/market-trackers-data"
             git -c http.extraHeader="$AUTH_HEADER" push
           fi

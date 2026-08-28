@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AltDataStore, type CikTickerEntry } from "../store/store.js";
+import { TrackerStore, type CikTickerEntry } from "../store/store.js";
 import {
   buildSecNameIndex,
   resolveEntityTickersSec,
@@ -14,8 +14,8 @@ import {
  * stays covered by `recipients.test.ts`.
  */
 
-async function makeStore(entries: CikTickerEntry[] = []): Promise<AltDataStore> {
-  const store = await AltDataStore.open(":memory:");
+async function makeStore(entries: CikTickerEntry[] = []): Promise<TrackerStore> {
+  const store = await TrackerStore.open(":memory:");
   if (entries.length > 0) await store.replaceCikTickers(entries);
   return store;
 }

@@ -2,7 +2,7 @@
 
 **Datasets:** `fda-approvals`
 **Status:** implemented
-**Auth:** none required; an optional free key (config `openfdaApiKey` / `ALT_DATA_OPENFDA_KEY`)
+**Auth:** none required; an optional free key (config `openfdaApiKey` / `MARKET_TRACKERS_OPENFDA_KEY`)
 raises rate limits, sent as the `api_key` query parameter. `[verify-live]` current
 anonymous vs keyed limits (documented historically as 240/min/IP keyless, higher keyed).
 

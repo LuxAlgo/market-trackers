@@ -8,7 +8,7 @@ import type { Logger } from "../../lib/logger.js";
  * USAspending award-search client. The API is free and keyless but shared —
  * stay well under any radar at ≤2 requests per rolling second, and page
  * with the documented `page_metadata.hasNext` cursor. One endpoint serves
- * both award universes LuxAlgo Alt Data tracks (contracts and grants); only the
+ * both award universes LuxAlgo Market Trackers tracks (contracts and grants); only the
  * requested `award_type_codes` differ, so the request/response shapes below
  * are shared rather than duplicated per dataset.
  *

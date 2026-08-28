@@ -25,7 +25,7 @@
 - `SyncOptions.datasets` restricts to one universe (`["gov-contracts"]` or `["gov-grants"]`);
   omitted, both run in one `sync()` call, contracts first. `SyncOptions.until` bounds either
   universe's walk to a fixed end date instead of today — this is what the backfill engine
-  (`alt-data backfill`, see [`../backfill.md`](../backfill.md)) chunks through history with.
+  (`market-trackers backfill`, see [`../backfill.md`](../backfill.md)) chunks through history with.
   `SyncOptions.limit` is a **shared** budget across both universes in one run (matching its
   "soft cap on documents fetched this run" documentation): contracts spends from it first, and
   grants only gets what's left — a run with `--limit 50` never fetches 50 contracts _and_ 50

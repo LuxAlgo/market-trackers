@@ -7,7 +7,7 @@ import {
   extractPartialDate,
   lastUpdatePostedRangeTerm,
 } from "./client.js";
-import { AltDataStore } from "../../store/store.js";
+import { TrackerStore } from "../../store/store.js";
 import { DATASETS } from "../../schema/datasets.js";
 import { resolveConfig, type ConfigOverrides } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
@@ -80,8 +80,8 @@ function mockFetch(captured: CapturedRequest[]): typeof fetch {
 async function makeCtx(
   overrides: ConfigOverrides = {},
   nowIso = NOW,
-): Promise<{ ctx: SourceContext; store: AltDataStore; captured: CapturedRequest[] }> {
-  const store = await AltDataStore.open(":memory:");
+): Promise<{ ctx: SourceContext; store: TrackerStore; captured: CapturedRequest[] }> {
+  const store = await TrackerStore.open(":memory:");
   const captured: CapturedRequest[] = [];
   const ctx: SourceContext = {
     store,
@@ -365,10 +365,10 @@ describe("extractPartialDate / extractFullDate", () => {
 
 describe("normalizeStudy", () => {
   const RETRIEVED_AT = "2026-08-24T12:00:00.000Z";
-  let store: AltDataStore;
+  let store: TrackerStore;
 
   beforeAll(async () => {
-    store = await AltDataStore.open(":memory:");
+    store = await TrackerStore.open(":memory:");
   });
 
   afterAll(async () => {
@@ -424,7 +424,7 @@ describe("normalizeStudy", () => {
   });
 
   it("resolves a sponsor through the SEC-name fallback when only cik_tickers has it", async () => {
-    const seeded = await AltDataStore.open(":memory:");
+    const seeded = await TrackerStore.open(":memory:");
     await seeded.replaceCikTickers([
       { cik: "0000000654", ticker: "HVBI", name: "Harborview Biotherapeutics Inc" },
     ]);

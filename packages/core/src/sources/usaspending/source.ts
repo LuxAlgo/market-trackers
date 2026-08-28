@@ -1,5 +1,5 @@
 import type {
-  AltDataSource,
+  TrackerSource,
   ParseStats,
   SourceContext,
   SourceSyncResult,
@@ -8,10 +8,10 @@ import type {
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS, type DatasetId } from "../../schema/datasets.js";
 import type { GovContractAward } from "../../schema/gov-contract-award.js";
-import { ALT_DATA_VERSION } from "../../config.js";
+import { MARKET_TRACKERS_VERSION } from "../../config.js";
 import { addDays, hoursSince, toDateString } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
-import type { AltDataStore } from "../../store/store.js";
+import type { TrackerStore } from "../../store/store.js";
 import { resolveEntityTickersTiered } from "../../resolve/sec-names.js";
 import {
   AWARD_DATE_FIELD,
@@ -81,7 +81,7 @@ const ALL_UNIVERSES: readonly AwardUniverse[] = [CONTRACT_UNIVERSE, GRANT_UNIVER
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createUsaspendingFetch({
-    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `market-trackers/${MARKET_TRACKERS_VERSION}`,
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("usaspending"),
   });
@@ -91,7 +91,7 @@ function buildFetch(ctx: SourceContext): PoliteFetch {
 export async function normalizeAwardRow(
   raw: Record<string, unknown>,
   retrievedAt: string,
-  store: AltDataStore,
+  store: TrackerStore,
 ): Promise<GovContractAward> {
   const row = awardSearchRowSchema.parse(raw);
   const id = row.generated_internal_id;
@@ -264,7 +264,7 @@ async function syncUniverse(
   return out;
 }
 
-export const usaspendingSource: AltDataSource = {
+export const usaspendingSource: TrackerSource = {
   id: "usaspending",
   title: "USAspending (federal contract and grant awards)",
   datasets: ["gov-contracts", "gov-grants"],

@@ -1,7 +1,7 @@
-import type { AltDataSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
+import type { TrackerSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
-import { ALT_DATA_VERSION } from "../../config.js";
+import { MARKET_TRACKERS_VERSION } from "../../config.js";
 import { hoursSince } from "../../lib/dates.js";
 import type { PoliteFetch } from "../../lib/http.js";
 import {
@@ -70,13 +70,13 @@ export function fecCurrentCycle(now: Date): number {
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createFecFetch({
-    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `market-trackers/${MARKET_TRACKERS_VERSION}`,
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("fec"),
   });
 }
 
-export const fecSource: AltDataSource = {
+export const fecSource: TrackerSource = {
   id: "fec",
   title: "FEC campaign finance",
   datasets: ["fec-candidates", "fec-contributions"],

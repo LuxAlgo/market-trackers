@@ -6,7 +6,7 @@ import {
   LEGISLATORS_COMMITTEE_MEMBERSHIP_URL,
 } from "./source.js";
 import { LEGISLATORS_CURRENT_URL } from "../../resolve/members.js";
-import { AltDataStore } from "../../store/store.js";
+import { TrackerStore } from "../../store/store.js";
 import { resolveConfig } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
 import { readFixture } from "../../test-helpers.js";
@@ -84,7 +84,7 @@ describe("congressLegislatorsSource.sync", () => {
   }
 
   it("replaces the current-state dataset wholesale — departures disappear", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     const ctx: SourceContext = {
       store,
       config: resolveConfig({ logLevel: "silent" }, { cwd: "/nonexistent", env: {} }),
@@ -115,7 +115,7 @@ describe("congressLegislatorsSource.sync", () => {
   });
 
   it("canary goes green on healthy fetch+parse and red on shape drift", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     const ctx: SourceContext = {
       store,
       config: resolveConfig({ logLevel: "silent" }, { cwd: "/nonexistent", env: {} }),

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Rewrites the README health board between the HEALTH-BOARD markers from a
- * canary report (JSON produced by `alt-data canary --out`). Run by the daily
+ * canary report (JSON produced by `market-trackers canary --out`). Run by the daily
  * publish workflow; safe to run locally.
  *
  *   node scripts/update-health-board.mjs canary-report.json README.md

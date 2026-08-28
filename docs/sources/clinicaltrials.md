@@ -67,7 +67,7 @@
 - `provenance.sourceUrl` = `https://clinicaltrials.gov/study/{nctId}`.
   `parser: "clinicaltrials-v2@1"`, `confidence: 1`.
 - **Non-goal guard:** `primaryCompletionDate` is the sponsor's declared plan, shipped verbatim.
-  Nothing in this source (or anywhere else in LuxAlgo Alt Data) turns it into a decision/catalyst calendar.
+  Nothing in this source (or anywhere else in LuxAlgo Market Trackers) turns it into a decision/catalyst calendar.
 
 ## Canary
 

@@ -6,7 +6,7 @@ import {
   insiderTradeEvents,
   parsePriceCsv,
   type EventPriceChangeResult,
-} from "@luxalgo/alt-data-core";
+} from "@luxalgo/market-trackers-core";
 import { openContext, printJson, printTable, type GlobalFlags } from "../context.js";
 
 export interface AnalyzeFlags extends GlobalFlags {
@@ -36,7 +36,7 @@ const DEFAULT_WINDOW_DAYS = 30;
 
 /**
  * Bring-your-own-prices factual joins (e.g. price change since a disclosed
- * trade's filing date, computed from a user-supplied prices file). LuxAlgo Alt Data
+ * trade's filing date, computed from a user-supplied prices file). LuxAlgo Market Trackers
  * ships no price data and computes no scores — this command only does
  * arithmetic between public-record rows and the caller's own price series,
  * and the disclaimer is always part of the output, human or --json.
@@ -47,7 +47,7 @@ export async function analyzeCommand(what: string, flags: AnalyzeFlags): Promise
     throw new Error(`Unknown analyze target '${what}' — expected 'congress' or 'insider'`);
   }
   if (!flags.prices) {
-    throw new Error(`alt-data analyze requires --prices <file> — ${PRICES_CSV_HINT}`);
+    throw new Error(`market-trackers analyze requires --prices <file> — ${PRICES_CSV_HINT}`);
   }
 
   let priceCsvText: string;

@@ -1,7 +1,7 @@
 /**
  * Congressional disclosure amounts are ranges, never exact values. This
  * module parses the printed range text into { min, max } bounds and nothing
- * more — LuxAlgo Alt Data never fabricates midpoints or point estimates.
+ * more — LuxAlgo Market Trackers never fabricates midpoints or point estimates.
  */
 
 export interface AmountRange {

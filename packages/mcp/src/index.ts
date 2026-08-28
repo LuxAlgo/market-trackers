@@ -1,6 +1,6 @@
-export { registerAltDataTools } from "./tools.js";
+export { registerTrackerTools } from "./tools.js";
 export {
-  createAltDataMcpServer,
+  createTrackerMcpServer,
   resolveDbUrl,
   serveHttp,
   serveStdio,

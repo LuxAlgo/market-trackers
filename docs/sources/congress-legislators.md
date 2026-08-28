@@ -31,7 +31,7 @@ counted against the parse rate, never guessed.
 `congress-trades` rows carry bioguide ids. Joining them to committee seats is what turns
 "a senator bought a defense stock" into "a member of the Armed Services Committee bought a
 defense stock" — with both facts cited to their public records. The MCP tools
-`alt_data_member_profile` and `alt_data_committees` serve exactly that join; interpretation is
+`tracker_member_profile` and `tracker_committees` serve exactly that join; interpretation is
 left to the reader.
 
 ## Canary

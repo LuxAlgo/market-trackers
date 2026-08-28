@@ -1,10 +1,10 @@
-import { OpenFigiClient, resolveCusips } from "@luxalgo/alt-data-core";
+import { OpenFigiClient, resolveCusips } from "@luxalgo/market-trackers-core";
 import { openContext, printJson, type GlobalFlags } from "../context.js";
 
 /**
- * `alt-data resolve cusips` — the CUSIP→ticker enrichment loop for 13F
+ * `market-trackers resolve cusips` — the CUSIP→ticker enrichment loop for 13F
  * holdings. Collects distinct unresolved CUSIPs from the store, resolves
- * them through the cached OpenFIGI mapping (keyless works; ALT_DATA_OPENFIGI_KEY
+ * them through the cached OpenFIGI mapping (keyless works; MARKET_TRACKERS_OPENFIGI_KEY
  * raises the free rate limits), and back-fills tickers onto holding rows.
  * Misses are cached so they aren't re-queried every run; `--retry-misses`
  * asks OpenFIGI again for those (e.g. after new listings become mappable).

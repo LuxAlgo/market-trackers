@@ -6,7 +6,7 @@ import { ANALYTICS_DISCLAIMER, type AnalyticsEvent } from "./event-returns.js";
  * The bring-your-own-prices backtester: one fixed, transparent strategy —
  * equal weight per event, entry at the first close on/after disclosure,
  * exit at the first close `windowDays` later — applied mechanically to
- * whatever events and prices the caller supplies. LuxAlgo Alt Data ships no
+ * whatever events and prices the caller supplies. LuxAlgo Market Trackers ships no
  * price data, computes no scores or signals, and this module does not
  * change that: it is `eventPriceChange`'s arithmetic (`prices.ts` /
  * `event-returns.ts`) restated as "a backtest" because that is the

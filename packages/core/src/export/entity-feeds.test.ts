@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { DATASETS, type DatasetDefinition } from "../schema/datasets.js";
-import { AltDataStore } from "../store/store.js";
+import { TrackerStore } from "../store/store.js";
 import {
   makeCongressTrade,
   makeGovContractAward,
@@ -35,7 +35,7 @@ afterEach(() => {
 
 describe("writeEntityFeeds", () => {
   it("writes zero feeds for an empty store, and creates no feeds/ directory", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     tmp = makeTmpDir("entity-feeds-empty");
     const dir = join(tmp.dir, "congress", "trades");
 
@@ -57,7 +57,7 @@ describe("writeEntityFeeds", () => {
   });
 
   it("has no ticker or member concept for a dataset with neither, and touches nothing", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     tmp = makeTmpDir("entity-feeds-no-concept");
     await store.upsert(DATASETS["committee-assignments"], [makeCommitteeAssignment()]);
     const dir = join(tmp.dir, "congress", "committees");
@@ -77,7 +77,7 @@ describe("writeEntityFeeds", () => {
   });
 
   it("builds an exact by-ticker/by-member file set from a seeded store, within the 30-day window only", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     tmp = makeTmpDir("entity-feeds-seeded");
     const dir = join(tmp.dir, "congress", "trades");
 
@@ -142,11 +142,11 @@ describe("writeEntityFeeds", () => {
 
     const aaaXml = readFileSync(join(dir, "feeds", "by-ticker", "AAA.xml"), "utf8");
     expect(aaaXml).toContain('<rss version="2.0">');
-    expect(aaaXml).toContain("LuxAlgo Alt Data — Congressional trades — AAA");
+    expect(aaaXml).toContain("LuxAlgo Market Trackers — Congressional trades — AAA");
     expect(aaaXml.match(/<item>/g)).toHaveLength(2); // both AAA rows, none of BBB/OLD/unresolved
 
     const memberXml = readFileSync(join(dir, "feeds", "by-member", "E000001.xml"), "utf8");
-    expect(memberXml).toContain("LuxAlgo Alt Data — Congressional trades — Jane Example");
+    expect(memberXml).toContain("LuxAlgo Market Trackers — Congressional trades — Jane Example");
 
     expect(result.filesWritten.sort()).toEqual(
       [
@@ -160,7 +160,7 @@ describe("writeEntityFeeds", () => {
   });
 
   it("duplicates a row across every ticker it resolves to (array-valued ticker fields)", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     tmp = makeTmpDir("entity-feeds-multi-ticker");
     const dir = join(tmp.dir, "contracts", "awards");
 
@@ -191,7 +191,7 @@ describe("writeEntityFeeds", () => {
   });
 
   it("rejects (skips + counts) filesystem-unsafe tickers and bioguideIds without crashing", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     tmp = makeTmpDir("entity-feeds-unsafe");
     const dir = join(tmp.dir, "congress", "trades");
 
@@ -227,7 +227,7 @@ describe("writeEntityFeeds", () => {
   });
 
   it("breaks a most-active tie alphabetically, deterministically", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     tmp = makeTmpDir("entity-feeds-tie");
     const dir = join(tmp.dir, "congress", "trades");
 
@@ -261,7 +261,7 @@ describe("writeEntityFeeds", () => {
   });
 
   it("caps at the injected `cap`, keeping only the most-active entities", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     tmp = makeTmpDir("entity-feeds-cap");
     const dir = join(tmp.dir, "congress", "trades");
 
@@ -301,7 +301,7 @@ describe("writeEntityFeeds", () => {
   });
 
   it("rewrites the entity set exactly on each call — stale files from a prior run are removed", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     tmp = makeTmpDir("entity-feeds-stale");
     const dir = join(tmp.dir, "congress", "trades");
 
@@ -345,7 +345,7 @@ describe("writeEntityFeeds", () => {
   });
 
   it("titles a member feed from the most recently retrieved row's spelling of the member's name", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     tmp = makeTmpDir("entity-feeds-member-name");
     const dir = join(tmp.dir, "congress", "trades");
 
@@ -372,7 +372,7 @@ describe("writeEntityFeeds", () => {
     // item keeps its own row's spelling verbatim (both are real history).
     const channelTitleLine = xml.split("\n").find((line) => line.trim().startsWith("<title>"));
     expect(channelTitleLine).toBe(
-      "    <title>LuxAlgo Alt Data — Congressional trades — Jane Example</title>",
+      "    <title>LuxAlgo Market Trackers — Congressional trades — Jane Example</title>",
     );
     expect(xml).toContain("Jane Q. Example (senate)"); // the older item, unaltered
     await store.close();

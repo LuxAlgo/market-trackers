@@ -14,8 +14,8 @@ name: Backfill
 # docs/backfill.md for per-source depth notes and the resume model.
 #
 # No-ops until configured:
-#   vars.ALT_DATA_CONTACT       — contact email for the SEC EDGAR User-Agent (only needed for `source: edgar`)
-#   vars.ALT_DATASETS_REPO     — e.g. "LuxAlgo/alt-datasets" (archive-release publish step skipped without it)
+#   vars.MARKET_TRACKERS_CONTACT       — contact email for the SEC EDGAR User-Agent (only needed for `source: edgar`)
+#   vars.ALT_DATASETS_REPO     — e.g. "LuxAlgo/market-trackers-data" (archive-release publish step skipped without it)
 #   secrets.ALT_DATASETS_TOKEN — token with contents:write on the data repo (archive-release publish step skipped without it)
 on:
   workflow_dispatch:
@@ -99,8 +99,8 @@ jobs:
       - name: Backfill
         id: backfill
         env:
-          ALT_DATA_CONTACT: ${{ vars.ALT_DATA_CONTACT }}
-          ALT_DATA_PATENTSVIEW_KEY: ${{ secrets.ALT_DATA_PATENTSVIEW_KEY }}
+          MARKET_TRACKERS_CONTACT: ${{ vars.MARKET_TRACKERS_CONTACT || vars.ALT_DATA_CONTACT }}
+          MARKET_TRACKERS_PATENTSVIEW_KEY: ${{ secrets.MARKET_TRACKERS_PATENTSVIEW_KEY || secrets.ALT_DATA_PATENTSVIEW_KEY }}
           SOURCE: ${{ inputs.source }}
           FROM: ${{ inputs.from }}
           TO_INPUT: ${{ inputs.to }}
@@ -253,9 +253,9 @@ jobs:
                   name: tag,
                   body:
                     `Deep-history archive for **${source}**, event window ${process.env.WINDOW_FROM}..${process.env.WINDOW_TO}.\n\n` +
-                    "Snapshot files are sharded by event year. Restore with `alt-data import` " +
+                    "Snapshot files are sharded by event year. Restore with `market-trackers import` " +
                     "against a downloaded asset, or a full checkout of this repo — see " +
-                    "docs/backfill.md in LuxAlgo/alt-data for the full restore story.",
+                    "docs/backfill.md in LuxAlgo/market-trackers for the full restore story.",
                 })
               ).data;
               core.info(`Created release ${tag}`);
@@ -317,7 +317,7 @@ jobs:
       - name: Fail the run if the backfill didn't fully complete
         if: steps.backfill.outputs.exit_code != '0'
         run: |
-          echo "The backfill stopped before reaching --to (alt-data backfill exit code ${{ steps.backfill.outputs.exit_code }})."
+          echo "The backfill stopped before reaching --to (market-trackers backfill exit code ${{ steps.backfill.outputs.exit_code }})."
           echo "Whatever WAS ingested this run was still exported and uploaded above."
           echo "Re-dispatch this workflow with the same source/from — it resumes automatically from backfill.completedThrough."
           exit 1

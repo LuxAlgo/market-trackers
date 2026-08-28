@@ -10,7 +10,7 @@ import {
   parseYearIndexXml,
 } from "./client.js";
 import { HttpError, type PoliteFetch, type PoliteRequestInit } from "../../lib/http.js";
-import { AltDataStore } from "../../store/store.js";
+import { TrackerStore } from "../../store/store.js";
 import { readFixture, readFixtureJson } from "../../test-helpers.js";
 
 const INDEX_XML = readFixture("house-clerk", "case-index-2026", "input.xml");
@@ -90,7 +90,7 @@ describe("fetchYearIndex (conditional GET via fetch_cache)", () => {
   }
 
   it("sends validators only once cached, and reports 304 as not-modified", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     const seen: PoliteRequestInit[] = [];
     const politeFetch = stubFetch(seen);
 
@@ -123,7 +123,7 @@ describe("fetchYearIndex (conditional GET via fetch_cache)", () => {
   });
 
   it("maps 404 to not-found and other failures to HttpError", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     const notFound: PoliteFetch = async () => new Response("nope", { status: 404 });
     expect((await fetchYearIndex(notFound, store, 2026)).status).toBe("not-found");
 

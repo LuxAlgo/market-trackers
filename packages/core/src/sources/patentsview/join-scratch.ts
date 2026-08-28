@@ -9,7 +9,7 @@ import type { Database as SqliteDatabase } from "better-sqlite3";
  * ~9.5M granted patents, and two Maps that size retain roughly 2–3 GB of
  * heap — fine on CI (12 GB `NODE_OPTIONS` heap) but flirting with Node's
  * default old-space ceiling on the end-user machines that run
- * `npx @luxalgo/alt-data-cli sync`. A scratch table keeps memory flat no
+ * `npx @luxalgo/market-trackers-cli sync`. A scratch table keeps memory flat no
  * matter how the dataset grows, works identically whether the main store
  * is SQLite or Postgres (better-sqlite3 is already a core dependency), and
  * costs low minutes of insert/lookup time on a job that already downloads

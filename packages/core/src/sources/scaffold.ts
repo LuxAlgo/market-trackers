@@ -1,19 +1,19 @@
 import type { DatasetId } from "../schema/datasets.js";
 import type { SourceId } from "../schema/provenance.js";
-import type { AltDataSource, SourceContext, SourceSyncResult } from "./types.js";
+import type { TrackerSource, SourceContext, SourceSyncResult } from "./types.js";
 import { emptySyncResult } from "./types.js";
 
 /**
  * Factory for sources whose ingestors aren't built yet. They participate in
  * the registry, sync as an explicit no-op (never silently), and canary as
- * `skip` — so `alt-data status` and the health board always tell the truth
+ * `skip` — so `market-trackers status` and the health board always tell the truth
  * about what this build ingests.
  */
 export function scaffoldSource(options: {
   id: SourceId;
   title: string;
   datasets: DatasetId[];
-}): AltDataSource {
+}): TrackerSource {
   return {
     id: options.id,
     title: options.title,

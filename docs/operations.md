@@ -2,20 +2,20 @@
 
 How the GitHub Actions machinery behaves, what configures it, and what to do when the board
 goes red. The audience is the person operating a deployment of
-[LuxAlgo/alt-data](https://github.com/LuxAlgo/alt-data) — including a fork with none of it
+[LuxAlgo/market-trackers](https://github.com/LuxAlgo/market-trackers) — including a fork with none of it
 configured yet: every workflow is a safe no-op until its variables and secrets exist.
 
 ## Workflows at a glance
 
-| Workflow            | Trigger                           | Needs                                                                       | Without configuration                                                                                                                              |
-| ------------------- | --------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ci.yml`            | push to `main`, pull requests     | nothing                                                                     | fully functional (offline tests, no keys)                                                                                                          |
-| `canaries.yml`      | daily cron, manual                | `ALT_DATA_CONTACT` (optional)                                               | runs keyless; the EDGAR probe reports the gap and shows amber                                                                                      |
-| `publish-dumps.yml` | daily cron, manual                | `ALT_DATASETS_REPO`, `ALT_DATASETS_TOKEN`, `ALT_DATA_CONTACT`               | job skipped without the repo var; builds but does not push without the token                                                                       |
-| `sync-fast.yml`     | ~2-hourly cron (weekdays), manual | same as `publish-dumps.yml`                                                 | job skipped without `ALT_DATASETS_REPO`; syncs but does not push without the token                                                                 |
-| `mirror-hf.yml`     | weekly cron, manual               | `ALT_DATASETS_REPO`, `ALT_DATASETS_TOKEN`, `HF_DATASET_REPO`, `HF_TOKEN`    | job skipped without `ALT_DATASETS_REPO`/`HF_DATASET_REPO`; skips the push (with a log line) without either token                                   |
-| `release.yml`       | manual (`workflow_dispatch`)      | `NPM_TOKEN`                                                                 | ends successfully after logging "NPM_TOKEN not configured; skipping publish."                                                                      |
-| `backfill.yml`      | manual (`workflow_dispatch`)      | `ALT_DATA_CONTACT` (EDGAR only), `ALT_DATASETS_REPO` + `ALT_DATASETS_TOKEN` | backfills and uploads the dumps as a run artifact either way; the archive-release publish step onto the data repo is skipped without the var/token |
+| Workflow            | Trigger                           | Needs                                                                              | Without configuration                                                                                                                              |
+| ------------------- | --------------------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ci.yml`            | push to `main`, pull requests     | nothing                                                                            | fully functional (offline tests, no keys)                                                                                                          |
+| `canaries.yml`      | daily cron, manual                | `MARKET_TRACKERS_CONTACT` (optional)                                               | runs keyless; the EDGAR probe reports the gap and shows amber                                                                                      |
+| `publish-dumps.yml` | daily cron, manual                | `ALT_DATASETS_REPO`, `ALT_DATASETS_TOKEN`, `MARKET_TRACKERS_CONTACT`               | job skipped without the repo var; builds but does not push without the token                                                                       |
+| `sync-fast.yml`     | ~2-hourly cron (weekdays), manual | same as `publish-dumps.yml`                                                        | job skipped without `ALT_DATASETS_REPO`; syncs but does not push without the token                                                                 |
+| `mirror-hf.yml`     | weekly cron, manual               | `ALT_DATASETS_REPO`, `ALT_DATASETS_TOKEN`, `HF_DATASET_REPO`, `HF_TOKEN`           | job skipped without `ALT_DATASETS_REPO`/`HF_DATASET_REPO`; skips the push (with a log line) without either token                                   |
+| `release.yml`       | manual (`workflow_dispatch`)      | `NPM_TOKEN`                                                                        | ends successfully after logging "NPM_TOKEN not configured; skipping publish."                                                                      |
+| `backfill.yml`      | manual (`workflow_dispatch`)      | `MARKET_TRACKERS_CONTACT` (EDGAR only), `ALT_DATASETS_REPO` + `ALT_DATASETS_TOKEN` | backfills and uploads the dumps as a run artifact either way; the archive-release publish step onto the data repo is skipped without the var/token |
 
 All workflows keep `permissions:` minimal, never print secrets, and pass secrets only through
 env vars (`ALT_DATASETS_TOKEN` to checkout/push, `HF_TOKEN` to authenticate the Hugging Face
@@ -26,16 +26,16 @@ mirror push, `NPM_TOKEN` as `NODE_AUTH_TOKEN`).
 Set variables under **Settings → Secrets and variables → Actions → Variables**, secrets under
 **… → Secrets**.
 
-| Name                 | Kind     | What it enables                                                                                                                                                                                                               | What stays off without it                                                                                  |
-| -------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `ALT_DATA_CONTACT`   | variable | The contact email the SEC's fair-access policy requires in the EDGAR User-Agent. Enables EDGAR sync in canaries and publishing.                                                                                               | EDGAR sync is skipped; the EDGAR canary soft-fails with "skipped: no contact email…" and shows amber.      |
-| `ALT_DATASETS_REPO`  | variable | The target data repository, e.g. `LuxAlgo/alt-datasets`. Gates the whole publish job.                                                                                                                                         | `publish-dumps.yml` is skipped entirely — no sync, no export, no health-board commit.                      |
-| `ALT_DATASETS_TOKEN` | secret   | Push access to the data repo. Enables checkout of the data repo, the first-publish README/LICENSE bootstrap, and the daily data push — and also unlocks `sync-fast.yml`'s pushes and `mirror-hf.yml`'s read of the data repo. | Dumps are still built (and the store cache still accumulates), but nothing is pushed; a log line says so.  |
-| `HF_DATASET_REPO`    | variable | The target Hugging Face dataset repo for `mirror-hf.yml`, e.g. `LuxAlgo/alt-datasets`. Gates the mirror job.                                                                                                                  | `mirror-hf.yml` is skipped entirely.                                                                       |
-| `HF_TOKEN`           | secret   | A Hugging Face token with write access to `HF_DATASET_REPO`. Enables `mirror-hf.yml`'s weekly push.                                                                                                                           | `mirror-hf.yml`'s job is skipped entirely (both it and `HF_DATASET_REPO` are checked before the job runs). |
-| `NPM_TOKEN`          | secret   | Publishing `@luxalgo/alt-data-core`, `@luxalgo/alt-data-mcp`, `@luxalgo/alt-data-cli` to npm via `release.yml`.                                                                                                               | The release run ends green after "NPM_TOKEN not configured; skipping publish." Nothing is published.       |
+| Name                      | Kind     | What it enables                                                                                                                                                                                                               | What stays off without it                                                                                  |
+| ------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `MARKET_TRACKERS_CONTACT` | variable | The contact email the SEC's fair-access policy requires in the EDGAR User-Agent. Enables EDGAR sync in canaries and publishing.                                                                                               | EDGAR sync is skipped; the EDGAR canary soft-fails with "skipped: no contact email…" and shows amber.      |
+| `ALT_DATASETS_REPO`       | variable | The target data repository, e.g. `LuxAlgo/market-trackers-data`. Gates the whole publish job.                                                                                                                                 | `publish-dumps.yml` is skipped entirely — no sync, no export, no health-board commit.                      |
+| `ALT_DATASETS_TOKEN`      | secret   | Push access to the data repo. Enables checkout of the data repo, the first-publish README/LICENSE bootstrap, and the daily data push — and also unlocks `sync-fast.yml`'s pushes and `mirror-hf.yml`'s read of the data repo. | Dumps are still built (and the store cache still accumulates), but nothing is pushed; a log line says so.  |
+| `HF_DATASET_REPO`         | variable | The target Hugging Face dataset repo for `mirror-hf.yml`, e.g. `LuxAlgo/market-trackers-data`. Gates the mirror job.                                                                                                          | `mirror-hf.yml` is skipped entirely.                                                                       |
+| `HF_TOKEN`                | secret   | A Hugging Face token with write access to `HF_DATASET_REPO`. Enables `mirror-hf.yml`'s weekly push.                                                                                                                           | `mirror-hf.yml`'s job is skipped entirely (both it and `HF_DATASET_REPO` are checked before the job runs). |
+| `NPM_TOKEN`               | secret   | Publishing `@luxalgo/market-trackers-core`, `@luxalgo/market-trackers-mcp`, `@luxalgo/market-trackers-cli` to npm via `release.yml`.                                                                                          | The release run ends green after "NPM_TOKEN not configured; skipping publish." Nothing is published.       |
 
-The contact email is only ever sent inside the EDGAR User-Agent header — LuxAlgo Alt Data has no
+The contact email is only ever sent inside the EDGAR User-Agent header — LuxAlgo Market Trackers has no
 telemetry (see `buildUserAgent` in `packages/core/src/config.ts`, which refuses to sync EDGAR
 without one).
 
@@ -44,12 +44,12 @@ without one).
 `publish-dumps.yml` installs everything the data repo needs on its first successful run; the
 repo starts empty.
 
-1. **Create an empty repository** (e.g. `LuxAlgo/alt-datasets`). Public, no README, no license —
+1. **Create an empty repository** (e.g. `LuxAlgo/market-trackers-data`). Public, no README, no license —
    the workflow installs both.
 2. **Grant a token push access.** A fine-grained personal access token scoped to only the data
    repository with **Contents: read and write** is enough. Store it as the
-   `ALT_DATASETS_TOKEN` secret in the alt-data repo.
-3. **Set `ALT_DATASETS_REPO`** to the `owner/name` of the data repo (and `ALT_DATA_CONTACT` if
+   `ALT_DATASETS_TOKEN` secret in the market-trackers repo.
+3. **Set `ALT_DATASETS_REPO`** to the `owner/name` of the data repo (and `MARKET_TRACKERS_CONTACT` if
    EDGAR data should flow).
 4. **Run the workflow** (Actions → "Publish dumps" → Run workflow, or wait for the daily cron).
    The first run:
@@ -57,11 +57,11 @@ repo starts empty.
      `--allow-partial`, so one failing upstream never blocks the other sources' data from
      publishing — per-source failures still show in the summary and the health board,
    - exports the dump layout (daily deltas, `latest.json`, `snapshot.json.gz`, `manifest.json`),
-   - installs `README.md` and `LICENSE` into the data repo from `templates/alt-datasets/` —
+   - installs `README.md` and `LICENSE` into the data repo from `templates/market-trackers-data/` —
      **only when missing**, so later hand-edits in the data repo are never overwritten,
    - rsyncs the dumps (`--delete`, excluding `.git`, `README.md`, `LICENSE`, and `/explorer`)
-     and pushes as `alt-data-publish[bot]`,
-   - installs/refreshes the static data explorer (`templates/alt-datasets/explorer/` →
+     and pushes as `market-trackers-publish[bot]`,
+   - installs/refreshes the static data explorer (`templates/market-trackers-data/explorer/` →
      `explorer/` in the data repo) as its own commit — the exclusion above is what keeps the
      daily `--delete` from wiping it between refreshes,
    - refreshes the health board in this repo's README (committed with `[skip ci]`).
@@ -74,7 +74,7 @@ are closed; fixes belong in this repo's parsers and fixtures.
 `sync-fast.yml` tops up the two most time-sensitive datasets — `congress-trades` and
 `insider-transactions` — between daily publishes, on the same accumulating store and the same
 data repo `publish-dumps.yml` uses. It needs no configuration beyond what `publish-dumps.yml`
-already needs (`ALT_DATASETS_REPO`, `ALT_DATASETS_TOKEN`, `ALT_DATA_CONTACT`); it is a safe no-op
+already needs (`ALT_DATASETS_REPO`, `ALT_DATASETS_TOKEN`, `MARKET_TRACKERS_CONTACT`); it is a safe no-op
 under the same conditions.
 
 **Schedule.** SEC EDGAR accepts filings roughly 6am-10pm ET on business days, and Senate eFD /
@@ -94,7 +94,7 @@ hours (Tue-Sat) that are still evening-ET on the previous US business day.
 - **The rsync.** `sync-fast.yml`'s push step rsyncs **without** `--delete`, so a fast-lane run can
   only add or update files, never remove one — unlike `publish-dumps.yml`'s daily rsync, which
   intentionally does use `--delete` to retire files the export layout no longer produces. It also
-  excludes `manifest.json` outright: `alt-data export --dataset ... --no-snapshot` still writes a
+  excludes `manifest.json` outright: `market-trackers export --dataset ... --no-snapshot` still writes a
   manifest (it's built from a whole-store freshness report regardless of `--dataset`, see
   `buildManifest` in `packages/core/src/export/writer.ts`), but with `--no-snapshot` that
   manifest's `snapshots` listing comes back empty for _every_ dataset, not just the two the fast
@@ -135,7 +135,7 @@ columnar tooling (DuckDB, pandas, polars, ...).
 
 `mirror-hf.yml` runs weekly and pushes a full copy of the data repo onto a Hugging Face dataset
 repo, for consumers who prefer `datasets.load_dataset(...)` or browsing the HF Hub over cloning
-GitHub. GitHub (`LuxAlgo/alt-datasets`) stays the source of truth; the mirror is a convenience
+GitHub. GitHub (`LuxAlgo/market-trackers-data`) stays the source of truth; the mirror is a convenience
 copy, not a second writer to anything in this repo.
 
 Needs `ALT_DATASETS_REPO` + `ALT_DATASETS_TOKEN` (to read the data repo, same as
@@ -162,22 +162,22 @@ without a new dependency. To publish a Kaggle mirror by hand:
 
 1. `pip install kaggle` and place an API token at `~/.kaggle/kaggle.json` (from Kaggle account
    settings).
-2. Clone `LuxAlgo/alt-datasets` (or download a release of it).
+2. Clone `LuxAlgo/market-trackers-data` (or download a release of it).
 3. Create the dataset once with `kaggle datasets create -p <path>` (needs a `dataset-metadata.json`
    describing title/license/id — CC0, matching the data repo's `LICENSE`), then push updates with
    `kaggle datasets version -p <path> -m "<message>"`.
 
 ## Canary statuses and the response playbook
 
-`alt-data canary` probes every source and derives a status per source
+`market-trackers canary` probes every source and derives a status per source
 (`deriveCanaryStatus` in `packages/core/src/sources/types.ts`):
 
-| Status  | Meaning                                                                                                                                                        | Health-board badge      |
-| ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| `green` | Every check passed: fetch probe, parse-success rate (≥ 99%), format fingerprint, freshness.                                                                    | 🟢 healthy              |
-| `amber` | Only **soft** checks failed — typically freshness (data older than its window) or a skipped probe (e.g. EDGAR without `ALT_DATA_CONTACT`). Working, but stale. | 🟡 stale                |
-| `red`   | A **hard** check failed: fetch broke, parse rate collapsed, the format fingerprint changed, or the canary itself threw.                                        | 🔴 broken               |
-| `skip`  | The source's ingestor is not implemented yet; it canaries as skip on purpose.                                                                                  | 🚧 ingestor in progress |
+| Status  | Meaning                                                                                                                                                               | Health-board badge      |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| `green` | Every check passed: fetch probe, parse-success rate (≥ 99%), format fingerprint, freshness.                                                                           | 🟢 healthy              |
+| `amber` | Only **soft** checks failed — typically freshness (data older than its window) or a skipped probe (e.g. EDGAR without `MARKET_TRACKERS_CONTACT`). Working, but stale. | 🟡 stale                |
+| `red`   | A **hard** check failed: fetch broke, parse rate collapsed, the format fingerprint changed, or the canary itself threw.                                               | 🔴 broken               |
+| `skip`  | The source's ingestor is not implemented yet; it canaries as skip on purpose.                                                                                         | 🚧 ingestor in progress |
 
 The overall report status is the worst source status; the CLI exits 1 **only on red** (amber
 and skip exit 0), so CI pages on breakage, not on quiet news days.
@@ -240,9 +240,9 @@ Where those stores live in CI:
   reset it, delete those entries under **Actions → Caches** or bump the key prefix in the
   workflow; the next sync then re-backfills from scratch.
 
-## How `alt-data canary` integrates with CI
+## How `market-trackers canary` integrates with CI
 
-- `alt-data canary --db <store> --out canary-report.json --json` writes the full JSON report to
+- `market-trackers canary --db <store> --out canary-report.json --json` writes the full JSON report to
   a file **and** prints it; the process exit code is `1` when the overall status is red,
   `0` otherwise (green, amber, skip).
 - `canaries.yml` runs it with `set +e`, captures the exit code into a step output, and always

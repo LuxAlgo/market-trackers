@@ -17,11 +17,11 @@ describe("createPoliteFetch", () => {
       return response(200, "ok");
     });
     const politeFetch = createPoliteFetch({
-      userAgent: "alt-data/0.1.0 (test@example.com)",
+      userAgent: "market-trackers/0.1.0 (test@example.com)",
       fetchImpl: fetchImpl as unknown as typeof fetch,
     });
     await politeFetch("https://example.gov/data");
-    expect(seenHeaders[0]?.["user-agent"]).toBe("alt-data/0.1.0 (test@example.com)");
+    expect(seenHeaders[0]?.["user-agent"]).toBe("market-trackers/0.1.0 (test@example.com)");
   });
 
   it("backs off and retries on 429, then succeeds", async () => {
@@ -32,7 +32,7 @@ describe("createPoliteFetch", () => {
       .mockResolvedValueOnce(response(429))
       .mockResolvedValueOnce(response(200, "finally"));
     const politeFetch = createPoliteFetch({
-      userAgent: "alt-data/test",
+      userAgent: "market-trackers/test",
       retryBaseMs: 100,
       fetchImpl: fetchImpl as unknown as typeof fetch,
       sleep: async (ms) => {
@@ -50,7 +50,7 @@ describe("createPoliteFetch", () => {
   it("gives up after maxRetries and throws the last HttpError", async () => {
     const fetchImpl = vi.fn(async () => response(403));
     const politeFetch = createPoliteFetch({
-      userAgent: "alt-data/test",
+      userAgent: "market-trackers/test",
       retryBaseMs: 1,
       maxRetries: 2,
       fetchImpl: fetchImpl as unknown as typeof fetch,
@@ -63,7 +63,7 @@ describe("createPoliteFetch", () => {
   it("passes 404 through without retrying", async () => {
     const fetchImpl = vi.fn(async () => response(404));
     const politeFetch = createPoliteFetch({
-      userAgent: "alt-data/test",
+      userAgent: "market-trackers/test",
       fetchImpl: fetchImpl as unknown as typeof fetch,
     });
     const result = await politeFetch("https://example.gov/missing");
@@ -75,7 +75,7 @@ describe("createPoliteFetch", () => {
 describe("expectOk", () => {
   it("throws on non-2xx unless 404 is allowed", async () => {
     const politeFetch = createPoliteFetch({
-      userAgent: "alt-data/test",
+      userAgent: "market-trackers/test",
       retryStatuses: [],
       fetchImpl: (async () => response(404)) as unknown as typeof fetch,
     });

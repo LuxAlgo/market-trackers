@@ -15,7 +15,7 @@ import type { Logger } from "../../lib/logger.js";
  * and its replacement is not a query API at all: patent grant data now
  * ships as a bulk dataset product whose metadata (and per-table zip files)
  * are served from `api.uspto.gov`, authenticated with the same free key
- * this source always used (`ALT_DATA_PATENTSVIEW_KEY`), sent as `x-api-key`.
+ * this source always used (`MARKET_TRACKERS_PATENTSVIEW_KEY`), sent as `x-api-key`.
  *
  * [verified live] against api.uspto.gov: unauthenticated requests get
  * 401 `{"message":"Unauthorized"}`; unknown routes get 403
@@ -166,7 +166,7 @@ export async function fetchProductMetadata(
       "USPTO Open Data Portal rejected the configured API key (HTTP 401 Unauthorized). " +
         "The key may have been revoked, or the USPTO.gov account's Open Data Portal " +
         "profile fields are incomplete — verify the key under Manage API Key at " +
-        "https://data.uspto.gov and update ALT_DATA_PATENTSVIEW_KEY.",
+        "https://data.uspto.gov and update MARKET_TRACKERS_PATENTSVIEW_KEY.",
     );
   }
   if (response.status === 404) {

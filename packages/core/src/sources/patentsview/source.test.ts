@@ -9,7 +9,7 @@ import {
 } from "./source.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { Patent } from "../../schema/patent.js";
-import { AltDataStore } from "../../store/store.js";
+import { TrackerStore } from "../../store/store.js";
 import { resolveConfig, type ConfigOverrides } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
 import { fixturePath, makeTmpDir, readFixture, readFixtureJson } from "../../test-helpers.js";
@@ -90,8 +90,8 @@ function mockFetch(captured: CapturedRequest[], overrides: MockOverrides = {}): 
 async function makeCtx(
   overrides: ConfigOverrides = {},
   mock: MockOverrides = {},
-): Promise<{ ctx: SourceContext; store: AltDataStore; captured: CapturedRequest[] }> {
-  const store = await AltDataStore.open(":memory:");
+): Promise<{ ctx: SourceContext; store: TrackerStore; captured: CapturedRequest[] }> {
+  const store = await TrackerStore.open(":memory:");
   const captured: CapturedRequest[] = [];
   const ctx: SourceContext = {
     store,
@@ -108,10 +108,10 @@ async function makeCtx(
 
 async function makeCtxNoKey(): Promise<{
   ctx: SourceContext;
-  store: AltDataStore;
+  store: TrackerStore;
   captured: CapturedRequest[];
 }> {
-  const store = await AltDataStore.open(":memory:");
+  const store = await TrackerStore.open(":memory:");
   const captured: CapturedRequest[] = [];
   const ctx: SourceContext = {
     store,
@@ -232,7 +232,7 @@ describe("patentsviewSource.sync", () => {
     const result = await patentsviewSource.sync(ctx);
     expect(result.rowsUpserted).toBe(0);
     expect(result.notes.join(" ")).toMatch(/no USPTO Open Data Portal API key configured/);
-    expect(result.notes.join(" ")).toMatch(/ALT_DATA_PATENTSVIEW_KEY/);
+    expect(result.notes.join(" ")).toMatch(/MARKET_TRACKERS_PATENTSVIEW_KEY/);
     expect(captured).toHaveLength(0);
     await store.close();
   });
@@ -458,10 +458,10 @@ describe("patentsviewSource.canary", () => {
 
 describe("normalizePatentRow", () => {
   const RETRIEVED_AT = "2026-08-20T12:00:00.000Z";
-  let store: AltDataStore;
+  let store: TrackerStore;
 
   beforeAll(async () => {
-    store = await AltDataStore.open(":memory:");
+    store = await TrackerStore.open(":memory:");
   });
 
   afterAll(async () => {

@@ -140,7 +140,7 @@ export function renderFeedXml<T extends FeedRow>(
     )
     .join("\n");
 
-  const titleParts = [`LuxAlgo Alt Data — ${esc(dataset.title)}`];
+  const titleParts = [`LuxAlgo Market Trackers — ${esc(dataset.title)}`];
   if (titleSuffix) titleParts.push(esc(titleSuffix));
 
   return [
@@ -148,7 +148,7 @@ export function renderFeedXml<T extends FeedRow>(
     `<rss version="2.0">`,
     `  <channel>`,
     `    <title>${titleParts.join(" — ")}</title>`,
-    `    <link>https://github.com/LuxAlgo/alt-data</link>`,
+    `    <link>https://github.com/LuxAlgo/market-trackers</link>`,
     `    <description>${esc(dataset.description)} Every item links its primary-source document.</description>`,
     `    <lastBuildDate>${rfc822(generatedAt)}</lastBuildDate>`,
     itemsXml,

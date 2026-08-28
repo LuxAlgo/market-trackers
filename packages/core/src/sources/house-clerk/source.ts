@@ -1,11 +1,11 @@
 import { createHash } from "node:crypto";
-import type { AltDataSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
+import type { TrackerSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import { createPoliteFetch, type PoliteFetch } from "../../lib/http.js";
 import { RateLimiter } from "../../lib/rate-limiter.js";
 import { addDays, hoursSince, isoNow, toDateString } from "../../lib/dates.js";
-import { ALT_DATA_VERSION } from "../../config.js";
+import { MARKET_TRACKERS_VERSION } from "../../config.js";
 import { matchMember, refreshMemberMapIfStale } from "../../resolve/members.js";
 import type { MemberMapEntry } from "../../store/store.js";
 import {
@@ -44,7 +44,7 @@ export const houseClerkDeps: { extractPositionedText: typeof extractPositionedTe
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createPoliteFetch({
-    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `market-trackers/${MARKET_TRACKERS_VERSION}`,
     limiter: new RateLimiter({ limit: 2, windowMs: 1_000 }),
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("house-clerk"),
@@ -91,7 +91,7 @@ function byFiledDateThenDocId(a: HouseIndexFiling, b: HouseIndexFiling): number 
   return a.docId.localeCompare(b.docId);
 }
 
-export const houseClerkSource: AltDataSource = {
+export const houseClerkSource: TrackerSource = {
   id: "house-clerk",
   title: "House Clerk financial disclosures (PTRs)",
   datasets: ["congress-trades"],

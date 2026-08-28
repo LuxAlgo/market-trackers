@@ -1,12 +1,12 @@
-import type { AltDataSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
+import type { TrackerSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import { fdaApprovalId, type FdaApproval } from "../../schema/fda-approval.js";
-import { ALT_DATA_VERSION } from "../../config.js";
+import { MARKET_TRACKERS_VERSION } from "../../config.js";
 import { addDays, expandCompactDate, hoursSince, toDateString } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
 import type { Logger } from "../../lib/logger.js";
-import type { AltDataStore } from "../../store/store.js";
+import type { TrackerStore } from "../../store/store.js";
 import { resolveEntityTickersTiered } from "../../resolve/sec-names.js";
 import {
   OPENFDA_PAGE_LIMIT,
@@ -57,7 +57,7 @@ const CANARY_PROBE_DAYS = 60;
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createOpenfdaFetch({
-    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `market-trackers/${MARKET_TRACKERS_VERSION}`,
     apiKey: ctx.config.openfdaApiKey,
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("openfda"),
@@ -83,7 +83,7 @@ export async function normalizeSubmission(
   application: DrugsfdaApplication,
   rawSubmission: Record<string, unknown>,
   retrievedAt: string,
-  store: AltDataStore,
+  store: TrackerStore,
 ): Promise<FdaApproval> {
   const applicationNumber = application.application_number;
   const sponsorName = application.sponsor_name?.trim();
@@ -147,7 +147,7 @@ export async function normalizeSubmission(
 
 interface WalkDeps {
   politeFetch: PoliteFetch;
-  store: AltDataStore;
+  store: TrackerStore;
   logger: Logger;
   apiKey: string | undefined;
   retrievedAt: string;
@@ -295,7 +295,7 @@ async function walkWindow(
   }
 }
 
-export const openfdaSource: AltDataSource = {
+export const openfdaSource: TrackerSource = {
   id: "openfda",
   title: "openFDA (drug application events)",
   datasets: ["fda-approvals"],

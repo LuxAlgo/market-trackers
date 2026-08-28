@@ -1,13 +1,13 @@
 # Security policy
 
-LuxAlgo Alt Data runs locally, holds no credentials beyond optional free-tier API keys the user supplies,
+LuxAlgo Market Trackers runs locally, holds no credentials beyond optional free-tier API keys the user supplies,
 and has no telemetry. Still, parsers consume untrusted documents from the public internet — bugs
 there matter.
 
 ## Reporting
 
 Please report vulnerabilities privately via
-[GitHub's private vulnerability reporting](https://github.com/LuxAlgo/alt-data/security/advisories/new)
+[GitHub's private vulnerability reporting](https://github.com/LuxAlgo/market-trackers/security/advisories/new)
 rather than opening a public issue. Include the affected package (`core`/`mcp`/`cli`), a
 reproduction, and the document or input that triggers it if applicable.
 

@@ -1,4 +1,4 @@
-# Contributing to LuxAlgo Alt Data
+# Contributing to LuxAlgo Market Trackers
 
 ## Setup
 
@@ -39,7 +39,7 @@ source URL and verification status.
 
 ## Adding or extending a source
 
-Each source lives in `packages/core/src/sources/<source-id>/` and implements the `AltDataSource`
+Each source lives in `packages/core/src/sources/<source-id>/` and implements the `TrackerSource`
 contract (`sync` + `canary`) from `sources/types.ts`. The registry, CLI, sync engine, canaries,
 status output, and health board pick it up automatically. A complete source ships:
 
@@ -78,7 +78,7 @@ unsigned commits; `git rebase --signoff` fixes a branch retroactively.
 CI, the daily canaries, dump publishing, and releases are documented in
 [`docs/operations.md`](docs/operations.md) — including every repository variable/secret and
 what stays off without it. The contract of the published dumps (layout, delta semantics,
-manifest, `SCHEMA_VERSION` policy) is in [`docs/alt-datasets.md`](docs/alt-datasets.md).
+manifest, `SCHEMA_VERSION` policy) is in [`docs/market-trackers-data.md`](docs/market-trackers-data.md).
 
 ## Security
 

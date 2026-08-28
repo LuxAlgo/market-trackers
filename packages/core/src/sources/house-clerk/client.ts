@@ -1,7 +1,7 @@
 import { strFromU8, unzipSync } from "fflate";
 import { XMLParser } from "fast-xml-parser";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
-import type { AltDataStore } from "../../store/store.js";
+import type { TrackerStore } from "../../store/store.js";
 
 /**
  * Client for the House Clerk financial-disclosure yearly index: one ZIP per
@@ -161,7 +161,7 @@ export type YearIndexFetchResult =
  */
 export async function fetchYearIndex(
   politeFetch: PoliteFetch,
-  store: AltDataStore,
+  store: TrackerStore,
   year: number,
   options: { conditional?: boolean } = {},
 ): Promise<YearIndexFetchResult> {

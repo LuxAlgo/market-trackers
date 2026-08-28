@@ -1,4 +1,4 @@
-import type { AltDataStore } from "../store/store.js";
+import type { TrackerStore } from "../store/store.js";
 import { normalizeEntityName } from "./normalize.js";
 import { resolveEntityTickers, type EntityTickerQuery } from "./recipients.js";
 
@@ -50,9 +50,9 @@ interface CachedIndex {
  * millisecond stamp back-to-back; nothing in this codebase refreshes that
  * table fast enough for that to matter in practice.
  */
-const indexCache = new WeakMap<AltDataStore, CachedIndex>();
+const indexCache = new WeakMap<TrackerStore, CachedIndex>();
 
-async function loadIndex(store: AltDataStore): Promise<SecNameIndex> {
+async function loadIndex(store: TrackerStore): Promise<SecNameIndex> {
   const rows = await store.driver.all<{ cik: string; ticker: string; name: string }>(
     `SELECT "cik", "ticker", "name" FROM "cik_tickers"`,
   );
@@ -88,7 +88,7 @@ async function loadIndex(store: AltDataStore): Promise<SecNameIndex> {
  * Exported so tests can assert on the index directly — e.g. that a
  * two-CIK collision is excluded — without going through resolution.
  */
-export async function buildSecNameIndex(store: AltDataStore): Promise<SecNameIndex> {
+export async function buildSecNameIndex(store: TrackerStore): Promise<SecNameIndex> {
   const refreshedAt = await store.cikTickersRefreshedAt();
   const cached = indexCache.get(store);
   if (cached && cached.refreshedAt === refreshedAt) return cached.index;
@@ -109,7 +109,7 @@ export interface SecNameQuery {
  * curated map; see `resolveEntityTickersTiered` for the combined order.
  */
 export async function resolveEntityTickersSec(
-  store: AltDataStore,
+  store: TrackerStore,
   query: SecNameQuery,
 ): Promise<string[]> {
   const raw = query.name?.trim();
@@ -131,7 +131,7 @@ export async function resolveEntityTickersSec(
  * is never treated as absence of the row.
  */
 export async function resolveEntityTickersTiered(
-  store: AltDataStore,
+  store: TrackerStore,
   query: EntityTickerQuery,
 ): Promise<string[]> {
   const curated = resolveEntityTickers(query);

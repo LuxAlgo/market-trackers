@@ -12,7 +12,7 @@ import {
 } from "./source.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { FedCommunication } from "../../schema/fed-communication.js";
-import { AltDataStore } from "../../store/store.js";
+import { TrackerStore } from "../../store/store.js";
 import { resolveConfig, type ConfigOverrides } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
 import { readFixture, readFixtureJson } from "../../test-helpers.js";
@@ -48,8 +48,8 @@ function mockFetch(captured: string[]): typeof fetch {
 async function makeCtx(
   overrides: ConfigOverrides = {},
   nowIso = NOW,
-): Promise<{ ctx: SourceContext; store: AltDataStore; captured: string[] }> {
-  const store = await AltDataStore.open(":memory:");
+): Promise<{ ctx: SourceContext; store: TrackerStore; captured: string[] }> {
+  const store = await TrackerStore.open(":memory:");
   const captured: string[] = [];
   const ctx: SourceContext = {
     store,

@@ -1,8 +1,8 @@
 import type { DatasetId } from "../schema/datasets.js";
 import type { SourceId } from "../schema/provenance.js";
-import type { AltDataConfig } from "../config.js";
+import type { TrackerConfig } from "../config.js";
 import type { Logger } from "../lib/logger.js";
-import type { CanaryCheck, CanaryStatus, AltDataStore } from "../store/store.js";
+import type { CanaryCheck, CanaryStatus, TrackerStore } from "../store/store.js";
 
 /**
  * The source contract. Every ingestor implements this interface and is
@@ -11,8 +11,8 @@ import type { CanaryCheck, CanaryStatus, AltDataStore } from "../store/store.js"
  */
 
 export interface SourceContext {
-  store: AltDataStore;
-  config: AltDataConfig;
+  store: TrackerStore;
+  config: TrackerConfig;
   logger: Logger;
   /** Injectable for tests; defaults to global fetch. */
   fetchImpl?: typeof fetch;
@@ -65,7 +65,7 @@ export interface SourceCanaryOutcome {
   checks: SourceCanaryCheck[];
 }
 
-export interface AltDataSource {
+export interface TrackerSource {
   id: SourceId;
   title: string;
   datasets: DatasetId[];

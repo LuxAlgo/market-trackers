@@ -4,7 +4,7 @@ import { gunzipSync } from "node:zlib";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { exportDumps, buildManifest } from "./writer.js";
 import { MAX_ITEMS } from "./feeds.js";
-import { AltDataStore } from "../store/store.js";
+import { TrackerStore } from "../store/store.js";
 import { DATASETS, SCHEMA_VERSION } from "../schema/datasets.js";
 import {
   makeShortVolumeDay,
@@ -15,11 +15,11 @@ import {
 } from "../test-helpers.js";
 import type { ShortVolumeDay } from "../schema/short-volume-day.js";
 
-let store: AltDataStore;
+let store: TrackerStore;
 let tmp: { dir: string; cleanup: () => void };
 
 beforeAll(async () => {
-  store = await AltDataStore.open(":memory:");
+  store = await TrackerStore.open(":memory:");
   tmp = makeTmpDir("export");
 
   await store.upsert(DATASETS["short-volume"], [
@@ -105,7 +105,7 @@ describe("exportDumps", () => {
     ).toString("utf8");
     const records = JSON.parse(snapshot) as ShortVolumeDay[];
 
-    const fresh = await AltDataStore.open(":memory:");
+    const fresh = await TrackerStore.open(":memory:");
     await fresh.upsert(DATASETS["short-volume"], records);
     expect(await fresh.count("short-volume")).toBe(2);
 
@@ -123,7 +123,7 @@ describe("exportDumps", () => {
 
     const feed = readFileSync(join(shortVolDir, "feed.xml"), "utf8");
     expect(feed).toContain('<rss version="2.0">');
-    expect(feed).toContain("LuxAlgo Alt Data — Short-sale volume");
+    expect(feed).toContain("LuxAlgo Market Trackers — Short-sale volume");
     expect(feed).toContain("<link>https://example.gov/primary/document/1</link>");
     expect(feed).toContain('guid isPermaLink="false"');
 
@@ -149,7 +149,7 @@ describe("exportDumps", () => {
   // exceeded".
   it("exports a dataset with 70,000+ rows sharing one event year and one ingestion day", async () => {
     const ROWS = 70_001;
-    const bigStore = await AltDataStore.open(":memory:");
+    const bigStore = await TrackerStore.open(":memory:");
     const bigTmp = makeTmpDir("export-at-scale");
     try {
       const rows = Array.from({ length: ROWS }, (_, i) =>
@@ -210,7 +210,7 @@ describe("exportDumps", () => {
   // confine such datasets to year shards + manifest while ordinary datasets
   // in the same run keep their full export.
   it("snapshotOnly datasets get year shards and a manifest, never deltas, latest.json, or feeds", async () => {
-    const soStore = await AltDataStore.open(":memory:");
+    const soStore = await TrackerStore.open(":memory:");
     const soTmp = makeTmpDir("export-snapshot-only-dataset");
     try {
       await soStore.upsert(DATASETS.patents, [
@@ -256,7 +256,7 @@ describe("exportDumps", () => {
   });
 
   it("--snapshots-only equivalent (deltas: false, feeds: false) writes only snapshots and the manifest", async () => {
-    const soStore = await AltDataStore.open(":memory:");
+    const soStore = await TrackerStore.open(":memory:");
     const soTmp = makeTmpDir("export-snapshots-only");
     try {
       await soStore.upsert(DATASETS["short-volume"], [makeShortVolumeDay()]);

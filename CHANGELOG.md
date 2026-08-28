@@ -10,8 +10,8 @@
   congressional hearings (GovInfo CHRG), and Federal Reserve communications.
 - Every row carries provenance: source id, retrieval time, parser id, and a working deep link
   to the primary document.
-- MCP server (`@luxalgo/alt-data-mcp`) with 24 read-only tools over stdio and streamable HTTP.
-- CLI (`@luxalgo/alt-data-cli`): sync, backfill, status, export, import, serve, canary,
+- MCP server (`@luxalgo/market-trackers-mcp`) with 24 read-only tools over stdio and streamable HTTP.
+- CLI (`@luxalgo/market-trackers-cli`): sync, backfill, status, export, import, serve, canary,
   resolve, prices, report.
 - Daily publishing pipeline: JSON year shards + combined snapshots, Parquet siblings, RSS
   feeds (dataset-, ticker-, and member-level), and a manifest — pushed to the public data

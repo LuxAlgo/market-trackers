@@ -3,7 +3,7 @@ import { wikimediaSource } from "./source.js";
 import { pageviewsUrl } from "./client.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { WikiPageview } from "../../schema/wiki-pageview.js";
-import { AltDataStore } from "../../store/store.js";
+import { TrackerStore } from "../../store/store.js";
 import { resolveConfig } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
 import { makeWikiPageview } from "../../test-helpers.js";
@@ -52,8 +52,8 @@ function mockFetch(routes: Record<string, () => Response>): typeof fetch {
   }) as typeof fetch;
 }
 
-async function makeCtx(now: string): Promise<{ ctx: SourceContext; store: AltDataStore }> {
-  const store = await AltDataStore.open(":memory:");
+async function makeCtx(now: string): Promise<{ ctx: SourceContext; store: TrackerStore }> {
+  const store = await TrackerStore.open(":memory:");
   const ctx: SourceContext = {
     store,
     config: resolveConfig({ logLevel: "silent" }, { cwd: "/nonexistent", env: {} }),

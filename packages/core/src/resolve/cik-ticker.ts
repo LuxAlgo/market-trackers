@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { AltDataStore } from "../store/store.js";
+import type { TrackerStore } from "../store/store.js";
 import type { Logger } from "../lib/logger.js";
 import { hoursSince } from "../lib/dates.js";
 import { COMPANY_TICKERS_URL, type EdgarClient } from "../sources/edgar/client.js";
@@ -23,7 +23,7 @@ const companyTickersSchema = z.record(
 );
 
 export async function refreshCikTickersIfStale(
-  store: AltDataStore,
+  store: TrackerStore,
   client: EdgarClient,
   logger: Logger,
   maxAgeDays = 7,

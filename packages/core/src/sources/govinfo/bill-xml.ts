@@ -3,7 +3,7 @@ import { extractAllBlocks, extractBlock, extractTag, withoutBlock } from "./xml.
 
 /**
  * Parser for one BILLSTATUS XML document (GPO GovInfo bulk data). Pulls the
- * handful of fields LuxAlgo Alt Data publishes out of the `<bill>` element;
+ * handful of fields LuxAlgo Market Trackers publishes out of the `<bill>` element;
  * everything else in the document (actions history, committees, related
  * bills, full CBO estimates, …) is left unread. See `xml.ts` for the
  * tolerant tag/block primitives this is built from.

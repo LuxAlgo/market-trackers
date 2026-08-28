@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /*
-  The LuxAlgo Alt Data CLI: sync the public record of US markets into a local
+  The LuxAlgo Market Trackers CLI: sync the public record of US markets into a local
   database, inspect it, serve it over MCP, and export it as JSON dumps.
   Keyless by design — the only identity ever sent is the contact email the
   SEC requires in the EDGAR User-Agent. No telemetry.
 */
 import { Command } from "commander";
-import { ALT_DATA_VERSION } from "@luxalgo/alt-data-core";
+import { MARKET_TRACKERS_VERSION } from "@luxalgo/market-trackers-core";
 import { syncCommand } from "./commands/sync.js";
 import { statusCommand } from "./commands/status.js";
 import { exportCommand } from "./commands/export.js";
@@ -22,31 +22,37 @@ const program = new Command();
 
 // Success paths set process.exitCode and let the event loop drain instead of
 // calling process.exit(): exit() tears the process down with stdout still
-// buffered, and a piped consumer (`alt-data ... --json | tee`) then receives
+// buffered, and a piped consumer (`market-trackers ... --json | tee`) then receives
 // the JSON truncated at the pipe's capacity (observed at ~64KB once a
 // backfill summary grew past it). Every command closes its store/handles, so
 // draining is prompt. fail() keeps the hard exit — its one stderr line
 // flushes synchronously, and an error must never be able to hang the CLI.
 function fail(error: unknown): never {
   const message = error instanceof Error ? error.message : String(error);
-  process.stderr.write(`alt-data: ${message}\n`);
+  process.stderr.write(`market-trackers: ${message}\n`);
   process.exit(1);
 }
 
 function globalOptions(cmd: Command): Command {
   return cmd
-    .option("--db <url>", "SQLite path or postgres:// url (default: ALT_DATA_DB or ./alt-data.db)")
-    .option("--contact <email>", "contact email for the SEC EDGAR User-Agent (or ALT_DATA_CONTACT)")
+    .option(
+      "--db <url>",
+      "SQLite path or postgres:// url (default: MARKET_TRACKERS_DB or ./market-trackers.db)",
+    )
+    .option(
+      "--contact <email>",
+      "contact email for the SEC EDGAR User-Agent (or MARKET_TRACKERS_CONTACT)",
+    )
     .option("--log <level>", "log level: debug|info|warn|error|silent")
     .option("--json", "machine-readable JSON on stdout");
 }
 
 program
-  .name("alt-data")
+  .name("market-trackers")
   .description(
     "The public record of US markets — congress trades, insider filings, 13F holdings, government contracts, lobbying, short-sale volume — synced from primary sources to a local database.",
   )
-  .version(ALT_DATA_VERSION);
+  .version(MARKET_TRACKERS_VERSION);
 
 globalOptions(
   program
@@ -84,7 +90,9 @@ globalOptions(
 globalOptions(
   program
     .command("export")
-    .description("Write daily JSON deltas, snapshots, and a manifest (the alt-datasets layout)")
+    .description(
+      "Write daily JSON deltas, snapshots, and a manifest (the market-trackers-data layout)",
+    )
     .option("--out <dir>", "output directory (default: ./dumps)")
     .option("--dataset <ids>", "comma-separated datasets to export")
     .option("--no-snapshot", "skip full snapshot files")
@@ -134,7 +142,7 @@ globalOptions(
   program
     .command("import <path>")
     .description(
-      "Rebuild or top up the store from published dumps (an alt-datasets checkout, a dataset directory, or a single delta/snapshot file) — the mirror image of export",
+      "Rebuild or top up the store from published dumps (an market-trackers-data checkout, a dataset directory, or a single delta/snapshot file) — the mirror image of export",
     )
     .option("--dataset <id>", "dataset id when it can't be inferred from the path"),
 ).action(async (path, flags) => {
@@ -173,7 +181,7 @@ globalOptions(
   program
     .command("analyze <what>")
     .description(
-      "Bring-your-own-prices factual joins over stored rows (LuxAlgo Alt Data ships no price data and computes no scores; see docs/analytics.md)",
+      "Bring-your-own-prices factual joins over stored rows (LuxAlgo Market Trackers ships no price data and computes no scores; see docs/analytics.md)",
     )
     .option("--prices <file>", "user-supplied price series (CSV: date,ticker,close)")
     .option("--dataset <id>", "dataset to join against")
@@ -194,7 +202,7 @@ globalOptions(
   program
     .command("backtest <what>")
     .description(
-      "Bring-your-own-prices backtest: one fixed, equal-weight, entry-at-disclosure strategy over stored events (LuxAlgo Alt Data ships no price data and computes no scores; see docs/analytics.md)",
+      "Bring-your-own-prices backtest: one fixed, equal-weight, entry-at-disclosure strategy over stored events (LuxAlgo Market Trackers ships no price data and computes no scores; see docs/analytics.md)",
     )
     .option("--prices <file>", "user-supplied price series (CSV: date,ticker,close)")
     .option("--ticker <t>", "restrict to one ticker")

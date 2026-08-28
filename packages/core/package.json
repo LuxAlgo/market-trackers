@@ -1,5 +1,5 @@
 {
-  "name": "@luxalgo/alt-data-core",
+  "name": "@luxalgo/market-trackers-core",
   "version": "0.1.0",
   "description": "Ingestors, parsers, normalizers, entity resolution, and storage for the public record of US markets \u2014 congress trades, insider filings, 13F holdings, government contracts, lobbying, and short-sale volume. Primary sources only; every row carries provenance.",
   "license": "MIT",
@@ -19,11 +19,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LuxAlgo/alt-data.git",
+    "url": "git+https://github.com/LuxAlgo/market-trackers.git",
     "directory": "packages/core"
   },
-  "homepage": "https://github.com/LuxAlgo/alt-data#readme",
-  "bugs": "https://github.com/LuxAlgo/alt-data/issues",
+  "homepage": "https://github.com/LuxAlgo/market-trackers#readme",
+  "bugs": "https://github.com/LuxAlgo/market-trackers/issues",
   "keywords": [
     "sec",
     "edgar",

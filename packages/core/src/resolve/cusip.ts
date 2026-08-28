@@ -1,10 +1,10 @@
 import { z } from "zod";
-import type { AltDataStore } from "../store/store.js";
+import type { TrackerStore } from "../store/store.js";
 import type { Logger } from "../lib/logger.js";
 import { silentLogger } from "../lib/logger.js";
 import { RateLimiter } from "../lib/rate-limiter.js";
 import { createPoliteFetch, type PoliteFetch } from "../lib/http.js";
-import { ALT_DATA_VERSION } from "../config.js";
+import { MARKET_TRACKERS_VERSION } from "../config.js";
 
 /**
  * CUSIP→ticker resolution via OpenFIGI's free mapping API, cached
@@ -49,7 +49,7 @@ export class OpenFigiClient {
     this.batchSize = options.apiKey ? 100 : 10;
     const perMinute = options.apiKey ? 200 : 20;
     this.politeFetch = createPoliteFetch({
-      userAgent: `alt-data/${ALT_DATA_VERSION}`,
+      userAgent: `market-trackers/${MARKET_TRACKERS_VERSION}`,
       limiter: new RateLimiter({ limit: perMinute, windowMs: 60_000 }),
       fetchImpl: options.fetchImpl,
       logger: (options.logger ?? silentLogger).child("openfigi"),
@@ -96,7 +96,7 @@ export class OpenFigiClient {
  * unseen ones (or all of them with `retryMisses`).
  */
 export async function resolveCusips(
-  store: AltDataStore,
+  store: TrackerStore,
   client: OpenFigiClient,
   cusips: string[],
   options: { retryMisses?: boolean } = {},

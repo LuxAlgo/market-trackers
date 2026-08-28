@@ -1,7 +1,7 @@
 import { addDays, toDateString } from "../lib/dates.js";
 
 /**
- * Bring-your-own-prices: LuxAlgo Alt Data ships no price data. This module only reads
+ * Bring-your-own-prices: LuxAlgo Market Trackers ships no price data. This module only reads
  * a price series the caller supplies and answers a mechanical lookup — "what
  * was the close on or after a given date" — never a model, a signal, or an
  * estimate of a price that wasn't actually supplied.

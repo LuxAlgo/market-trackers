@@ -1,6 +1,6 @@
 import type { SourceId } from "../schema/provenance.js";
 import type {
-  AltDataSource,
+  TrackerSource,
   SourceContext,
   SourceSyncResult,
   SyncOptions,
@@ -32,7 +32,7 @@ export interface RunSyncOptions extends SyncOptions {
   sources?: SourceId[];
 }
 
-export function selectSources(sourceIds?: SourceId[]): AltDataSource[] {
+export function selectSources(sourceIds?: SourceId[]): TrackerSource[] {
   if (!sourceIds || sourceIds.length === 0) {
     return ALL_SOURCES.filter((s) => s.implemented);
   }

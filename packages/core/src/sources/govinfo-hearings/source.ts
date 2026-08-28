@@ -1,5 +1,5 @@
 import type {
-  AltDataSource,
+  TrackerSource,
   ParseStats,
   SourceContext,
   SourceSyncResult,
@@ -8,7 +8,7 @@ import type {
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import { congressHearingSchema, type CongressHearing } from "../../schema/congress-hearing.js";
-import { ALT_DATA_VERSION } from "../../config.js";
+import { MARKET_TRACKERS_VERSION } from "../../config.js";
 import { hoursSince, toDateString } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
 import { createGovinfoFetch } from "../govinfo/client.js";
@@ -78,7 +78,7 @@ function watermarkKey(year: number): string {
 function buildFetch(ctx: SourceContext): PoliteFetch {
   // Same host, same politeness as the govinfo bills source (5 req/s).
   return createGovinfoFetch({
-    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `market-trackers/${MARKET_TRACKERS_VERSION}`,
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("govinfo-hearings"),
   });
@@ -273,7 +273,7 @@ async function syncYear(
   return out;
 }
 
-export const govinfoHearingsSource: AltDataSource = {
+export const govinfoHearingsSource: TrackerSource = {
   id: "govinfo-hearings",
   title: "GovInfo CHRG (hearing transcripts)",
   datasets: ["congress-hearings"],

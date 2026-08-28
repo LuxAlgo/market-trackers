@@ -1,4 +1,4 @@
-import { serveHttp, serveStdio } from "@luxalgo/alt-data-mcp";
+import { serveHttp, serveStdio } from "@luxalgo/market-trackers-mcp";
 import type { GlobalFlags } from "../context.js";
 
 export interface ServeFlags extends GlobalFlags {
@@ -19,7 +19,7 @@ export async function serveCommand(flags: ServeFlags): Promise<number> {
     });
     // stderr, because stdout may be piped.
     process.stderr.write(
-      `alt-data-mcp listening on :${port}/mcp (store: ${flags.db ?? process.env.ALT_DATA_DB ?? "alt-data.db"})\n`,
+      `market-trackers-mcp listening on :${port}/mcp (store: ${flags.db ?? process.env.MARKET_TRACKERS_DB ?? "market-trackers.db"})\n`,
     );
   } else {
     await serveStdio({ db: flags.db });

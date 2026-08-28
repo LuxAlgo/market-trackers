@@ -19,7 +19,7 @@ import { congressHearingSchema, type CongressHearing } from "./congress-hearing.
 import { fedCommunicationSchema, type FedCommunication } from "./fed-communication.js";
 
 /**
- * The dataset registry: one definition per dataset LuxAlgo Alt Data ingests, stores,
+ * The dataset registry: one definition per dataset LuxAlgo Market Trackers ingests, stores,
  * serves, and dumps. Storage, export, sync, and the MCP server all iterate
  * this registry instead of hard-coding dataset lists.
  */
@@ -50,7 +50,7 @@ export type DatasetId = (typeof DATASET_IDS)[number];
 /**
  * Bump when a PUBLISHED record shape changes. Adding whole new datasets is
  * additive and does not bump (existing consumers keep parsing untouched
- * shapes) — see docs/alt-datasets.md.
+ * shapes) — see docs/market-trackers-data.md.
  *
  * v2: lobbying-filings gained `billReferences` (normalized bill tokens
  * extracted from the filing's specific-issues text).

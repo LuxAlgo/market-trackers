@@ -6,7 +6,7 @@ import {
   parsePriceCsv,
   runBacktest,
   type BacktestResult,
-} from "@luxalgo/alt-data-core";
+} from "@luxalgo/market-trackers-core";
 import { openContext, printJson, printTable, type GlobalFlags } from "../context.js";
 
 export interface BacktestFlags extends GlobalFlags {
@@ -36,7 +36,7 @@ const DEFAULT_WINDOW_DAYS = 30;
 /**
  * The bring-your-own-prices backtester (see docs/analytics.md's Backtest
  * section): one fixed, equal-weight, entry-at-disclosure strategy applied to
- * stored events and a user-supplied prices file. LuxAlgo Alt Data ships no
+ * stored events and a user-supplied prices file. LuxAlgo Market Trackers ships no
  * price data and computes no scores — the disclaimer and the strategy's data
  * notes are always part of the output, human or --json, and there is no flag
  * that changes the strategy itself.
@@ -47,7 +47,7 @@ export async function backtestCommand(what: string, flags: BacktestFlags): Promi
     throw new Error(`Unknown backtest target '${what}' — expected 'congress' or 'insider'`);
   }
   if (!flags.prices) {
-    throw new Error(`alt-data backtest requires --prices <file> — ${PRICES_CSV_HINT}`);
+    throw new Error(`market-trackers backtest requires --prices <file> — ${PRICES_CSV_HINT}`);
   }
 
   let priceCsvText: string;

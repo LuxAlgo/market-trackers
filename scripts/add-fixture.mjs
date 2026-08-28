@@ -3,7 +3,7 @@
  * Grow the golden corpus from a real EDGAR document — run this on a machine
  * WITH network access (CI runners, contributor laptops; sandboxes need --file):
  *
- *   ALT_DATA_CONTACT=you@example.com node scripts/add-fixture.mjs \
+ *   MARKET_TRACKERS_CONTACT=you@example.com node scripts/add-fixture.mjs \
  *     --parser form-ownership \
  *     --url https://www.sec.gov/Archives/edgar/data/320193/000032019326000012/0000320193-26-000012.txt
  *
@@ -18,7 +18,7 @@
  *
  * Options:
  *   --parser form-ownership|thirteenf   which parser the document feeds (required)
- *   --url <edgar .txt url>              fetch from www.sec.gov (needs ALT_DATA_CONTACT)
+ *   --url <edgar .txt url>              fetch from www.sec.gov (needs MARKET_TRACKERS_CONTACT)
  *   --file <path>                       use a local copy instead of fetching
  *   --out <dir>                         case directory (default: packages/core/fixtures/edgar-<parser>/case-<accession>)
  */
@@ -68,11 +68,11 @@ let text;
 let txtUrl = null;
 
 if (args.url) {
-  const contact = process.env.ALT_DATA_CONTACT;
+  const contact = process.env.MARKET_TRACKERS_CONTACT;
   if (!contact) {
     fail(
-      "ALT_DATA_CONTACT is not set. SEC fair access requires a declared contact in the " +
-        "User-Agent; refusing to fetch anonymously. Example: ALT_DATA_CONTACT=you@example.com",
+      "MARKET_TRACKERS_CONTACT is not set. SEC fair access requires a declared contact in the " +
+        "User-Agent; refusing to fetch anonymously. Example: MARKET_TRACKERS_CONTACT=you@example.com",
     );
   }
   const url = new URL(args.url);
@@ -82,7 +82,7 @@ if (args.url) {
   txtUrl = url.toString();
   const response = await fetch(txtUrl, {
     headers: {
-      "user-agent": `alt-data-add-fixture/${core.ALT_DATA_VERSION} (${contact})`,
+      "user-agent": `market-trackers-add-fixture/${core.MARKET_TRACKERS_VERSION} (${contact})`,
       accept: "text/plain, */*",
     },
   });

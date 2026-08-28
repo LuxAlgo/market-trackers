@@ -84,7 +84,7 @@ export class EdgarClient {
    * Conditional GET: sends If-None-Match / If-Modified-Since from previously
    * stored validators and reports an upstream 304 as `notModified` instead of
    * re-downloading. On 200 the fresh validators are returned for the caller
-   * to persist (see `AltDataStore.getFetchCache`/`setFetchCache`).
+   * to persist (see `TrackerStore.getFetchCache`/`setFetchCache`).
    */
   async jsonConditional<T>(
     url: string,

@@ -1,11 +1,11 @@
-import type { AltDataSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
+import type { TrackerSource, SourceContext, SourceSyncResult, SyncOptions } from "../types.js";
 import { emptySyncResult, type SourceCanaryCheck } from "../types.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { ClinicalTrial } from "../../schema/clinical-trial.js";
-import { ALT_DATA_VERSION } from "../../config.js";
+import { MARKET_TRACKERS_VERSION } from "../../config.js";
 import { addDays, hoursSince, toDateString } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
-import type { AltDataStore } from "../../store/store.js";
+import type { TrackerStore } from "../../store/store.js";
 import { resolveEntityTickersTiered } from "../../resolve/sec-names.js";
 import {
   createClinicalTrialsFetch,
@@ -55,7 +55,7 @@ const CANARY_PROBE_DAYS = 30;
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createClinicalTrialsFetch({
-    userAgent: ctx.config.userAgent ?? `alt-data/${ALT_DATA_VERSION}`,
+    userAgent: ctx.config.userAgent ?? `market-trackers/${MARKET_TRACKERS_VERSION}`,
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("clinicaltrials"),
   });
@@ -70,7 +70,7 @@ function normalizePhase(phases: string[] | undefined): string | null {
 export async function normalizeStudy(
   raw: Record<string, unknown>,
   retrievedAt: string,
-  store: AltDataStore,
+  store: TrackerStore,
 ): Promise<ClinicalTrial> {
   const study = studySchema.parse(raw);
   const ps = study.protocolSection;
@@ -116,7 +116,7 @@ export async function normalizeStudy(
   };
 }
 
-export const clinicaltrialsSource: AltDataSource = {
+export const clinicaltrialsSource: TrackerSource = {
   id: "clinicaltrials",
   title: "ClinicalTrials.gov (study registrations)",
   datasets: ["clinical-trials"],

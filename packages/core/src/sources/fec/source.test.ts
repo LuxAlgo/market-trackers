@@ -11,7 +11,7 @@ import {
 import { DATASETS } from "../../schema/datasets.js";
 import type { FecCandidate } from "../../schema/fec-candidate.js";
 import type { FecContribution } from "../../schema/fec-contribution.js";
-import { AltDataStore } from "../../store/store.js";
+import { TrackerStore } from "../../store/store.js";
 import { resolveConfig } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
 import { fixturePath, readFixtureJson } from "../../test-helpers.js";
@@ -63,10 +63,10 @@ function mockFetch(log: LoggedRequest[]): typeof fetch {
 
 async function makeCtx(): Promise<{
   ctx: SourceContext;
-  store: AltDataStore;
+  store: TrackerStore;
   log: LoggedRequest[];
 }> {
-  const store = await AltDataStore.open(":memory:");
+  const store = await TrackerStore.open(":memory:");
   const log: LoggedRequest[] = [];
   const ctx: SourceContext = {
     store,

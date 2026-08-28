@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { usaspendingSource, USASPENDING_AWARD_SEARCH_URL } from "./source.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { GovContractAward } from "../../schema/gov-contract-award.js";
-import { AltDataStore } from "../../store/store.js";
+import { TrackerStore } from "../../store/store.js";
 import { resolveConfig } from "../../config.js";
 import { silentLogger } from "../../lib/logger.js";
 import { readFixture, readFixtureJson } from "../../test-helpers.js";
@@ -49,10 +49,10 @@ function mockFetch(captured: CapturedBody[]): typeof fetch {
 
 async function makeCtx(): Promise<{
   ctx: SourceContext;
-  store: AltDataStore;
+  store: TrackerStore;
   captured: CapturedBody[];
 }> {
-  const store = await AltDataStore.open(":memory:");
+  const store = await TrackerStore.open(":memory:");
   const captured: CapturedBody[] = [];
   const ctx: SourceContext = {
     store,

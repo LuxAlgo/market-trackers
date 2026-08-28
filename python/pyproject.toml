@@ -3,15 +3,15 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "alt-datasets"
+name = "market-trackers-data"
 version = "0.1.0"
-description = "A small, dependency-light reader for LuxAlgo Alt Data's published JSON dumps — the public record of US markets (congress trades, insider filings, 13F holdings, government contracts, lobbying, short-sale volume, and more), free CC0 data with per-row primary-source provenance."
+description = "A small, dependency-light reader for LuxAlgo Market Trackers's published JSON dumps — the public record of US markets (congress trades, insider filings, 13F holdings, government contracts, lobbying, short-sale volume, and more), free CC0 data with per-row primary-source provenance."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [{ name = "LuxAlgo" }]
 keywords = [
-  "alt-data",
+  "market-trackers",
   "sec",
   "edgar",
   "congress-trades",
@@ -35,10 +35,10 @@ dependencies = []
 pandas = ["pandas>=1.5"]
 
 [project.urls]
-Homepage = "https://github.com/LuxAlgo/alt-data"
-Repository = "https://github.com/LuxAlgo/alt-data"
-Data = "https://github.com/LuxAlgo/alt-datasets"
+Homepage = "https://github.com/LuxAlgo/market-trackers"
+Repository = "https://github.com/LuxAlgo/market-trackers"
+Data = "https://github.com/LuxAlgo/market-trackers-data"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["alt_datasets*"]
+include = ["market_trackers_data*"]

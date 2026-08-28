@@ -18,7 +18,7 @@ import type { FecContribution } from "../schema/fec-contribution.js";
 import type { CongressHearing } from "../schema/congress-hearing.js";
 import type { FedCommunication, FedCommunicationType } from "../schema/fed-communication.js";
 import { hoursSince } from "../lib/dates.js";
-import type { CanaryRunRecord, AltDataStore, SyncRunRecord } from "./store.js";
+import type { CanaryRunRecord, TrackerStore, SyncRunRecord } from "./store.js";
 import { mapperFor } from "./rows.js";
 
 /**
@@ -58,7 +58,7 @@ function sql(b: WhereBuilder): string {
 }
 
 async function run<T>(
-  store: AltDataStore,
+  store: TrackerStore,
   datasetId: DatasetId,
   b: WhereBuilder,
   orderBy: string,
@@ -87,7 +87,7 @@ export interface CongressTradeFilters {
 }
 
 export async function queryCongressTrades(
-  store: AltDataStore,
+  store: TrackerStore,
   f: CongressTradeFilters = {},
 ): Promise<CongressTrade[]> {
   const b = where();
@@ -112,7 +112,7 @@ export interface CongressMemberSummary {
 }
 
 export async function queryCongressMembers(
-  store: AltDataStore,
+  store: TrackerStore,
   q?: string,
   limit?: number,
 ): Promise<CongressMemberSummary[]> {
@@ -151,7 +151,7 @@ export interface InsiderTransactionFilters {
 }
 
 export async function queryInsiderTransactions(
-  store: AltDataStore,
+  store: TrackerStore,
   f: InsiderTransactionFilters = {},
 ): Promise<InsiderTransaction[]> {
   const b = where();
@@ -200,7 +200,7 @@ export interface InsiderSummary {
 }
 
 export async function insiderSummary(
-  store: AltDataStore,
+  store: TrackerStore,
   ticker: string,
   since: string,
 ): Promise<InsiderSummary> {
@@ -262,7 +262,7 @@ export interface ThirteenfHolderRow {
 
 /** Available reporting periods for a ticker or cusip, newest first. */
 async function thirteenfPeriods(
-  store: AltDataStore,
+  store: TrackerStore,
   key: { ticker?: string; cusip?: string; managerCik?: string },
 ): Promise<string[]> {
   const b = where();
@@ -277,7 +277,7 @@ async function thirteenfPeriods(
 }
 
 export async function queryThirteenfHolders(
-  store: AltDataStore,
+  store: TrackerStore,
   key: { ticker?: string; cusip?: string },
   periodEnd?: string,
   limit?: number,
@@ -342,7 +342,7 @@ export async function queryThirteenfHolders(
 }
 
 export async function queryThirteenfManager(
-  store: AltDataStore,
+  store: TrackerStore,
   key: { managerCik?: string; q?: string },
   periodEnd?: string,
   limit?: number,
@@ -401,7 +401,7 @@ export interface GovContractFilters {
 }
 
 async function queryFederalAwards(
-  store: AltDataStore,
+  store: TrackerStore,
   datasetId: "gov-contracts" | "gov-grants",
   f: GovContractFilters = {},
 ): Promise<GovContractAward[]> {
@@ -417,14 +417,14 @@ async function queryFederalAwards(
 }
 
 export async function queryGovContracts(
-  store: AltDataStore,
+  store: TrackerStore,
   f: GovContractFilters = {},
 ): Promise<GovContractAward[]> {
   return queryFederalAwards(store, "gov-contracts", f);
 }
 
 export async function queryGovGrants(
-  store: AltDataStore,
+  store: TrackerStore,
   f: GovContractFilters = {},
 ): Promise<GovContractAward[]> {
   return queryFederalAwards(store, "gov-grants", f);
@@ -439,7 +439,7 @@ export interface LobbyingFilters {
 }
 
 export async function queryLobbying(
-  store: AltDataStore,
+  store: TrackerStore,
   f: LobbyingFilters = {},
 ): Promise<LobbyingFiling[]> {
   const b = where();
@@ -453,7 +453,7 @@ export async function queryLobbying(
 // ── Short volume ──────────────────────────────────────────────────────────
 
 export async function queryShortVolume(
-  store: AltDataStore,
+  store: TrackerStore,
   ticker: string,
   from: string,
   to: string,
@@ -528,7 +528,7 @@ export interface EntitySearchResult {
 }
 
 export async function searchEntities(
-  store: AltDataStore,
+  store: TrackerStore,
   q: string,
   limit = 10,
 ): Promise<EntitySearchResult[]> {
@@ -608,7 +608,7 @@ export interface CommitteeAssignmentFilters {
 }
 
 export async function queryCommitteeAssignments(
-  store: AltDataStore,
+  store: TrackerStore,
   f: CommitteeAssignmentFilters = {},
 ): Promise<CommitteeAssignment[]> {
   const b = where();
@@ -638,7 +638,7 @@ export interface CommitteeRoster {
 }
 
 /** Roster of a committee plus each member's trade activity (facts, joined). */
-export async function committeeRoster(store: AltDataStore, q: string): Promise<CommitteeRoster> {
+export async function committeeRoster(store: TrackerStore, q: string): Promise<CommitteeRoster> {
   const needle = `%${q.toLowerCase()}%`;
   const committeeRow = await store.driver.get<Record<string, unknown>>(
     `SELECT "committee_thomas_id", "committee_name", "committee_type", COUNT(*) AS n FROM "committee_assignments" ` +
@@ -719,7 +719,7 @@ export interface MemberProfile {
  * trading activity — the receipts for "who oversees what, and what do they
  * trade". Facts only; the reader draws conclusions.
  */
-export async function memberProfile(store: AltDataStore, q: string): Promise<MemberProfile> {
+export async function memberProfile(store: TrackerStore, q: string): Promise<MemberProfile> {
   const summaries = await queryCongressMembers(store, q, 1);
   const fromTrades = summaries[0] ?? null;
 
@@ -821,7 +821,7 @@ export interface PatentFilters {
   limit?: number;
 }
 
-export async function queryPatents(store: AltDataStore, f: PatentFilters = {}): Promise<Patent[]> {
+export async function queryPatents(store: TrackerStore, f: PatentFilters = {}): Promise<Patent[]> {
   const b = where();
   if (f.ticker) add(b, `"assignee_tickers" LIKE ?`, `%"${f.ticker.toUpperCase()}"%`);
   if (f.assignee) contains(b, `"assignee_name"`, f.assignee);
@@ -843,7 +843,7 @@ export interface ClinicalTrialFilters {
 }
 
 export async function queryClinicalTrials(
-  store: AltDataStore,
+  store: TrackerStore,
   f: ClinicalTrialFilters = {},
 ): Promise<ClinicalTrial[]> {
   const b = where();
@@ -865,7 +865,7 @@ export interface FdaApprovalFilters {
 }
 
 export async function queryFdaApprovals(
-  store: AltDataStore,
+  store: TrackerStore,
   f: FdaApprovalFilters = {},
 ): Promise<FdaApproval[]> {
   const b = where();
@@ -886,7 +886,7 @@ export interface CotFilters {
 }
 
 export async function queryCotReports(
-  store: AltDataStore,
+  store: TrackerStore,
   f: CotFilters = {},
 ): Promise<CotReport[]> {
   const b = where();
@@ -909,7 +909,7 @@ export interface WikiPageviewFilters {
 }
 
 export async function queryWikiPageviews(
-  store: AltDataStore,
+  store: TrackerStore,
   f: WikiPageviewFilters = {},
 ): Promise<WikiPageview[]> {
   const b = where();
@@ -935,7 +935,7 @@ export interface BillFilters {
   limit?: number;
 }
 
-export async function queryBills(store: AltDataStore, f: BillFilters = {}): Promise<Bill[]> {
+export async function queryBills(store: TrackerStore, f: BillFilters = {}): Promise<Bill[]> {
   const b = where();
   if (f.q) contains(b, `"title"`, f.q);
   if (f.congress !== undefined) add(b, `"congress" = ?`, f.congress);
@@ -953,7 +953,7 @@ export async function queryBills(store: AltDataStore, f: BillFilters = {}): Prom
  * lobbying on this legislation".
  */
 export async function queryLobbyingOnBill(
-  store: AltDataStore,
+  store: TrackerStore,
   billType: string,
   billNumber: number,
   limit?: number,
@@ -980,7 +980,7 @@ export interface CongressHearingFilters {
 }
 
 export async function queryCongressHearings(
-  store: AltDataStore,
+  store: TrackerStore,
   f: CongressHearingFilters = {},
 ): Promise<CongressHearing[]> {
   const b = where();
@@ -1012,7 +1012,7 @@ export interface FedCommunicationFilters {
 }
 
 export async function queryFedCommunications(
-  store: AltDataStore,
+  store: TrackerStore,
   f: FedCommunicationFilters = {},
 ): Promise<FedCommunication[]> {
   const b = where();
@@ -1037,7 +1037,7 @@ export interface FecCandidateFilters {
 }
 
 export async function queryFecCandidates(
-  store: AltDataStore,
+  store: TrackerStore,
   f: FecCandidateFilters = {},
 ): Promise<FecCandidate[]> {
   const b = where();
@@ -1060,7 +1060,7 @@ export interface FecContributionFilters {
 }
 
 export async function queryFecContributions(
-  store: AltDataStore,
+  store: TrackerStore,
   f: FecContributionFilters = {},
 ): Promise<FecContribution[]> {
   const b = where();
@@ -1095,7 +1095,7 @@ export interface AwardTotals {
  * award rows at query time (arithmetic over the record, not a new dataset).
  */
 export async function awardTotals(
-  store: AltDataStore,
+  store: TrackerStore,
   f: {
     dataset?: "gov-contracts" | "gov-grants";
     ticker?: string;
@@ -1163,7 +1163,7 @@ export interface FreshnessReport {
 }
 
 export async function freshnessReport(
-  store: AltDataStore,
+  store: TrackerStore,
   now = new Date(),
 ): Promise<FreshnessReport> {
   const datasets: DatasetFreshness[] = [];

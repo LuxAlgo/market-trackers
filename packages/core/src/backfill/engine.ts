@@ -8,7 +8,7 @@ import { runSync, type RunSyncOptions, type SyncSummary } from "../sync/engine.j
  * Deep-history backfill: the same `runSync` the daily incremental sync uses,
  * driven in bounded, resumable chunks instead of one open-ended walk. A
  * source's regular watermark (e.g. `usaspending.lastActionDate`) is what
- * incremental `alt-data sync` advances; backfill tracks its OWN progress
+ * incremental `market-trackers sync` advances; backfill tracks its OWN progress
  * separately — `backfill.completedThrough`, namespaced per source — so the
  * two never fight over the same cursor, and a backfill can walk historical
  * ground the live watermark has long since passed without regressing it

@@ -2,7 +2,7 @@
 
 **Datasets:** `lobbying-filings`
 **Status:** implemented
-**Auth:** none required; a free registered key (config `ldaApiKey` / `ALT_DATA_LDA_KEY`) raises
+**Auth:** none required; a free registered key (config `ldaApiKey` / `MARKET_TRACKERS_LDA_KEY`) raises
 rate limits — see `[verify-live]` below for the exact header scheme.
 
 ## Endpoints

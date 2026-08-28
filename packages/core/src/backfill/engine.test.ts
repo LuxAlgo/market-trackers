@@ -3,7 +3,7 @@ import { runBackfill, BACKFILL_WATERMARK_KEY, type RunSyncFn } from "./engine.js
 import type { RunSyncOptions, SyncSummary } from "../sync/engine.js";
 import type { SourceSyncResult } from "../sources/types.js";
 import type { SourceId } from "../schema/provenance.js";
-import { AltDataStore } from "../store/store.js";
+import { TrackerStore } from "../store/store.js";
 import { resolveConfig } from "../config.js";
 import { silentLogger } from "../lib/logger.js";
 import type { SourceContext } from "../sources/types.js";
@@ -15,8 +15,8 @@ import type { SourceContext } from "../sources/types.js";
  * isolation without touching the network or the source registry.
  */
 
-async function makeCtx(): Promise<SourceContext & { store: AltDataStore }> {
-  const store = await AltDataStore.open(":memory:");
+async function makeCtx(): Promise<SourceContext & { store: TrackerStore }> {
+  const store = await TrackerStore.open(":memory:");
   return {
     store,
     config: resolveConfig({ logLevel: "silent" }, { cwd: "/nonexistent", env: {} }),

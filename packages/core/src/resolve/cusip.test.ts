@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { DATASETS } from "../schema/datasets.js";
-import { AltDataStore } from "../store/store.js";
+import { TrackerStore } from "../store/store.js";
 import { makeThirteenfHolding } from "../test-helpers.js";
 import { OPENFIGI_MAPPING_URL, OpenFigiClient, resolveCusips } from "./cusip.js";
 
 /**
  * Fully offline coverage of the CUSIP→ticker enrichment loop: the OpenFIGI
  * client (mocked fetch), the store cache (hits, misses, retry-misses), and
- * the two store methods the `alt-data resolve cusips` command drives.
+ * the two store methods the `market-trackers resolve cusips` command drives.
  */
 
 /** Mocked OpenFIGI: resolves per `known`, records every batch it was sent. */
@@ -35,7 +35,7 @@ function mockOpenFigi(known: Record<string, string>): {
 
 describe("resolveCusips", () => {
   it("queries OpenFIGI for unseen CUSIPs, caches hits and misses, and never re-queries cached entries", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     const { fetchImpl, batches } = mockOpenFigi({ "30303M102": "EXCO" });
     const client = new OpenFigiClient({ fetchImpl });
 
@@ -55,7 +55,7 @@ describe("resolveCusips", () => {
   });
 
   it("retryMisses re-queries cached misses but still trusts cached hits", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     const miss = mockOpenFigi({});
     await resolveCusips(store, new OpenFigiClient({ fetchImpl: miss.fetchImpl }), ["79589L106"]);
     expect((await store.getCusip("79589L106"))?.ticker).toBeNull();
@@ -75,7 +75,7 @@ describe("resolveCusips", () => {
   });
 
   it("splits large batches to the keyless OpenFIGI batch size", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     const { fetchImpl, batches } = mockOpenFigi({});
     const client = new OpenFigiClient({ fetchImpl });
     const cusips = Array.from({ length: 12 }, (_, i) => `TEST${String(i).padStart(5, "0")}`);
@@ -85,7 +85,7 @@ describe("resolveCusips", () => {
   });
 });
 
-describe("AltDataStore CUSIP-resolution methods", () => {
+describe("TrackerStore CUSIP-resolution methods", () => {
   function seedRows() {
     return [
       makeThirteenfHolding({ id: "acc-1:0", cusip: "30303M102", ticker: null }),
@@ -96,7 +96,7 @@ describe("AltDataStore CUSIP-resolution methods", () => {
   }
 
   it("distinctUnresolvedCusips returns each unresolved CUSIP once, ordered, honoring the limit", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     await store.upsert(DATASETS["thirteenf-holdings"], seedRows());
 
     expect(await store.distinctUnresolvedCusips()).toEqual(["30303M102", "79589L106"]);
@@ -105,7 +105,7 @@ describe("AltDataStore CUSIP-resolution methods", () => {
   });
 
   it("applyCusipTickers updates only unresolved rows, skips null tickers, and reports the row count", async () => {
-    const store = await AltDataStore.open(":memory:");
+    const store = await TrackerStore.open(":memory:");
     await store.upsert(DATASETS["thirteenf-holdings"], seedRows());
 
     const { updated } = await store.applyCusipTickers(

@@ -11,7 +11,7 @@ import type { Patent } from "../schema/patent.js";
 import type { ClinicalTrial } from "../schema/clinical-trial.js";
 import type { FdaApproval } from "../schema/fda-approval.js";
 import type { WikiPageview } from "../schema/wiki-pageview.js";
-import type { AltDataStore } from "../store/store.js";
+import type { TrackerStore } from "../store/store.js";
 import { addDays } from "../lib/dates.js";
 import { buildRssFeed, type FeedRow } from "./feeds.js";
 
@@ -195,7 +195,7 @@ function mostRecentMemberName(rows: readonly CongressTrade[]): string {
  * (or member) concept are never created or touched.
  */
 export async function writeEntityFeeds(
-  store: AltDataStore,
+  store: TrackerStore,
   dataset: DatasetDefinition,
   datasetDir: string,
   generatedAt: string,

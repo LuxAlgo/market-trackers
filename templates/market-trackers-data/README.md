@@ -1,10 +1,10 @@
-# alt-datasets
+# market-trackers-data
 
 **Free daily dumps of the public record of US markets.** Congress trades, insider filings,
 13F holdings, government contracts and grants, lobbying, short-sale volume, committee
 assignments, patents, clinical trials, FDA drug approvals, futures positioning: normalized
 JSON (with Parquet siblings), published
-here every day by CI from [LuxAlgo/alt-data](https://github.com/LuxAlgo/alt-data). No API keys, no
+here every day by CI from [LuxAlgo/market-trackers](https://github.com/LuxAlgo/market-trackers). No API keys, no
 accounts, no paywall: one URL per file.
 
 Everything here is parsed from **primary sources only** (SEC EDGAR, Senate eFD, the House
@@ -40,7 +40,7 @@ whole dataset. The root `manifest.json` reports, per dataset, the row count and 
 time, and per source, sync/canary health and watermarks; check it before trusting freshness.
 
 The record shapes are defined by the schemas in
-[LuxAlgo/alt-data](https://github.com/LuxAlgo/alt-data); the manifest's `schemaVersion` bumps
+[LuxAlgo/market-trackers](https://github.com/LuxAlgo/market-trackers); the manifest's `schemaVersion` bumps
 whenever a published shape changes.
 
 ## Feeds, Parquet, and the explorer
@@ -59,9 +59,9 @@ whenever a published shape changes.
 ## Written only by CI
 
 Data files in this repository are produced exclusively by the publish workflow in
-[LuxAlgo/alt-data](https://github.com/LuxAlgo/alt-data). **Human pull requests to data files are
+[LuxAlgo/market-trackers](https://github.com/LuxAlgo/market-trackers). **Human pull requests to data files are
 closed.** If a row is wrong, the fix belongs upstream, in the parsers and golden fixtures of
-LuxAlgo/alt-data, so the next publish corrects it here. Please open issues there.
+LuxAlgo/market-trackers, so the next publish corrects it here. Please open issues there.
 
 ## License
 
