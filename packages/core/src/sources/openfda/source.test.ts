@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { openfdaSource, OPENFDA_DRUGSFDA_URL } from "./source.js";
-import { OPENFDA_SKIP_CEILING, splitDateWindow, statusDateRangeSearch } from "./client.js";
+import {
+  OPENFDA_SKIP_CEILING,
+  drugsfdaRowFingerprint,
+  splitDateWindow,
+  statusDateRangeSearch,
+} from "./client.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { FdaApproval } from "../../schema/fda-approval.js";
 import { TrackerStore } from "../../store/store.js";
@@ -101,7 +106,7 @@ describe("openfdaSource.sync", () => {
 
     // Watermark lands on the max status date across succeeded rows; fingerprint recorded.
     expect(await store.getWatermark("openfda", "openfda.lastStatusDate")).toBe("2026-08-20");
-    expect(await store.getFingerprint("openfda", "openfda.application-row-fields")).toBeTruthy();
+    expect(await store.getFingerprint("openfda", "openfda.application-row-fields@2")).toBeTruthy();
 
     // Re-running the same window duplicates nothing.
     const second = await openfdaSource.sync(ctx, { since: "2026-08-01" });
@@ -127,6 +132,37 @@ describe("openfdaSource.sync", () => {
 
     expect(await store.getWatermark("openfda", "openfda.lastStatusDate")).toBe("2026-08-08");
 
+    await store.close();
+  });
+
+  // Regression for the live zero-rows loop: openFDA answers HTTP 404 for
+  // "no matches found", and the daily sync's short trailing window often
+  // matches nothing (status dates post on a lag) — treating that 404 as an
+  // outage aborted every walk, so the watermark never moved and the dataset
+  // never gained a row.
+  it("treats a 404 (openFDA's empty result set) as a clean empty window, not an outage", async () => {
+    const store = await TrackerStore.open(":memory:");
+    const ctx: SourceContext = {
+      store,
+      config: resolveConfig({ logLevel: "silent" }, { cwd: "/nonexistent", env: {} }),
+      logger: silentLogger,
+      fetchImpl: (async () => new Response('{"error":{"code":"NOT_FOUND"}}', { status: 404 })) as typeof fetch,
+      now: () => new Date(NOW),
+    };
+
+    const result = await openfdaSource.sync(ctx, { since: "2026-08-20" });
+    expect(result.rowsUpserted).toBe(0);
+    expect(result.notes).toEqual([]);
+    // Nothing matched, so there is no max status date to advance to.
+    expect(await store.getWatermark("openfda", "openfda.lastStatusDate")).toBeNull();
+    await store.close();
+  });
+
+  it("cold start looks back far enough to cover Drugs@FDA's posting lag", async () => {
+    const { ctx, captured, store } = await makeCtx();
+    await openfdaSource.sync(ctx); // no since, no watermark
+    // NOW is 2026-08-24; the 60-day cold-start window reaches back to June.
+    expect(captured[0]?.search).toBe("submissions.submission_status_date:[20260625 TO 20260824]");
     await store.close();
   });
 
@@ -318,7 +354,7 @@ describe("openfdaSource.canary", () => {
 
   it("hard-fails the fingerprint check when result-row field names drift", async () => {
     const { ctx, store } = await makeCtx();
-    await store.setFingerprint("openfda", "openfda.application-row-fields", "somethingelse");
+    await store.setFingerprint("openfda", "openfda.application-row-fields@2", "somethingelse");
     const outcome = await openfdaSource.canary(ctx);
     const fingerprint = outcome.checks.find((c) => c.name === "fingerprint");
     expect(fingerprint?.ok).toBe(false);
@@ -347,5 +383,23 @@ describe("readFixture sanity", () => {
     expect(meta.expectedStats).toEqual({ attempted: 6, succeeded: 5 });
     expect(ALL_APPS).toHaveLength(4);
     expect(readFixture("openfda", "case-drugsfda-page", "expected.json")).toBeTruthy();
+  });
+});
+
+describe("drugsfdaRowFingerprint", () => {
+  // Regression: hashing the full key list red'd the canary on row variety —
+  // rows legitimately differ in optional enrichment (`openfda`, `products`).
+  it("is stable across rows that differ only in optional fields, but catches a required-field rename", () => {
+    const base = {
+      application_number: "NDA000001",
+      sponsor_name: "EXAMPLE PHARMA",
+      submissions: [],
+    };
+    const enriched = { ...base, openfda: { brand_name: ["EXAMPLROL"] }, products: [] };
+    expect(drugsfdaRowFingerprint(base)).toBe(drugsfdaRowFingerprint(enriched));
+
+    const { sponsor_name: _renamed, ...rest } = base;
+    const drifted = { ...rest, sponsorName: "EXAMPLE PHARMA" };
+    expect(drugsfdaRowFingerprint(drifted)).not.toBe(drugsfdaRowFingerprint(base));
   });
 });

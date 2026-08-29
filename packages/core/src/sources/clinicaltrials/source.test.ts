@@ -6,6 +6,7 @@ import {
   extractFullDate,
   extractPartialDate,
   lastUpdatePostedRangeTerm,
+  studyRowFingerprint,
 } from "./client.js";
 import { TrackerStore } from "../../store/store.js";
 import { DATASETS } from "../../schema/datasets.js";
@@ -28,7 +29,7 @@ import type { SourceContext } from "../types.js";
 
 const NOW = "2026-08-24T12:00:00.000Z";
 const WATERMARK_KEY = "clinicaltrials.lastUpdatePosted";
-const FINGERPRINT_KEY = "clinicaltrials.study-row-fields";
+const FINGERPRINT_KEY = "clinicaltrials.study-row-fields@2";
 const EMPTY_PAGE = JSON.stringify({ studies: [] });
 
 // The two terms this suite's fixtures are keyed to — computed with the same
@@ -443,5 +444,36 @@ describe("normalizeStudy", () => {
     const trial = await normalizeStudy(study, RETRIEVED_AT, seeded);
     expect(trial.sponsor).toEqual({ name: "HARBORVIEW BIOTHERAPEUTICS, INC.", tickers: ["HVBI"] });
     await seeded.close();
+  });
+});
+
+describe("studyRowFingerprint", () => {
+  // Regression: hashing every module.field present on one probe study red'd
+  // the canary on study variety — studies legitimately differ in which
+  // optional modules they carry.
+  it("is stable across studies that differ only in optional modules, but catches a required-path rename", () => {
+    const required = {
+      identificationModule: { nctId: "NCT00000001", briefTitle: "T" },
+      statusModule: { overallStatus: "RECRUITING", lastUpdatePostDateStruct: { date: "2026-08-01" } },
+      sponsorCollaboratorsModule: { leadSponsor: { name: "Example Bio" } },
+    };
+    const minimal = { protocolSection: { ...required } };
+    const decorated = {
+      protocolSection: {
+        ...required,
+        designModule: { phases: ["PHASE3"], studyType: "INTERVENTIONAL" },
+        oversightModule: { oversightHasDmc: true },
+        conditionsModule: { conditions: ["Example"] },
+      },
+    };
+    expect(studyRowFingerprint(minimal)).toBe(studyRowFingerprint(decorated));
+
+    const drifted = {
+      protocolSection: {
+        ...required,
+        identificationModule: { nctIdentifier: "NCT00000001", briefTitle: "T" },
+      },
+    };
+    expect(studyRowFingerprint(drifted)).not.toBe(studyRowFingerprint(minimal));
   });
 });

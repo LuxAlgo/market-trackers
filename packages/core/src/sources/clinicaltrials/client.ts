@@ -190,23 +190,36 @@ export function extractFullDate(struct: unknown): string | null {
 }
 
 /**
- * Structural fingerprint: sha256 of the sorted `module.field` paths present
- * under `protocolSection` for one study row. A live rename, addition, or
- * removal of a module or field changes this hash, which is exactly what the
- * canary's `fingerprint` check watches for.
+ * The `protocolSection` paths the parser cannot produce a row without —
+ * present on every study the sync accepts. The fingerprint watches exactly
+ * these: hashing ALL module.field paths present on one probe study flapped
+ * day to day, because studies legitimately differ in which optional modules
+ * they carry — the canary was redding on study variety, not drift. A rename
+ * or removal of a required path still changes this hash (and breaks parsing
+ * loudly at the same time).
  */
+const REQUIRED_STUDY_PATHS = [
+  ["identificationModule", "nctId"],
+  ["identificationModule", "briefTitle"],
+  ["statusModule", "overallStatus"],
+  ["statusModule", "lastUpdatePostDateStruct"],
+  ["sponsorCollaboratorsModule", "leadSponsor"],
+] as const;
+
+/** Contract fingerprint: which of the parser's required paths the study carries. */
 export function studyRowFingerprint(study: Record<string, unknown>): string {
   const protocolSection = (study.protocolSection ?? {}) as Record<string, unknown>;
-  const paths: string[] = [];
-  for (const moduleName of Object.keys(protocolSection).sort()) {
+  const present: string[] = [];
+  for (const [moduleName, field] of REQUIRED_STUDY_PATHS) {
     const moduleValue = protocolSection[moduleName];
-    if (moduleValue && typeof moduleValue === "object" && !Array.isArray(moduleValue)) {
-      for (const field of Object.keys(moduleValue as Record<string, unknown>).sort()) {
-        paths.push(`${moduleName}.${field}`);
-      }
-    } else {
-      paths.push(moduleName);
+    if (
+      moduleValue &&
+      typeof moduleValue === "object" &&
+      !Array.isArray(moduleValue) &&
+      (moduleValue as Record<string, unknown>)[field] !== undefined
+    ) {
+      present.push(`${moduleName}.${field}`);
     }
   }
-  return createHash("sha256").update(paths.join("|")).digest("hex").slice(0, 16);
+  return createHash("sha256").update(present.join("|")).digest("hex").slice(0, 16);
 }

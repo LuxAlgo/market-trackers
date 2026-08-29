@@ -36,6 +36,8 @@ import { refreshCikTickersIfStale } from "../../resolve/cik-ticker.js";
  */
 
 const WATERMARK_KEY = "daily-index.lastCompletedDay";
+/** Days with at least this many wanted filings and ZERO parses trip the drift guard. */
+const ZERO_PARSE_TRIPWIRE_MIN = 10;
 const FINGERPRINT_KEY = "daily-index.header";
 
 /**
@@ -165,6 +167,7 @@ export const edgarSource: TrackerSource = {
       const insiderRows: InsiderTransaction[] = [];
       const thirteenfRows: ThirteenfHolding[] = [];
       let dayIncomplete = false;
+      const daySucceededBefore = result.parse.succeeded;
 
       for (const entry of wanted) {
         if (fetched >= limit) {
@@ -233,6 +236,21 @@ export const edgarSource: TrackerSource = {
           (result.perDataset["thirteenf-holdings"] ?? 0) + rows;
       }
       if (dayIncomplete) break;
+
+      // Zero-parse tripwire (same philosophy as the hearings walker): a day
+      // where every wanted filing failed to parse is format drift, not a
+      // quiet day. Advancing past it silently disowns the whole day — live,
+      // the pre-normalization date bug burned four days of the publish store
+      // exactly this way. Thrown, not noted: the sync run fails loudly and
+      // the watermark holds so the day is re-walked once the parser is fixed.
+      const daySucceeded = result.parse.succeeded - daySucceededBefore;
+      if (wanted.length >= ZERO_PARSE_TRIPWIRE_MIN && daySucceeded === 0) {
+        throw new Error(
+          `${day}: 0 of ${wanted.length} wanted filings parsed — format-drift tripwire; ` +
+            "watermark held",
+        );
+      }
+
       if (day < today) {
         lastFullyWalkedDay = day;
         if (advanced === null || day > advanced) {

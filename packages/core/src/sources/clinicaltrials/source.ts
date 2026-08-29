@@ -47,7 +47,10 @@ export {
 export const CLINICALTRIALS_PARSER = "clinicaltrials-v2@1";
 
 const WATERMARK_KEY = "clinicaltrials.lastUpdatePosted";
-const FINGERPRINT_KEY = "clinicaltrials.study-row-fields";
+// @2: the fingerprint now hashes the parser's required-path contract instead
+// of every module.field present on one probe study (which flapped on study
+// variety); the key bump makes the first new-code contact record a fresh baseline.
+const FINGERPRINT_KEY = "clinicaltrials.study-row-fields@2";
 /** Registries amend studies after posting; re-walk this many trailing days. */
 const REWALK_DAYS = 7;
 /** Canary probe window — wide enough that a quiet day never looks like an outage. */

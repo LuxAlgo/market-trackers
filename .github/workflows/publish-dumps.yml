@@ -18,6 +18,17 @@ on:
     # concurrency group below keeps the two from ever overlapping.
     - cron: "0 15 * * 1-6"
   workflow_dispatch:
+    inputs:
+      # Repair levers for manual dispatches: re-sync specific sources and/or
+      # re-walk from a date — e.g. after a parser bug advanced a live
+      # watermark past days it never actually ingested. Scheduled runs never
+      # set these; export and publish always cover the whole store.
+      sources:
+        description: "Only sync these source ids (comma-separated; default: all)"
+        required: false
+      since:
+        description: "Re-walk from this date (YYYY-MM-DD, passed as --since)"
+        required: false
 
 permissions:
   contents: write
@@ -85,7 +96,13 @@ jobs:
         env:
           MARKET_TRACKERS_CONTACT: ${{ vars.MARKET_TRACKERS_CONTACT || vars.ALT_DATA_CONTACT }}
           MARKET_TRACKERS_PATENTSVIEW_KEY: ${{ secrets.MARKET_TRACKERS_PATENTSVIEW_KEY || secrets.ALT_DATA_PATENTSVIEW_KEY }}
-        run: node packages/cli/dist/index.js sync --db publish.db --allow-partial --json
+          REPAIR_SOURCES: ${{ inputs.sources }}
+          REPAIR_SINCE: ${{ inputs.since }}
+        run: |
+          ARGS=()
+          if [ -n "$REPAIR_SOURCES" ]; then ARGS+=(--source "$REPAIR_SOURCES"); fi
+          if [ -n "$REPAIR_SINCE" ]; then ARGS+=(--since "$REPAIR_SINCE"); fi
+          node packages/cli/dist/index.js sync --db publish.db --allow-partial --json "${ARGS[@]}"
 
       - name: Export
         run: node packages/cli/dist/index.js export --db publish.db --out dumps --json

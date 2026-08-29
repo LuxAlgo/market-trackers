@@ -232,6 +232,42 @@ describe("edgarSource.sync", () => {
     await store.close();
   });
 
+  // Regression for the burned publish-store days: a parser bug made every
+  // filing on a day fail validation, and the walk still advanced the live
+  // watermark past those days — silently disowning them forever.
+  it("trips the zero-parse guard instead of advancing past a day of all-failing parses", async () => {
+    const entries = Array.from(
+      { length: 12 },
+      (_, i) =>
+        `123456|EXAMPLECORP INC|4|20040211|edgar/data/123456/0001127602-04-${String(100 + i)}000.txt`,
+    );
+    const OLD_DAY_INDEX = [
+      "Description:           Master Index of EDGAR Dissemination Feed",
+      "-------------------",
+      ...entries,
+    ].join("\n");
+    const fetchImpl = (async (url: Parameters<typeof fetch>[0]) => {
+      const key = String(url);
+      if (key.endsWith("/2004/QTR1/master.20040211.idx")) {
+        return new Response(OLD_DAY_INDEX, { status: 200 });
+      }
+      if (key === COMPANY_TICKERS_URL) {
+        return new Response(COMPANY_TICKERS_BODY, { status: 200 });
+      }
+      if (key.endsWith(".txt")) {
+        return new Response("not a filing at all", { status: 200 });
+      }
+      return new Response("not found", { status: 404 });
+    }) as typeof fetch;
+    const { ctx, store } = await makeCtx(fetchImpl);
+
+    await expect(
+      edgarSource.sync(ctx, { since: "2004-02-11", until: "2004-02-11" }),
+    ).rejects.toThrow(/format-drift tripwire/);
+    expect(await store.getWatermark("edgar", "daily-index.lastCompletedDay")).toBeNull();
+    await store.close();
+  });
+
   it("a bounded backfill chunk over old ground never regresses an already-advanced watermark", async () => {
     const { fetchImpl } = mockEdgarFetch();
     const { ctx, store } = await makeCtx(fetchImpl);

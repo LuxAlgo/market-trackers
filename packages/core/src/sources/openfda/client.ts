@@ -152,7 +152,18 @@ export function drugApplicationOverviewUrl(applicationNumber: string): string {
   return `https://www.accessdata.fda.gov/scripts/cder/daf/index.cfm?event=overview.process&ApplNo=${digits}`;
 }
 
-/** Structural fingerprint: sha256 of a result row's sorted top-level field names. */
+/**
+ * The result-row fields the parser cannot work without. The fingerprint
+ * watches exactly these: hashing a row's FULL key list flapped day to day,
+ * because Drugs@FDA rows legitimately differ in optional enrichment
+ * (`openfda`, `products`) — the canary was redding on row variety, not
+ * drift. A rename or removal of a required field still changes this hash
+ * (and breaks parsing loudly at the same time).
+ */
+const REQUIRED_ROW_FIELDS = ["application_number", "sponsor_name", "submissions"] as const;
+
+/** Contract fingerprint: which of the parser's required fields the row carries. */
 export function drugsfdaRowFingerprint(row: Record<string, unknown>): string {
-  return createHash("sha256").update(Object.keys(row).sort().join("|")).digest("hex").slice(0, 16);
+  const present = REQUIRED_ROW_FIELDS.filter((field) => row[field] !== undefined);
+  return createHash("sha256").update(present.join("|")).digest("hex").slice(0, 16);
 }

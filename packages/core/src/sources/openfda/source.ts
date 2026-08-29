@@ -49,11 +49,21 @@ export {
 export const OPENFDA_PARSER = "openfda-drugsfda@1";
 
 const WATERMARK_KEY = "openfda.lastStatusDate";
-const FINGERPRINT_KEY = "openfda.application-row-fields";
+// @2: the fingerprint now hashes the parser's required-field contract instead
+// of the probe row's full key list (which flapped on optional enrichment);
+// the key bump makes the first new-code contact record a fresh baseline.
+const FINGERPRINT_KEY = "openfda.application-row-fields@2";
 /** Submission status updates can post with a short lag; re-walk this many trailing days. */
 const REWALK_DAYS = 7;
 /** Canary probe window — Drugs@FDA refreshes on a lag measured in days-to-weeks. */
 const CANARY_PROBE_DAYS = 60;
+/**
+ * First-contact lookback. Drugs@FDA status dates post on a lag measured in
+ * weeks, so a cold store walking only the last few days matches nothing —
+ * live, the daily publish sync 404'd on its empty 3-day window forever and
+ * the dataset stayed at zero rows. Look back far enough to catch the lag.
+ */
+const COLD_START_DAYS = 60;
 
 function buildFetch(ctx: SourceContext): PoliteFetch {
   return createOpenfdaFetch({
@@ -195,6 +205,13 @@ async function walkWindow(
       page = await fetchDrugsfdaPage(politeFetch, { start, end, skip, limit: remaining, apiKey });
     } catch (error) {
       if (error instanceof HttpError) {
+        // openFDA answers HTTP 404 for "no matches found" — a routine empty
+        // window (short trailing windows often match nothing, since status
+        // dates post on a lag), not an outage. The window is complete with
+        // zero rows. A genuinely broken endpoint still surfaces: the
+        // canary's 60-day probe window practically always has matches, so
+        // its 404 stays a hard failure.
+        if (error.status === 404) return true;
         result.notes.push(error.message);
         state.aborted = true;
         return false;
@@ -315,7 +332,9 @@ export const openfdaSource: TrackerSource = {
     const watermark = opts.full ? null : await ctx.store.getWatermark("openfda", WATERMARK_KEY);
     const start =
       opts.since ??
-      (watermark ? addDays(watermark, -REWALK_DAYS) : addDays(today, -ctx.config.backfillDays));
+      (watermark
+        ? addDays(watermark, -REWALK_DAYS)
+        : addDays(today, -Math.max(ctx.config.backfillDays, COLD_START_DAYS)));
     const untilBound = opts.until ?? today;
     const end = untilBound > today ? today : untilBound;
     const windowStart = start > end ? end : start;
