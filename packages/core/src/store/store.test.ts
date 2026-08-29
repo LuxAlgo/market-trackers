@@ -115,6 +115,18 @@ describe("TrackerStore (sqlite)", () => {
     await store.close();
   });
 
+  // Regression for the live 2004 resume shift: no-op chunks (weekend days,
+  // already-covered ground) start consecutive sync runs within the same
+  // millisecond, and a `source:timestamp` id then collides — the UNIQUE
+  // violation threw out of runSync and hard-stopped the whole backfill.
+  it("survives many sync runs starting inside the same millisecond", async () => {
+    const store = await memoryStore();
+    const ids = new Set<string>();
+    for (let i = 0; i < 50; i++) ids.add(await store.startSyncRun("edgar"));
+    expect(ids.size).toBe(50);
+    await store.close();
+  });
+
   it("records canary runs with checks", async () => {
     const store = await memoryStore();
     await store.recordCanaryRun({

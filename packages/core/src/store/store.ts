@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { DatasetDefinition, DatasetId } from "../schema/datasets.js";
 import { ALL_DATASETS, datasetById } from "../schema/datasets.js";
@@ -287,7 +288,13 @@ export class TrackerStore {
   // ── Sync runs ───────────────────────────────────────────────────────────
 
   async startSyncRun(source: SourceId): Promise<string> {
-    const id = `${source}:${isoNow()}`;
+    // `source:timestamp` alone collides: a resumed backfill burns no-op
+    // chunks (weekend days, already-covered ground) in well under a
+    // millisecond, so consecutive runs share an isoNow() — and with a
+    // Postgres store, concurrent writers can too. The random suffix makes
+    // the id unique without any cross-process coordination; started_at
+    // still carries the ordering.
+    const id = `${source}:${isoNow()}:${randomUUID().slice(0, 8)}`;
     await this.driver.run(
       `INSERT INTO "sync_runs" ("id", "source", "started_at", "finished_at", "ok", "rows_upserted", "parse_attempted", "parse_succeeded", "error", "details") ` +
         `VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
