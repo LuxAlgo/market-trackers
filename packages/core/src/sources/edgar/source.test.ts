@@ -232,6 +232,27 @@ describe("edgarSource.sync", () => {
     await store.close();
   });
 
+  // Regression for the disowned Friday: EDGAR publishes a business day's
+  // index late that evening ET, so just after UTC midnight "yesterday"
+  // legitimately has no index yet — treating that null as a holiday
+  // advanced the watermark over a full business day of filings.
+  it("holiday-advances only days two+ days back: yesterday's missing index never advances", async () => {
+    const fetchImpl = (async (url: Parameters<typeof fetch>[0]) => {
+      const key = String(url);
+      if (key === COMPANY_TICKERS_URL) return new Response(COMPANY_TICKERS_BODY, { status: 200 });
+      return new Response("not found", { status: 404 }); // every index missing
+    }) as typeof fetch;
+    const { ctx, store } = await makeCtx(fetchImpl); // "today" is 2026-08-21
+
+    const result = await edgarSource.sync(ctx, { since: "2026-08-18" });
+    // The 18th and 19th are two+ days old: decisively holidays, advanced.
+    // The 20th (yesterday) may simply not be published yet — held for the
+    // next run to re-walk once the index exists.
+    expect(await store.getWatermark("edgar", "daily-index.lastCompletedDay")).toBe("2026-08-19");
+    expect(result.rowsUpserted).toBe(0);
+    await store.close();
+  });
+
   // Regression for the burned publish-store days: a parser bug made every
   // filing on a day fail validation, and the walk still advanced the live
   // watermark past those days — silently disowning them forever.

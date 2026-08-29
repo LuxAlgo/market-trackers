@@ -134,8 +134,15 @@ export const edgarSource: TrackerSource = {
       }
       const indexText = await client.dailyIndexText(day);
       if (indexText === null) {
-        // Holiday (or today's index not yet published); only advance forward.
-        if (day < today) {
+        // A null index is only safely a holiday once the day sits
+        // comfortably in the past. EDGAR publishes a business day's index
+        // late that evening ET, so "yesterday" legitimately answers
+        // 403/404 for hours after UTC midnight — advancing on that null
+        // disowned a full business day (live: an 02:33Z fast-lane run ate
+        // the whole preceding Friday this way). Two days back, absence is
+        // decisively a holiday; a fresher null day just waits for a later
+        // run, which re-walks it once the index exists.
+        if (day <= addDays(today, -2)) {
           lastFullyWalkedDay = day;
           if (advanced === null || day > advanced) {
             advanced = day;
