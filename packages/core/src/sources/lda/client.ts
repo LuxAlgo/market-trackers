@@ -78,6 +78,15 @@ export function createLdaFetch(options: LdaFetchOptions): PoliteFetch {
   return createPoliteFetch({
     userAgent: options.userAgent,
     limiter: new RateLimiter({ limit: tier.limit, windowMs: tier.windowMs }),
+    // The API sheds an intermittent 5xx/429 roughly once a minute under a
+    // sustained keyless walk — observed live (run 33291533828): ~90 blips
+    // recovered on attempt 1 over 1,600 pages, then one page 503ing through
+    // the default 14-second retry window ended a 5-hour shift at the
+    // 2-hour mark. Deep walks are long-haul; back off far enough to ride
+    // out a full throttle window or a multi-minute blip before declaring
+    // the upstream gone (worst case ~7.7 min of waiting on a real outage).
+    maxRetries: 5,
+    retryBaseMs: 15_000,
     fetchImpl: options.fetchImpl,
     sleep: options.sleep,
     logger: options.logger,
