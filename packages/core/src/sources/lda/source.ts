@@ -8,13 +8,17 @@ import { addDays, hoursSince, toDateString } from "../../lib/dates.js";
 import { HttpError, type PoliteFetch } from "../../lib/http.js";
 import { resolveEntityTickersTiered } from "../../resolve/sec-names.js";
 import { extractBillReferences } from "./bill-refs.js";
+import type { Logger } from "../../lib/logger.js";
 import {
   createLdaFetch,
   fetchFilingsPage,
   filingRowFingerprint,
+  LDA_PAGE_SIZE,
   ldaFilingDetailUrl,
   ldaFilingRowSchema,
+  ldaRateLimiter,
   parseLdaAmount,
+  type LdaFetchOptions,
 } from "./client.js";
 
 export { LDA_API_BASE, LDA_FILINGS_URL, ldaFilingDetailUrl, parseLdaAmount } from "./client.js";
@@ -83,12 +87,13 @@ function parseBackfillCursor(raw: string | null): BackfillCursor | null {
   return null;
 }
 
-function buildFetch(ctx: SourceContext): PoliteFetch {
+function buildFetch(ctx: SourceContext, overrides: Partial<LdaFetchOptions> = {}): PoliteFetch {
   return createLdaFetch({
     userAgent: ctx.config.userAgent ?? `market-trackers/${MARKET_TRACKERS_VERSION}`,
     apiKey: ctx.config.ldaApiKey,
     fetchImpl: ctx.fetchImpl,
     logger: ctx.logger.child("lda"),
+    ...overrides,
   });
 }
 
@@ -165,6 +170,66 @@ export async function normalizeFilingRow(
   };
 }
 
+/** Salvage sizes, finest last; both divide LDA_PAGE_SIZE, and 1 is live-proven (canary probes). */
+const LDA_SALVAGE_SIZES = [5, 1] as const;
+
+interface SalvagedWindow {
+  rows: Record<string, unknown>[];
+  /** The list ended inside this window (a sub-page answered `next: null` or 404'd past the end). */
+  endOfYear: boolean;
+}
+
+/**
+ * Re-fetch one failing size-25 page's offset window as smaller pages. Page P
+ * at size s (s divides 25) covers offsets [(P-1)·25, P·25) exactly as
+ * sub-pages (P-1)·(25/s)+1 .. P·(25/s). A window that persistently times out
+ * serializing 25 rows — observed live: filing_year=2000 page 343 answered
+ * 503 through every backoff, twice, hours apart, wedging the walk — usually
+ * serializes fine at 5 or 1. Returns null when even the finest size fails,
+ * leaving the caller's upstream stop to hold the cursor on the page.
+ */
+async function salvageWindow(
+  fetchQuick: PoliteFetch,
+  year: number,
+  page: number,
+  apiKey: string | undefined,
+  logger: Logger,
+): Promise<SalvagedWindow | null> {
+  sizes: for (const size of LDA_SALVAGE_SIZES) {
+    const perWindow = LDA_PAGE_SIZE / size;
+    const first = (page - 1) * perWindow + 1;
+    const rows: Record<string, unknown>[] = [];
+    for (let sub = first; sub < first + perWindow; sub++) {
+      let response;
+      try {
+        response = await fetchFilingsPage(fetchQuick, {
+          filingYear: year,
+          page: sub,
+          pageSize: size,
+          apiKey,
+        });
+      } catch (error) {
+        if (!(error instanceof HttpError)) throw error;
+        // Past the end of the list the API answers 404 for a too-deep page —
+        // meaningful only once an earlier sub-page of this window succeeded.
+        if (error.status === 404 && sub > first) return { rows, endOfYear: true };
+        logger.warn(`salvage at page_size ${size} failed`, {
+          year,
+          page,
+          sub,
+          status: error.status,
+        });
+        continue sizes;
+      }
+      rows.push(...response.results);
+      if (response.next === null) return { rows, endOfYear: true };
+    }
+    logger.info(`salvaged ${year} page ${page} at page_size ${size} (${rows.length} rows)`);
+    return { rows, endOfYear: false };
+  }
+  return null;
+}
+
 /**
  * The historical walk: filing years ascending from the window's start year.
  * Coverage is banked two ways — completed years through
@@ -181,8 +246,13 @@ async function backfillSync(
 ): Promise<SourceSyncResult> {
   const logger = ctx.logger.child("lda");
   const result = emptySyncResult("lda", true);
-  const politeFetch = buildFetch(ctx);
   const apiKey = ctx.config.ldaApiKey;
+  // One request budget across both fetches: the walk keeps the long-haul
+  // backoff; salvage probes a suspect window with short retries instead of
+  // burning ~8 minutes per sub-page.
+  const limiter = ldaRateLimiter(apiKey);
+  const politeFetch = buildFetch(ctx, { limiter });
+  const salvageFetch = buildFetch(ctx, { limiter, retry: { maxRetries: 2, retryBaseMs: 2_000 } });
   const now = ctx.now?.() ?? new Date();
   const retrievedAt = now.toISOString();
   const today = toDateString(now);
@@ -216,19 +286,33 @@ async function backfillSync(
         break walk;
       }
 
-      let response;
+      let response: { results: Record<string, unknown>[]; next: string | null };
       try {
         response = await fetchFilingsPage(politeFetch, { filingYear: year, page, apiKey });
       } catch (error) {
-        // Retries exhausted (rate-limit contention or an outage): stop the
-        // shift here. The cursor still names this page, so the next dispatch
-        // retries it instead of skipping it.
-        if (error instanceof HttpError) {
+        if (!(error instanceof HttpError)) throw error;
+        // Retries exhausted. For server-side failures, try the same offset
+        // window at smaller page sizes first — a page that cannot serialize
+        // 25 rows often serves the same rows as 5s or 1s. Otherwise (and
+        // when even size 1 fails) stop the shift here: the cursor still
+        // names this page, so the next dispatch retries it instead of
+        // skipping it.
+        const salvaged =
+          error.status >= 500 || error.status === 429
+            ? await salvageWindow(salvageFetch, year, page, apiKey, logger)
+            : null;
+        if (salvaged === null) {
           result.notes.push(error.message);
           result.stoppedEarly = "upstream";
           break walk;
         }
-        throw error;
+        result.notes.push(
+          `${error.message} — salvaged the window at a smaller page size (${salvaged.rows.length} rows)`,
+        );
+        response = {
+          results: salvaged.rows,
+          next: salvaged.endOfYear ? null : "salvaged-window-continues",
+        };
       }
 
       const filings: LobbyingFiling[] = [];

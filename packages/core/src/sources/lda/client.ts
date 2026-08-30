@@ -71,13 +71,26 @@ export interface LdaFetchOptions {
   fetchImpl?: typeof fetch;
   sleep?: (ms: number) => Promise<void>;
   logger?: Logger;
+  /**
+   * Shared limiter — when one walk uses several fetch instances (the
+   * backfill's long-haul fetch plus its quick salvage fetch), they must
+   * draw from one request budget.
+   */
+  limiter?: RateLimiter;
+  /** Override the long-haul retry posture (salvage probes retry briefly). */
+  retry?: { maxRetries: number; retryBaseMs: number };
+}
+
+/** The rate limiter matching the key tier, for sharing across fetches. */
+export function ldaRateLimiter(apiKey?: string): RateLimiter {
+  const tier = apiKey ? LDA_KEYED_LIMIT : LDA_KEYLESS_LIMIT;
+  return new RateLimiter({ limit: tier.limit, windowMs: tier.windowMs });
 }
 
 export function createLdaFetch(options: LdaFetchOptions): PoliteFetch {
-  const tier = options.apiKey ? LDA_KEYED_LIMIT : LDA_KEYLESS_LIMIT;
   return createPoliteFetch({
     userAgent: options.userAgent,
-    limiter: new RateLimiter({ limit: tier.limit, windowMs: tier.windowMs }),
+    limiter: options.limiter ?? ldaRateLimiter(options.apiKey),
     // The API sheds an intermittent 5xx/429 roughly once a minute under a
     // sustained keyless walk — observed live (run 33291533828): ~90 blips
     // recovered on attempt 1 over 1,600 pages, then one page 503ing through
@@ -85,8 +98,8 @@ export function createLdaFetch(options: LdaFetchOptions): PoliteFetch {
     // 2-hour mark. Deep walks are long-haul; back off far enough to ride
     // out a full throttle window or a multi-minute blip before declaring
     // the upstream gone (worst case ~7.7 min of waiting on a real outage).
-    maxRetries: 5,
-    retryBaseMs: 15_000,
+    maxRetries: options.retry?.maxRetries ?? 5,
+    retryBaseMs: options.retry?.retryBaseMs ?? 15_000,
     fetchImpl: options.fetchImpl,
     sleep: options.sleep,
     logger: options.logger,

@@ -49,6 +49,12 @@ selects between them.
   `"limit"`; exhausted retries against the API (rate-limit contention, outages — keyless
   contention is real: GitHub runners share egress IPs, and LDA throttles per IP) →
   `"upstream"`, with the cursor still naming the failed page so the next dispatch retries it.
+- A page that exhausts retries with a 5xx/429 is salvaged before stopping: the same 25-row
+  offset window is re-fetched as size-5 pages, then size-1 (live-proven — the canary probes
+  with `page_size=1`), with short retries on a shared rate-limit budget. Observed live:
+  `filing_year=2000&page=343` answered 503 through every backoff, twice, hours apart — a
+  window the API cannot serialize at 25 rows usually serves the same rows in smaller pages.
+  Only when even size 1 fails does the walk take the `"upstream"` stop.
 - A run that fetches ≥ 100 rows with zero successful parses throws (format-drift tripwire)
   before the cursor advances — an unparseable era stays loudly red instead of being skipped.
 - The daily posted-date watermark and the canary fingerprint are never touched on this path
