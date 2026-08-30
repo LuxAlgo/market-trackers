@@ -18,6 +18,11 @@ rate limits — see `[verify-live]` below for the exact header scheme.
 
 ## Ingestion
 
+Two walk shapes share one normalizer; `opts.until` (always set by the backfill engine)
+selects between them.
+
+**Daily top-up** (no `until`):
+
 - Walks the filing year(s) newest-first, page by page. With no watermark (or `--full`) it walks
   a filing year from page 1 to its end. With a watermark it starts from
   `lda.lastPostedDate - 7 days` — filings get amended and re-posted, so the trailing week is
@@ -27,6 +32,30 @@ rate limits — see `[verify-live]` below for the exact header scheme.
 - Watermark: `lda.lastPostedDate`, advanced only after a completed walk, and only forward.
 - `--limit`, `--since`, `--full`, and `--datasets` are honored the same way as the other
   incremental sources (USAspending, FINRA).
+
+**Backfill** (`until` set):
+
+- The API's only usable date filter is `filing_year` (no posted-date range filter is verified
+  live), so the walk unit is the whole filing year, ascending from the window's start year.
+  The backfill engine runs lda as a single `[from, to]` chunk (`SINGLE_PASS_SOURCES`) — date
+  chunks would re-walk entire years.
+- Progress is banked two ways: completed years through `completedThrough` (year-granular,
+  capped at today for the still-posting current year), and the position inside a year through
+  the `lda.backfill.cursor` watermark (`{year, page}` — the next unfetched page, persisted
+  after every page, so even a hard-killed run re-ingests at most one page). A cursor inside
+  the window takes precedence over the window's start year; a true from-scratch re-walk
+  therefore needs a fresh store, not just `--full`.
+- Stops are structured: the engine's `deadlineMs` → `stoppedEarly: "deadline"`; `--limit` →
+  `"limit"`; exhausted retries against the API (rate-limit contention, outages — keyless
+  contention is real: GitHub runners share egress IPs, and LDA throttles per IP) →
+  `"upstream"`, with the cursor still naming the failed page so the next dispatch retries it.
+- A run that fetches ≥ 100 rows with zero successful parses throws (format-drift tripwire)
+  before the cursor advances — an unparseable era stays loudly red instead of being skipped.
+- The daily posted-date watermark and the canary fingerprint are never touched on this path
+  (a decades-old row's field set must not become the drift baseline).
+- Throughput note: keyless is 15 req/min at 25 rows/page ≈ 2–3 h per ~50k-filing year; a free
+  registered key (`MARKET_TRACKERS_LDA_KEY`) raises that ~6×, which matters for the 1999→
+  present deep walk.
 
 ## Field mapping
 

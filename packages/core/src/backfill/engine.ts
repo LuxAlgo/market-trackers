@@ -38,15 +38,21 @@ export const DATE_UNBOUNDED_SOURCES: ReadonlySet<SourceId> = new Set([
 ]);
 
 /**
- * Sources whose entire free history arrives in one small whole-feed pass
- * (`federalreserve`: the Board's JSON feeds are the coverage — every sync
- * re-reads them in full). Unlike `DATE_UNBOUNDED_SOURCES` these aren't
- * skipped: `backfill --source federalreserve` should still perform that
- * full-feed pass — but chunking it would repeat the identical fetch once
- * per chunk, so the window is walked as a single `[from, to]` chunk (one
- * honest full pass, resumable like any other).
+ * Sources walked as a single `[from, to]` chunk instead of `chunkDays`
+ * slices, because date-sliced chunks would just repeat identical fetches:
+ *
+ * - `federalreserve`: the Board's JSON feeds arrive whole — every sync
+ *   re-reads them in full, so one honest full pass IS the coverage.
+ * - `lda`: the LDA API filters by `filing_year` only (no posted-date range
+ *   filter), so the source walks whole filing years; a 30-day chunk would
+ *   re-walk its entire year every chunk. The source stops itself at the
+ *   deadline, banks completed years via `completedThrough`, and resumes
+ *   mid-year through its own persisted page cursor.
+ *
+ * Unlike `DATE_UNBOUNDED_SOURCES` these aren't skipped — the single chunk
+ * is still a real, resumable walk of the requested window.
  */
-export const SINGLE_PASS_SOURCES: ReadonlySet<SourceId> = new Set(["federalreserve"]);
+export const SINGLE_PASS_SOURCES: ReadonlySet<SourceId> = new Set(["federalreserve", "lda"]);
 
 export type RunSyncFn = (ctx: SourceContext, opts: RunSyncOptions) => Promise<SyncSummary>;
 
@@ -88,8 +94,8 @@ export interface BackfillChunkOutcome {
   perDataset: Partial<Record<DatasetId, number>>;
   notes: string[];
   error: string | null;
-  /** The source stopped itself inside this chunk (deadline or limit). */
-  stoppedEarly?: "deadline" | "limit";
+  /** The source stopped itself inside this chunk (deadline, limit, or upstream retries exhausted). */
+  stoppedEarly?: "deadline" | "limit" | "upstream";
   /** With `stoppedEarly`: the last date the source fully covered, if it says. */
   completedThrough?: string | null;
 }
@@ -269,7 +275,12 @@ async function backfillOneSource(
           lastCompletedThrough = covered;
           await ctx.store.setWatermark(source, BACKFILL_WATERMARK_KEY, covered);
         }
-        base.stoppedReason = outcome.stoppedEarly === "deadline" ? "budget" : "limit";
+        base.stoppedReason =
+          outcome.stoppedEarly === "deadline"
+            ? "budget"
+            : outcome.stoppedEarly === "upstream"
+              ? "error"
+              : "limit";
         logger.info(
           `${source}: ${outcome.stoppedEarly} stop inside chunk ${chunkStart}..${chunkEnd}` +
             (covered ? ` — banked progress through ${covered}` : ""),

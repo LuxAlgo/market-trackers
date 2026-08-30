@@ -551,6 +551,35 @@ describe("runBackfill — per-source failure isolation", () => {
     expect(await ctx.store.getWatermark("edgar", BACKFILL_WATERMARK_KEY)).toBe("2024-01-03");
     await ctx.store.close();
   });
+
+  it("an upstream stop banks covered ground and reports stoppedReason error", async () => {
+    const ctx = await makeCtx();
+    // The source exhausted its retries against the API mid-walk (rate-limit
+    // contention or an outage), stopped cleanly, and reported what it had
+    // fully covered. The run is resumable, not complete — and it is not a
+    // budget or limit stop, so it surfaces as "error".
+    const { fn } = fakeRunSync(() => ({
+      rowsUpserted: 3,
+      parse: { attempted: 4, succeeded: 3 },
+      stoppedEarly: "upstream" as const,
+      completedThrough: "2024-01-09",
+    }));
+
+    const summary = await runBackfill(ctx, {
+      sources: ["edgar"],
+      from: "2024-01-01",
+      to: "2024-01-31",
+      chunkDays: 15,
+      runSyncFn: fn,
+    });
+
+    const result = summary.sources[0];
+    expect(result?.stoppedReason).toBe("error");
+    expect(result?.complete).toBe(false);
+    expect(result?.completedThrough).toBe("2024-01-09");
+    expect(await ctx.store.getWatermark("edgar", BACKFILL_WATERMARK_KEY)).toBe("2024-01-09");
+    await ctx.store.close();
+  });
 });
 
 describe("runBackfill — date-unbounded sources", () => {
@@ -620,6 +649,34 @@ describe("runBackfill — single-pass sources", () => {
     expect(await ctx.store.getWatermark("federalreserve", BACKFILL_WATERMARK_KEY)).toBe(
       "2026-08-27",
     );
+    await ctx.store.close();
+  });
+
+  it("lda is single-pass: one [from, to] chunk, because the API only filters by filing year", async () => {
+    const ctx = await makeCtx();
+    const { fn, calls } = fakeRunSync(() => ({
+      stoppedEarly: "deadline" as const,
+      completedThrough: "2003-12-31",
+    }));
+
+    const summary = await runBackfill(ctx, {
+      sources: ["lda"],
+      from: "1999-01-01",
+      to: "2026-08-29",
+      chunkDays: 30, // must be ignored: a date chunk would re-walk whole filing years
+      runSyncFn: fn,
+      budgetMinutes: 300,
+    });
+
+    expect(calls).toHaveLength(1);
+    expect(calls[0]?.since).toBe("1999-01-01");
+    expect(calls[0]?.until).toBe("2026-08-29");
+
+    // The source's year-granular banking flows through the deadline stop.
+    const result = summary.sources[0];
+    expect(result?.stoppedReason).toBe("budget");
+    expect(result?.completedThrough).toBe("2003-12-31");
+    expect(await ctx.store.getWatermark("lda", BACKFILL_WATERMARK_KEY)).toBe("2003-12-31");
     await ctx.store.close();
   });
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ldaSource, ldaFilingYears, LDA_FILINGS_URL } from "./source.js";
+import { ldaSource, ldaFilingYears, BACKFILL_CURSOR_KEY, LDA_FILINGS_URL } from "./source.js";
 import { parseLdaAmount } from "./client.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { LobbyingFiling } from "../../schema/lobbying-filing.js";
@@ -179,6 +179,224 @@ describe("ldaSource.sync", () => {
     const result = await ldaSource.sync(ctx, { datasets: ["gov-contracts"] });
     expect(result.rowsUpserted).toBe(0);
     expect(captured).toHaveLength(0);
+    await store.close();
+  });
+});
+
+/**
+ * Backfill-path tests: `opts.until` routes to the year walker. The mock
+ * serves synthetic pages keyed by `${filing_year}:${page}`; a year's last
+ * page answers `next: null`. Requests for unmapped keys return HTTP 400 —
+ * not a retry status, so the polite fetch surfaces it immediately, which
+ * both keeps tests instant and doubles as the upstream-failure fixture.
+ */
+function backfillRow(year: number, uuid: string, posted: string): Record<string, unknown> {
+  return {
+    filing_uuid: uuid,
+    filing_year: year,
+    filing_period: "year_end",
+    filing_type: "YE",
+    income: "10000.00",
+    expenses: null,
+    registrant: { name: `Registrant ${uuid}` },
+    client: { name: `Client ${uuid}` },
+    lobbying_activities: [],
+    filing_document_url: `https://example.test/${uuid}.pdf`,
+    dt_posted: `${posted}T12:00:00-04:00`,
+  };
+}
+
+function backfillPage(rows: Record<string, unknown>[], last: boolean): string {
+  return JSON.stringify({
+    count: rows.length,
+    next: last ? null : "https://lda.senate.gov/api/v1/filings/?page=next",
+    previous: null,
+    results: rows,
+  });
+}
+
+function mockBackfillFetch(
+  pages: Record<string, string>,
+  captured: string[],
+  onFetch?: () => void,
+): typeof fetch {
+  return (async (input: Parameters<typeof fetch>[0]) => {
+    const url = new URL(String(input));
+    const key = `${url.searchParams.get("filing_year")}:${url.searchParams.get("page")}`;
+    captured.push(key);
+    onFetch?.();
+    const body = pages[key];
+    if (body === undefined) return new Response("bad request", { status: 400 });
+    return new Response(body, { status: 200 });
+  }) as typeof fetch;
+}
+
+describe("ldaSource.sync (backfill)", () => {
+  it("walks the window's filing years, not the current one, and banks year-granular progress", async () => {
+    const { ctx, store } = await makeCtx();
+    const captured: string[] = [];
+    ctx.fetchImpl = mockBackfillFetch(
+      {
+        "2003:1": backfillPage(
+          [backfillRow(2003, "a-1", "2003-02-14"), backfillRow(2003, "a-2", "2003-02-15")],
+          false,
+        ),
+        "2003:2": backfillPage([backfillRow(2003, "a-3", "2003-03-01")], true),
+      },
+      captured,
+    );
+
+    const result = await ldaSource.sync(ctx, { since: "2003-01-10", until: "2003-02-08" });
+
+    // Only the chunk's year is fetched — never the clock's year (2026).
+    expect(captured).toEqual(["2003:1", "2003:2"]);
+    expect(result.rowsUpserted).toBe(3);
+    expect(result.stoppedEarly).toBeUndefined();
+    // The whole filing year is covered, reported past the chunk's end.
+    expect(result.completedThrough).toBe("2003-12-31");
+    expect(await store.getWatermark("lda", BACKFILL_CURSOR_KEY)).toBe(
+      JSON.stringify({ year: 2004, page: 1 }),
+    );
+    // The daily posted-date watermark is untouched by historical walks.
+    expect(await store.getWatermark("lda", "lda.lastPostedDate")).toBeNull();
+    await store.close();
+  });
+
+  it("walks multiple years ascending and caps the current year at today", async () => {
+    const { ctx, store } = await makeCtx(); // NOW is 2026-08-24
+    const captured: string[] = [];
+    ctx.fetchImpl = mockBackfillFetch(
+      {
+        "2025:1": backfillPage([backfillRow(2025, "b-1", "2025-04-21")], true),
+        "2026:1": backfillPage([backfillRow(2026, "b-2", "2026-04-20")], true),
+      },
+      captured,
+    );
+
+    const result = await ldaSource.sync(ctx, { since: "2025-01-01", until: "2026-08-24" });
+
+    expect(captured).toEqual(["2025:1", "2026:1"]);
+    expect(result.stoppedEarly).toBeUndefined();
+    // The current year keeps posting — coverage is claimed only through today.
+    expect(result.completedThrough).toBe("2026-08-24");
+    await store.close();
+  });
+
+  it("stops at the deadline between years, banking completed years and the cursor", async () => {
+    const { ctx, store } = await makeCtx();
+    let nowMs = Date.parse(NOW);
+    ctx.now = () => new Date(nowMs);
+    const captured: string[] = [];
+    ctx.fetchImpl = mockBackfillFetch(
+      { "1999:1": backfillPage([backfillRow(1999, "c-1", "1999-08-02")], true) },
+      captured,
+      () => {
+        nowMs += 10 * 60_000; // each fetch burns ten minutes
+      },
+    );
+
+    const result = await ldaSource.sync(ctx, {
+      since: "1999-01-01",
+      until: "2001-12-31",
+      deadlineMs: Date.parse(NOW) + 60_000,
+    });
+
+    expect(captured).toEqual(["1999:1"]);
+    expect(result.stoppedEarly).toBe("deadline");
+    expect(result.completedThrough).toBe("1999-12-31");
+    expect(result.notes.join(" ")).toContain("filing year 2000");
+    expect(await store.getWatermark("lda", BACKFILL_CURSOR_KEY)).toBe(
+      JSON.stringify({ year: 2000, page: 1 }),
+    );
+    await store.close();
+  });
+
+  it("stops on exhausted upstream retries with the cursor still naming the failed page", async () => {
+    const { ctx, store } = await makeCtx();
+    const captured: string[] = [];
+    // 1999 walks clean; 2000 page 1 is unmapped and answers 400.
+    ctx.fetchImpl = mockBackfillFetch(
+      { "1999:1": backfillPage([backfillRow(1999, "d-1", "1999-08-02")], true) },
+      captured,
+    );
+
+    const result = await ldaSource.sync(ctx, { since: "1999-01-01", until: "2000-12-31" });
+
+    expect(captured).toEqual(["1999:1", "2000:1"]);
+    expect(result.stoppedEarly).toBe("upstream");
+    expect(result.completedThrough).toBe("1999-12-31");
+    expect(result.notes.join(" ")).toContain("400");
+    expect(await store.getWatermark("lda", BACKFILL_CURSOR_KEY)).toBe(
+      JSON.stringify({ year: 2000, page: 1 }),
+    );
+    await store.close();
+  });
+
+  it("resumes mid-year from the persisted cursor, skipping covered years and pages", async () => {
+    const { ctx, store } = await makeCtx();
+    await store.setWatermark("lda", BACKFILL_CURSOR_KEY, JSON.stringify({ year: 2000, page: 2 }));
+    const captured: string[] = [];
+    ctx.fetchImpl = mockBackfillFetch(
+      { "2000:2": backfillPage([backfillRow(2000, "e-1", "2000-08-02")], true) },
+      captured,
+    );
+
+    const result = await ldaSource.sync(ctx, { since: "1999-01-01", until: "2000-12-31" });
+
+    expect(captured).toEqual(["2000:2"]);
+    expect(result.notes.join(" ")).toContain("resumed filing year 2000 at page 2");
+    // Years behind the cursor count as covered ground.
+    expect(result.completedThrough).toBe("2000-12-31");
+    await store.close();
+  });
+
+  it("honors --limit with a structured stop and a resumable cursor", async () => {
+    const { ctx, store } = await makeCtx();
+    const captured: string[] = [];
+    ctx.fetchImpl = mockBackfillFetch(
+      {
+        "2003:1": backfillPage(
+          [backfillRow(2003, "f-1", "2003-02-14"), backfillRow(2003, "f-2", "2003-02-15")],
+          false,
+        ),
+        "2003:2": backfillPage(
+          [backfillRow(2003, "f-3", "2003-03-01"), backfillRow(2003, "f-4", "2003-03-02")],
+          false,
+        ),
+        "2003:3": backfillPage([backfillRow(2003, "f-5", "2003-03-03")], true),
+      },
+      captured,
+    );
+
+    const result = await ldaSource.sync(ctx, {
+      since: "2003-01-01",
+      until: "2003-12-31",
+      limit: 3,
+    });
+
+    expect(captured).toEqual(["2003:1", "2003:2"]);
+    expect(result.stoppedEarly).toBe("limit");
+    // No year completed, so no date is claimed; the cursor carries the resume.
+    expect(result.completedThrough).toBeNull();
+    expect(await store.getWatermark("lda", BACKFILL_CURSOR_KEY)).toBe(
+      JSON.stringify({ year: 2003, page: 3 }),
+    );
+    await store.close();
+  });
+
+  it("trips the format-drift tripwire on an all-failing era instead of skipping it", async () => {
+    const { ctx, store } = await makeCtx();
+    const rows = Array.from({ length: 120 }, (_, i) => ({
+      ...backfillRow(2003, `g-${i}`, "2003-02-14"),
+      registrant: { name: "" }, // fails the schema's non-empty requirement
+    }));
+    ctx.fetchImpl = mockBackfillFetch({ "2003:1": backfillPage(rows, true) }, []);
+
+    await expect(
+      ldaSource.sync(ctx, { since: "2003-01-01", until: "2003-12-31" }),
+    ).rejects.toThrow(/format-drift tripwire/);
+    // Thrown before the cursor advanced — the ground is re-walked, loudly.
+    expect(await store.getWatermark("lda", BACKFILL_CURSOR_KEY)).toBeNull();
     await store.close();
   });
 });

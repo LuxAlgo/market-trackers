@@ -60,12 +60,14 @@ export interface SourceSyncResult {
   notes: string[];
   /**
    * Set when the sync stopped itself before covering its whole window: at
-   * `SyncOptions.deadlineMs` ("deadline") or at `SyncOptions.limit`
-   * ("limit"). Callers that treat a sync as ground covered — the backfill
-   * engine advancing `backfill.completedThrough` — must check this instead
-   * of assuming a clean return means the window is done.
+   * `SyncOptions.deadlineMs` ("deadline"), at `SyncOptions.limit`
+   * ("limit"), or after exhausting retries against the upstream API
+   * ("upstream" — rate-limit contention or an outage; resumable, not a
+   * parse failure). Callers that treat a sync as ground covered — the
+   * backfill engine advancing `backfill.completedThrough` — must check this
+   * instead of assuming a clean return means the window is done.
    */
-  stoppedEarly?: "deadline" | "limit";
+  stoppedEarly?: "deadline" | "limit" | "upstream";
   /**
    * With `stoppedEarly`, for date-walking sources: the last date
    * (YYYY-MM-DD) fully covered before stopping — the caller's safe resume
