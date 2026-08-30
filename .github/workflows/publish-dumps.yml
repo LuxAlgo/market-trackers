@@ -231,7 +231,21 @@ jobs:
             git config user.email "market-trackers-publish@users.noreply.github.com"
             git add README.md
             git commit -m "docs: refresh health board [skip ci]"
-            git push
+            # main routinely moves during the multi-minute publish (code
+            # pushes, other runs' board commits), and a bare push then loses
+            # the race — three cosmetic reds on green publishes in two days.
+            # Rebase our one commit onto the moved head and retry; on a
+            # conflicting board hunk, ours is the newer board, so it wins.
+            for attempt in 1 2 3; do
+              if git push; then
+                break
+              fi
+              if [ "$attempt" = 3 ]; then
+                echo "health-board push lost the race three times; giving up" >&2
+                exit 1
+              fi
+              git pull --rebase -X theirs origin main
+            done
           fi
 
       # Saved last (and even on failure) so canary runs and fingerprint
