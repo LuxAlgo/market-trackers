@@ -54,7 +54,7 @@
     "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.0",
     "@types/pg": "^8.15.0",
-    "typescript": "^5.7.0",
+    "typescript": "^6.0.3",
     "vitest": "^3.2.0"
   },
   "engines": {
