@@ -29,6 +29,7 @@ describe("selectSources", () => {
       "clinicaltrials",
       "congress-legislators",
       "edgar",
+      "edgar-bulk",
       "fec",
       "federalreserve",
       "finra",
@@ -48,8 +49,8 @@ describe("selectSources", () => {
     expect(selectSources(["house-clerk"]).map((s) => s.id)).toEqual(["house-clerk"]);
   });
 
-  it("registry covers all sixteen sources and rejects unknowns", () => {
-    expect(ALL_SOURCES).toHaveLength(16);
+  it("registry covers all seventeen sources and rejects unknowns", () => {
+    expect(ALL_SOURCES).toHaveLength(17);
     expect(() => sourceById("not-a-source")).toThrow(/Unknown source/);
   });
 });

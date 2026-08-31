@@ -507,7 +507,7 @@ describe("market-trackers-mcp tool surface", () => {
       sources: { source: string }[];
     }>("tracker_freshness");
     expect(payload.datasets).toHaveLength(18);
-    expect(payload.sources).toHaveLength(16);
+    expect(payload.sources).toHaveLength(17);
     const congress = payload.datasets.find((d) => d.dataset === "congress-trades");
     expect(congress?.rowCount).toBe(1);
     const contracts = payload.datasets.find((d) => d.dataset === "gov-contracts");

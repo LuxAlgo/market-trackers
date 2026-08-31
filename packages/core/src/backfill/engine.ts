@@ -48,11 +48,19 @@ export const DATE_UNBOUNDED_SOURCES: ReadonlySet<SourceId> = new Set([
  *   re-walk its entire year every chunk. The source stops itself at the
  *   deadline, banks completed years via `completedThrough`, and resumes
  *   mid-year through its own persisted page cursor.
+ * - `edgar-bulk`: the SEC's insider-transactions data sets ship as one ZIP
+ *   per calendar quarter, so the quarter is the walk unit; the source banks
+ *   completed quarters via `completedThrough` and stops itself at the
+ *   deadline between quarters.
  *
  * Unlike `DATE_UNBOUNDED_SOURCES` these aren't skipped — the single chunk
  * is still a real, resumable walk of the requested window.
  */
-export const SINGLE_PASS_SOURCES: ReadonlySet<SourceId> = new Set(["federalreserve", "lda"]);
+export const SINGLE_PASS_SOURCES: ReadonlySet<SourceId> = new Set([
+  "federalreserve",
+  "lda",
+  "edgar-bulk",
+]);
 
 export type RunSyncFn = (ctx: SourceContext, opts: RunSyncOptions) => Promise<SyncSummary>;
 

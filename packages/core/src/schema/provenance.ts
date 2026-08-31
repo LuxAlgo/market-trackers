@@ -11,6 +11,7 @@ import { z } from "zod";
 
 export const SOURCE_IDS = [
   "edgar",
+  "edgar-bulk",
   "senate-efd",
   "house-clerk",
   "usaspending",

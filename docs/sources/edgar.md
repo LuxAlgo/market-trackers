@@ -101,3 +101,12 @@ primary document and flips `verified` — unverified cases are a review queue, n
 Fetch last business day's master index (entries > 0) · company↔ticker map endpoint reachable
 (hard — ticker recovery breaks silently without it) · parse success ≥ 99% on the last sync ·
 header fingerprint unchanged · insider dataset fresh within 72h (soft).
+
+## Division of labor with `edgar-bulk`
+
+The deep insider history (2006 Q1 → the newest published quarter) is ingested by the
+`edgar-bulk` source from the SEC's official quarterly insider-transactions data sets —
+sharing this walk's row identity, so the two paths dedupe through the natural-key upsert.
+This daily-index walk owns 2004–2005 (before the data sets begin) and the live edge the
+quarterly files haven't reached yet; its deep backfill is therefore dispatched with
+`--to 2005-12-31`. See docs/sources/edgar-bulk.md.

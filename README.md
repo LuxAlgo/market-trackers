@@ -71,7 +71,7 @@ watermarks) and re-running never duplicates a row (natural-key upserts). SQLite 
 | Dataset                             | Primary source                                 | What you get                                                                       | Status in this build    |
 | ----------------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------- |
 | **Congress trades**                 | Senate eFD + House Clerk financial disclosures | Every reported transaction, amounts as disclosed ranges, member identities         | ✅ ingesting            |
-| **Insider transactions**            | SEC EDGAR Forms 3/4/5 (primary XML)            | Every insider transaction and holding row, raw SEC codes + legend                  | ✅ ingesting            |
+| **Insider transactions**            | SEC EDGAR Forms 3/4/5 (XML + quarterly sets)   | Every insider transaction and holding row, raw SEC codes + legend                  | ✅ ingesting            |
 | **13F holdings**                    | SEC EDGAR 13F-HR information tables            | Quarterly institutional holdings, CUSIP-keyed, values normalized to dollars        | ✅ ingesting            |
 | **Government contracts**            | USAspending API                                | Federal contract awards with best-effort recipient→ticker mapping                  | ✅ ingesting            |
 | **Government grants**               | USAspending API                                | Federal grant awards, through the same conservative recipient→ticker mapping       | ✅ ingesting            |

@@ -1,6 +1,7 @@
 import type { SourceId } from "../schema/provenance.js";
 import type { TrackerSource } from "./types.js";
 import { edgarSource } from "./edgar/source.js";
+import { edgarBulkSource } from "./edgar-bulk/source.js";
 import { senateEfdSource } from "./senate-efd/source.js";
 import { houseClerkSource } from "./house-clerk/source.js";
 import { usaspendingSource } from "./usaspending/source.js";
@@ -25,6 +26,7 @@ import { federalreserveSource } from "./federalreserve/source.js";
  */
 export const ALL_SOURCES: TrackerSource[] = [
   edgarSource,
+  edgarBulkSource,
   senateEfdSource,
   houseClerkSource,
   usaspendingSource,
