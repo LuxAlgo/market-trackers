@@ -396,9 +396,9 @@ describe("ldaSource.sync (backfill)", () => {
     }));
     ctx.fetchImpl = mockBackfillFetch({ "2003:1:25": backfillPage(rows, true) }, []);
 
-    await expect(
-      ldaSource.sync(ctx, { since: "2003-01-01", until: "2003-12-31" }),
-    ).rejects.toThrow(/format-drift tripwire/);
+    await expect(ldaSource.sync(ctx, { since: "2003-01-01", until: "2003-12-31" })).rejects.toThrow(
+      /format-drift tripwire/,
+    );
     // Thrown before the cursor advanced — the ground is re-walked, loudly.
     expect(await store.getWatermark("lda", BACKFILL_CURSOR_KEY)).toBeNull();
     await store.close();

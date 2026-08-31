@@ -146,7 +146,8 @@ describe("openfdaSource.sync", () => {
       store,
       config: resolveConfig({ logLevel: "silent" }, { cwd: "/nonexistent", env: {} }),
       logger: silentLogger,
-      fetchImpl: (async () => new Response('{"error":{"code":"NOT_FOUND"}}', { status: 404 })) as typeof fetch,
+      fetchImpl: (async () =>
+        new Response('{"error":{"code":"NOT_FOUND"}}', { status: 404 })) as typeof fetch,
       now: () => new Date(NOW),
     };
 

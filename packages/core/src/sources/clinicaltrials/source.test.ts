@@ -454,7 +454,10 @@ describe("studyRowFingerprint", () => {
   it("is stable across studies that differ only in optional modules, but catches a required-path rename", () => {
     const required = {
       identificationModule: { nctId: "NCT00000001", briefTitle: "T" },
-      statusModule: { overallStatus: "RECRUITING", lastUpdatePostDateStruct: { date: "2026-08-01" } },
+      statusModule: {
+        overallStatus: "RECRUITING",
+        lastUpdatePostDateStruct: { date: "2026-08-01" },
+      },
       sponsorCollaboratorsModule: { leadSponsor: { name: "Example Bio" } },
     };
     const minimal = { protocolSection: { ...required } };

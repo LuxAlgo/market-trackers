@@ -341,8 +341,7 @@ async function backfillSync(
       if (filings.length > 0) {
         const { rows } = await ctx.store.upsert(DATASETS["lobbying-filings"], filings);
         result.rowsUpserted += rows;
-        result.perDataset["lobbying-filings"] =
-          (result.perDataset["lobbying-filings"] ?? 0) + rows;
+        result.perDataset["lobbying-filings"] = (result.perDataset["lobbying-filings"] ?? 0) + rows;
       }
       logger.info(`backfill ${year} page ${page}: ${filings.length} filings`);
 
@@ -370,11 +369,7 @@ async function backfillSync(
   // The current filing year keeps posting; never claim days that haven't
   // happened. The daily top-up owns the present from here.
   result.completedThrough =
-    lastCompleteYearEnd === null
-      ? null
-      : lastCompleteYearEnd < today
-        ? lastCompleteYearEnd
-        : today;
+    lastCompleteYearEnd === null ? null : lastCompleteYearEnd < today ? lastCompleteYearEnd : today;
   return result;
 }
 
