@@ -182,7 +182,6 @@ async function makeCtx(
 }
 
 const Q1_2006 = quarterZipUrl({ year: 2006, quarter: 1 });
-const Q2_2006 = quarterZipUrl({ year: 2006, quarter: 2 });
 
 describe("edgarBulkSource.sync (backfill)", () => {
   it("ingests a quarter with ownership-XML row identity: transactions then holdings, SK order", async () => {
@@ -203,14 +202,38 @@ describe("edgarBulkSource.sync (backfill)", () => {
           // Deliberately out of SK order in the file: document order is the
           // SK, so ids must come out sorted (12 after 7).
           ndTrans: [
-            ["0001-06-000001", 12, "Common Stock", "05-JAN-2006", "S", "D", "2,000", "75.10", "8000", "I"],
-            ["0001-06-000001", 7, "Common Stock", "04-JAN-2006", "P", "A", "1000", "74.25", "10000", "D"],
+            [
+              "0001-06-000001",
+              12,
+              "Common Stock",
+              "05-JAN-2006",
+              "S",
+              "D",
+              "2,000",
+              "75.10",
+              "8000",
+              "I",
+            ],
+            [
+              "0001-06-000001",
+              7,
+              "Common Stock",
+              "04-JAN-2006",
+              "P",
+              "A",
+              "1000",
+              "74.25",
+              "10000",
+              "D",
+            ],
           ],
           ndHold: [
             ["0001-06-000001", 20, "Common Stock", "10000", "D"],
             ["0002-06-000002", 5, "Common Stock", "500", "D"],
           ],
-          dTrans: [["0001-06-000001", 3, "Stock Option", "05-JAN-2006", "M", "A", "300", null, "300", "D"]],
+          dTrans: [
+            ["0001-06-000001", 3, "Stock Option", "05-JAN-2006", "M", "A", "300", null, "300", "D"],
+          ],
         }),
       },
       captured,
@@ -439,9 +462,7 @@ describe("quarter math and set-date parsing", () => {
     expect(quarterLabel({ year: 2006, quarter: 4 })).toBe("2006q4");
     expect(parseQuarterLabel("2006q4")).toEqual({ year: 2006, quarter: 4 });
     expect(parseQuarterLabel("nope")).toBeNull();
-    expect(
-      compareQuarters({ year: 2006, quarter: 4 }, { year: 2007, quarter: 1 }),
-    ).toBeLessThan(0);
+    expect(compareQuarters({ year: 2006, quarter: 4 }, { year: 2007, quarter: 1 })).toBeLessThan(0);
   });
 
   it("expects the newest quarter to lag its end by the publication window", () => {

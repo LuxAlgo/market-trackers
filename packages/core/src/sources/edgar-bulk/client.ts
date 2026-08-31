@@ -211,7 +211,8 @@ export function normalizeSetDate(raw: string | null): string | null {
   }
   const iso = value.slice(0, 10);
   if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
-  if (/^\d{8}$/.test(value)) return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
+  if (/^\d{8}$/.test(value))
+    return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
   return null;
 }
 

@@ -129,7 +129,8 @@ function readSubmissions(entry: ZipEntry): Map<string, BulkSubmission> {
   const pick = columnPicker(table, "SUBMISSION.tsv");
   const accession = pick("ACCESSION_NUMBER");
   const filingDate = pick("FILING_DATE");
-  const formType = pick("DOCUMENT_TYPE", false) >= 0 ? pick("DOCUMENT_TYPE", false) : pick("FORM_TYPE");
+  const formType =
+    pick("DOCUMENT_TYPE", false) >= 0 ? pick("DOCUMENT_TYPE", false) : pick("FORM_TYPE");
   const issuerCik = pick("ISSUERCIK");
   const issuerName = pick("ISSUERNAME");
   const symbol = pick("ISSUERTRADINGSYMBOL", false);
@@ -159,10 +160,22 @@ function readOwners(entry: ZipEntry): Map<string, BulkOwner[]> {
   // Relationship shipping varies by vintage: boolean columns, or one text
   // column naming the roles. Accept either; absent both, flags stay false
   // (attribution metadata only — amounts and identity are never affected).
-  const isDirector = pick("RPTOWNER_ISDIRECTOR", false) >= 0 ? pick("RPTOWNER_ISDIRECTOR", false) : pick("ISDIRECTOR", false);
-  const isOfficer = pick("RPTOWNER_ISOFFICER", false) >= 0 ? pick("RPTOWNER_ISOFFICER", false) : pick("ISOFFICER", false);
-  const isTenPct = pick("RPTOWNER_ISTENPERCENTOWNER", false) >= 0 ? pick("RPTOWNER_ISTENPERCENTOWNER", false) : pick("ISTENPERCENTOWNER", false);
-  const title = pick("RPTOWNER_OFFICERTITLE", false) >= 0 ? pick("RPTOWNER_OFFICERTITLE", false) : pick("OFFICERTITLE", false);
+  const isDirector =
+    pick("RPTOWNER_ISDIRECTOR", false) >= 0
+      ? pick("RPTOWNER_ISDIRECTOR", false)
+      : pick("ISDIRECTOR", false);
+  const isOfficer =
+    pick("RPTOWNER_ISOFFICER", false) >= 0
+      ? pick("RPTOWNER_ISOFFICER", false)
+      : pick("ISOFFICER", false);
+  const isTenPct =
+    pick("RPTOWNER_ISTENPERCENTOWNER", false) >= 0
+      ? pick("RPTOWNER_ISTENPERCENTOWNER", false)
+      : pick("ISTENPERCENTOWNER", false);
+  const title =
+    pick("RPTOWNER_OFFICERTITLE", false) >= 0
+      ? pick("RPTOWNER_OFFICERTITLE", false)
+      : pick("OFFICERTITLE", false);
   const relationshipText = pick("RPTOWNER_RELATIONSHIP", false);
 
   const out = new Map<string, BulkOwner[]>();
