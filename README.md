@@ -238,23 +238,23 @@ misparses. This board is generated from the latest canary run:
 
 | Source                           | Status     | Last checked             |
 | -------------------------------- | ---------- | ------------------------ |
-| SEC EDGAR (Forms 3/4/5, 13F-HR)  | 🟢 healthy | 2026-09-02T13:11:59.178Z |
-| edgar-bulk                       | 🟢 healthy | 2026-09-02T13:11:59.472Z |
-| Senate eFD (PTRs)                | 🟡 stale   | 2026-09-02T13:12:01.626Z |
-| House Clerk (PTRs)               | 🟢 healthy | 2026-09-02T13:12:02.043Z |
-| USAspending (contracts + grants) | 🟡 stale   | 2026-09-02T13:12:02.739Z |
-| Senate LDA                       | 🟢 healthy | 2026-09-02T13:12:03.903Z |
-| FINRA Reg SHO                    | 🟢 healthy | 2026-09-02T13:12:04.186Z |
-| Committee assignments            | 🟢 healthy | 2026-09-02T13:12:04.673Z |
-| PatentsView (patents)            | 🟢 healthy | 2026-09-02T13:12:04.862Z |
-| ClinicalTrials.gov               | 🟢 healthy | 2026-09-02T13:12:04.950Z |
-| openFDA (Drugs@FDA)              | 🟢 healthy | 2026-09-02T13:12:05.511Z |
-| CFTC COT                         | 🟡 stale   | 2026-09-02T13:12:05.848Z |
-| Wikimedia pageviews              | 🟢 healthy | 2026-09-02T13:12:05.917Z |
-| GovInfo (bill status)            | 🟢 healthy | 2026-09-02T13:12:09.943Z |
-| FEC campaign finance             | 🟢 healthy | 2026-09-02T13:12:11.455Z |
-| GovInfo CHRG (hearings)          | 🟢 healthy | 2026-09-02T13:12:11.488Z |
-| Federal Reserve (communications) | 🟢 healthy | 2026-09-02T13:12:11.637Z |
+| SEC EDGAR (Forms 3/4/5, 13F-HR)  | 🟢 healthy | 2026-09-02T15:25:44.062Z |
+| edgar-bulk                       | 🟢 healthy | 2026-09-02T15:25:44.384Z |
+| Senate eFD (PTRs)                | 🟡 stale   | 2026-09-02T15:25:46.605Z |
+| House Clerk (PTRs)               | 🟢 healthy | 2026-09-02T15:25:46.979Z |
+| USAspending (contracts + grants) | 🟡 stale   | 2026-09-02T15:25:47.686Z |
+| Senate LDA                       | 🟢 healthy | 2026-09-02T15:25:48.724Z |
+| FINRA Reg SHO                    | 🟢 healthy | 2026-09-02T15:25:49.015Z |
+| Committee assignments            | 🟢 healthy | 2026-09-02T15:25:49.511Z |
+| PatentsView (patents)            | 🟢 healthy | 2026-09-02T15:25:49.654Z |
+| ClinicalTrials.gov               | 🟢 healthy | 2026-09-02T15:25:49.709Z |
+| openFDA (Drugs@FDA)              | 🟢 healthy | 2026-09-02T15:25:50.164Z |
+| CFTC COT                         | 🟡 stale   | 2026-09-02T15:25:50.703Z |
+| Wikimedia pageviews              | 🟢 healthy | 2026-09-02T15:25:50.754Z |
+| GovInfo (bill status)            | 🟢 healthy | 2026-09-02T15:26:00.672Z |
+| FEC campaign finance             | 🟢 healthy | 2026-09-02T15:26:02.196Z |
+| GovInfo CHRG (hearings)          | 🟢 healthy | 2026-09-02T15:26:02.224Z |
+| Federal Reserve (communications) | 🟢 healthy | 2026-09-02T15:26:02.360Z |
 
 <!-- HEALTH-BOARD:END -->
 
