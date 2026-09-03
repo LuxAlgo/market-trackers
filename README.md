@@ -211,6 +211,19 @@ skipped event kept in the output with its reason. No parameter fitting, no optim
 costs modeled, and disclosed amount ranges are never used as position sizes. The point is an
 honest baseline you can reproduce, not a pitch. Details: [`docs/analytics.md`](docs/analytics.md).
 
+## On a chart
+
+The rows chart well, and the hosted trackers show how: the
+[insider tracker on LuxAlgo](https://www.luxalgo.com/markets/insider-tracker) paints every Form 4
+fill onto the ticker's price tape with [Vela](https://github.com/LuxAlgo/Vela), LuxAlgo's
+open-source charting engine (`@luxalgo/vela`, Apache-2.0), as a custom renderer layer: the same
+`tracker_insider_trades` rows this repo serves, each marker still linking to its filing. That
+happens in the visitor's browser. Nothing here draws or serves a chart, and the price bars come
+from the page's own market-data source, never from LuxAlgo Market Trackers, which ships no market
+data by design. To do the same with your own store, take the rows from the MCP tools or the dumps,
+supply bars via Vela's `data` option or a provider, and paint the markers through
+[Vela's plugin SDK](https://github.com/LuxAlgo/Vela/blob/main/docs/contributing/plugin-sdk.md).
+
 ## Python
 
 The dumps are plain JSON with Parquet siblings, so nothing about LuxAlgo Market Trackers requires
