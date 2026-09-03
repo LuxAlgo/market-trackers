@@ -66,6 +66,9 @@ limit: <remaining budget> })` call — the exact same sync path `market-trackers
 6. **One source failing never stops the others.** Sources are walked one at a time and each
    source's own chunk loop is isolated — an error on `edgar`'s third chunk still lets `finra`
    and `usaspending` run their full windows in the same invocation.
+   The workflow exposes this as the `full` input, plus `fresh`: start from an empty store
+   instead of the cached one (implies `full`), for a source fix that changes what earlier rows
+   mean rather than just where the walk stopped.
 
 ### Sources that don't support backfill
 

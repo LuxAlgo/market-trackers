@@ -267,7 +267,8 @@ describe("usaspendingSource.sync — walk semantics", () => {
       datasets: ["gov-contracts"],
       since: "2026-08-01",
     });
-    expect(captured).toHaveLength(2);
+    // Page 2 by cursor, then page 2 by number (the cursor fallback), then stop.
+    expect(captured.map((b) => b.page)).toEqual([1, 2, 2]);
     expect(result.rowsUpserted).toBe(2);
     expect(await store.count("gov-contracts")).toBe(2);
     expect(result.stoppedEarly).toBe("upstream");
@@ -277,6 +278,35 @@ describe("usaspendingSource.sync — walk semantics", () => {
     expect(result.notes.join(" ")).toMatch(/HTTP 400/);
     // An incomplete walk never advances the watermark.
     expect(await store.getWatermark("usaspending", "usaspending.lastActionDate")).toBeNull();
+    await store.close();
+  });
+
+  it("falls back to page numbers when the server rejects the search_after cursor", async () => {
+    const { ctx, store, captured } = await makeCtx();
+    const fixtureFetch = ctx.fetchImpl!;
+    ctx.fetchImpl = (async (url: Parameters<typeof fetch>[0], init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as CapturedBody;
+      const real = await fixtureFetch(url, init);
+      // The cursor request fails (400: surfaced without retries); the same
+      // page by number succeeds.
+      return body.last_record_unique_id !== undefined
+        ? new Response("cursor rejected", { status: 400 })
+        : real;
+    }) as typeof fetch;
+
+    const result = await usaspendingSource.sync(ctx, { datasets: ["gov-contracts"] });
+    expect(captured.map((b) => [b.page, b.last_record_unique_id ?? null])).toEqual([
+      [1, null],
+      [2, 110020002],
+      [2, null],
+    ]);
+    expect(result.rowsUpserted).toBe(4);
+    expect(result.stoppedEarly).toBeUndefined();
+    expect(result.notes.join(" ")).toMatch(/search_after paging rejected at page 2/);
+    expect(await store.count("gov-contracts")).toBe(4);
+    expect(await store.getWatermark("usaspending", "usaspending.lastActionDate")).toBe(
+      "2026-08-21",
+    );
     await store.close();
   });
 
@@ -305,8 +335,9 @@ describe("usaspendingSource.sync — walk semantics", () => {
     const result = await usaspendingSource.sync(ctx, { since: "2026-08-01" });
     expect(result.stoppedEarly).toBe("upstream");
     expect(result.completedThrough).toBeNull();
-    // Contracts got two requests; grants were never started.
-    expect(captured).toHaveLength(2);
+    // Contracts got its requests (page 2 by cursor, then by number); grants
+    // were never started.
+    expect(captured).toHaveLength(3);
     expect(captured.every((b) => b.filters.award_type_codes[0] === "A")).toBe(true);
     expect(await store.count("gov-grants")).toBe(0);
     await store.close();

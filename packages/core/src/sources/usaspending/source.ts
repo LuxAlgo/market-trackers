@@ -213,6 +213,12 @@ async function syncUniverse(
 
   let page = 1;
   let after: AwardSearchCursor | null = null;
+  // search_after is preferred (no result-window cap) but has answered 5xx
+  // live for some sort fields; a cursor request that fails is retried once
+  // by page number and the walk stays on page numbers from then on. Past
+  // the result window that path stops with the day it reached, and the
+  // backfill engine resumes from there.
+  let cursorsAccepted = true;
   let maxSignedDate: string | null = null;
   let fingerprinted = false;
   let complete = false;
@@ -239,6 +245,7 @@ async function syncUniverse(
       ? Math.max(1, Math.min(AWARD_SEARCH_PAGE_LIMIT, budget - out.processed))
       : AWARD_SEARCH_PAGE_LIMIT;
 
+    const withCursor = cursorsAccepted ? after : null;
     let response;
     try {
       response = await fetchAwardSearchPage(politeFetch, {
@@ -247,7 +254,7 @@ async function syncUniverse(
         page,
         limit: remaining,
         awardTypeCodes: universe.awardTypeCodes,
-        after,
+        after: withCursor,
       });
     } catch (error) {
       // A response that no longer matches the contract is drift — fail
@@ -255,7 +262,15 @@ async function syncUniverse(
       // that outlived the polite fetch's retries) is the upstream API
       // giving out: keep the partial progress, report where it stopped.
       if (error instanceof ZodError) throw error;
-      stopEarly("upstream", error instanceof Error ? error.message : String(error));
+      const message = error instanceof Error ? error.message : String(error);
+      if (withCursor !== null) {
+        cursorsAccepted = false;
+        const note = `search_after paging rejected at page ${page} (${message}); continuing by page number`;
+        out.notes.push(`${universe.datasetId}: ${note}`);
+        logger.warn(`${universe.datasetId}: ${note}`);
+        continue;
+      }
+      stopEarly("upstream", message);
       break;
     }
 

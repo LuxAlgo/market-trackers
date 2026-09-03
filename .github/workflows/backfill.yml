@@ -46,6 +46,11 @@ on:
         required: false
         type: boolean
         default: false
+      fresh:
+        description: "Start from an empty store instead of the cached one (when a source fix changes what earlier rows mean); implies full"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -86,6 +91,7 @@ jobs:
       # re-walking from --from. Restore/save are split so the store is saved
       # even when the run ends red (stopped early = exit 1 by design).
       - name: Restore backfill store
+        if: ${{ !inputs.fresh }}
         uses: actions/cache/restore@v4
         with:
           path: backfill-${{ inputs.source }}.db
@@ -106,7 +112,7 @@ jobs:
           TO_INPUT: ${{ inputs.to }}
           CHUNK_DAYS: ${{ inputs.chunk_days }}
           LIMIT_INPUT: ${{ inputs.limit }}
-          FULL_INPUT: ${{ inputs.full }}
+          FULL_INPUT: ${{ inputs.full || inputs.fresh }}
         run: |
           set +e
           # The archive tag needs the run's resolved window, not the summary

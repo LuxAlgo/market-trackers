@@ -54,8 +54,12 @@ pinned the daily window to an empty `[today, today]`.
   `Start Date`.
 - **Paging:** every response's `page_metadata.last_record_unique_id` /
   `last_record_sort_value` is echoed on the next request, which switches the server to
-  search_after paging. Plain `page` numbers answer 422 past the result window
-  (`ES_AWARDS_MAX_RESULT_WINDOW`), and a busy month of contracts is far past it.
+  search_after paging with no result-window cap. Live, the cursor request has answered 503
+  for this sort field, so a cursor request that fails is retried once by page number and the
+  walk stays on page numbers from then on; those answer 422 past the result window
+  (`ES_AWARDS_MAX_RESULT_WINDOW`, 50k rows), which the walk reports as an early stop with
+  the day it reached, and the backfill engine resumes from that day. Keep backfill chunks
+  small enough (7 days) that a window rarely reaches the cap.
 - **Resume point:** rows arrive sorted on the signing date, so when a walk stops early (time
   budget, `--limit`, or the API giving out after the polite fetch's retries) every award signed
   strictly before the newest stored date is in the store; the sync reports `stoppedEarly` and
