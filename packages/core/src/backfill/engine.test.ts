@@ -552,7 +552,7 @@ describe("runBackfill — per-source failure isolation", () => {
     await ctx.store.close();
   });
 
-  it("an upstream stop banks covered ground, retries once from there, and reports stoppedReason error", async () => {
+  it("an upstream stop banks covered ground, retries from there, and reports stoppedReason error", async () => {
     const ctx = await makeCtx();
     // The source exhausted its retries against the API mid-walk (rate-limit
     // contention or an outage), stopped cleanly, and reported what it had
@@ -574,11 +574,14 @@ describe("runBackfill — per-source failure isolation", () => {
       chunkRetryDelayMs: 0,
     });
 
-    // One cooled-down retry from the banked day; it stopped at the same
-    // point again, so the run ends there.
-    expect(calls).toHaveLength(2);
-    expect(calls[0]?.since).toBe("2024-01-01");
-    expect(calls[1]?.since).toBe("2024-01-10");
+    // Three cooled-down retries from the banked day; each stopped at the
+    // same point again, so the run ends there.
+    expect(calls.map((c) => c.since)).toEqual([
+      "2024-01-01",
+      "2024-01-10",
+      "2024-01-10",
+      "2024-01-10",
+    ]);
     const result = summary.sources[0];
     expect(result?.stoppedReason).toBe("error");
     expect(result?.complete).toBe(false);

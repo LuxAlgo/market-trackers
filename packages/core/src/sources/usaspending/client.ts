@@ -156,10 +156,12 @@ export function createUsaspendingFetch(options: UsaspendingFetchOptions): Polite
   return createPoliteFetch({
     userAgent: options.userAgent,
     limiter: new RateLimiter({ limit: 2, windowMs: 1_000 }),
-    // The award-search endpoint sheds connections transiently under
-    // sustained load (observed live mid-backfill); give it more room than
-    // the default three attempts before a chunk is declared failed.
-    maxRetries: 5,
+    // The award-search endpoint sheds connections for minutes at a time
+    // under a sustained walk (observed live: a 5-hour shift ending on two
+    // consecutive "fetch failed" ladders of a minute each). Back off over
+    // about five minutes before declaring the upstream gone.
+    maxRetries: 6,
+    retryBaseMs: 5_000,
     fetchImpl: options.fetchImpl,
     sleep: options.sleep,
     logger: options.logger,

@@ -22,6 +22,9 @@ import { runSync, type RunSyncOptions, type SyncSummary } from "../sync/engine.j
 
 export const BACKFILL_WATERMARK_KEY = "backfill.completedThrough";
 
+/** Cooled-down attempts the engine makes at one resume point after upstream stops. */
+const MAX_UPSTREAM_RETRIES = 3;
+
 export const DEFAULT_CHUNK_DAYS = 30;
 
 /**
@@ -204,6 +207,10 @@ async function backfillOneSource(
   let lastCompletedThrough = resumeFrom;
   let chunkStart = effectiveFrom;
   let retriedChunkStart: string | null = null;
+  // Upstream stops (the API giving out mid-chunk) get a few cooled-down
+  // attempts per resume point: one blip per shift ends a run otherwise.
+  let upstreamRetryPoint: string | null = null;
+  let upstreamRetries = 0;
 
   try {
     while (chunkStart <= to) {
@@ -298,17 +305,22 @@ async function backfillOneSource(
           }
         }
         if (outcome.stoppedEarly === "upstream") {
-          // Same blip policy as a failed chunk, minus the re-walk: resume
-          // from the banked day after one cooldown. A retry that makes
-          // progress moves the resume point and earns another; the same
-          // resume point failing twice in a row still stops the run.
+          // Like a failed chunk, minus the re-walk: resume from the banked
+          // day after a cooldown, up to MAX_UPSTREAM_RETRIES times at the
+          // same resume point. A retry that makes progress moves the point
+          // and resets the count; the same point failing past the limit
+          // stops the run (an outage, not a blip).
           const resumeFrom = covered && covered >= chunkStart ? addDays(covered, 1) : chunkStart;
-          if (retriedChunkStart !== resumeFrom) {
-            retriedChunkStart = resumeFrom;
+          if (upstreamRetryPoint !== resumeFrom) {
+            upstreamRetryPoint = resumeFrom;
+            upstreamRetries = 0;
+          }
+          if (upstreamRetries < MAX_UPSTREAM_RETRIES) {
+            upstreamRetries += 1;
             logger.warn(
               `${source}: upstream stop inside chunk ${chunkStart}..${chunkEnd}` +
                 (covered ? ` (banked through ${covered})` : "") +
-                `; retrying from ${resumeFrom} after cooldown`,
+                `; retry ${upstreamRetries}/${MAX_UPSTREAM_RETRIES} from ${resumeFrom} after cooldown`,
             );
             await sleep(chunkRetryDelayMs);
             chunkStart = resumeFrom;

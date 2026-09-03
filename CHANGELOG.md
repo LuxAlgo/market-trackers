@@ -18,9 +18,10 @@
 - USAspending syncs report `stoppedEarly` / `completedThrough` on a deadline, `--limit`,
   result-window, or upstream stop, so the backfill engine resumes to the day instead of
   skipping the rest of the chunk.
-- Backfill engine: an upstream stop inside a chunk banks the covered days and retries once
-  from there after the cooldown (a retry that makes progress earns another), instead of
-  ending the run at the first blip.
+- Backfill engine: an upstream stop inside a chunk banks the covered days and retries from
+  there after a cooldown, up to three times at the same resume point (progress resets the
+  count), instead of ending the run at the first blip. USAspending fetches back off over about
+  five minutes before declaring the upstream gone.
 
 ## 0.1.0 — Initial public release
 
