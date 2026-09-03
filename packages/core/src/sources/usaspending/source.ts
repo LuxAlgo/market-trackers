@@ -15,6 +15,7 @@ import type { PoliteFetch } from "../../lib/http.js";
 import type { TrackerStore } from "../../store/store.js";
 import { resolveEntityTickersTiered } from "../../resolve/sec-names.js";
 import {
+  AMOUNT_BANDS,
   AWARD_DATE_FIELD,
   AWARD_SEARCH_PAGE_LIMIT,
   AWARD_START_FIELD,
@@ -25,8 +26,8 @@ import {
   createUsaspendingFetch,
   fetchAwardSearchPage,
   GRANT_AWARD_TYPE_CODES,
-  nextCursor,
-  type AwardSearchCursor,
+  resultWindowRows,
+  type AmountBand,
 } from "./client.js";
 
 export {
@@ -38,11 +39,12 @@ export {
 
 /**
  * USAspending — federal award search, walked ascending by signing date
- * (`new_awards_only` windows, see client.ts for why) since the watermark,
- * with search_after paging so a busy window is read in full. Rows arrive
- * sorted on that date, so a walk interrupted by the time budget or the
- * upstream API reports the last fully covered day and resumes there. One
- * endpoint, two award universes: contracts
+ * (`new_awards_only` windows, see client.ts for why) since the watermark.
+ * Rows arrive sorted on that date, so a walk interrupted by the time
+ * budget, the upstream API, or the server's result window reports the last
+ * fully covered day and resumes there; a single day past the window is
+ * re-read in slices (award type, then amount band). One endpoint, two award
+ * universes: contracts
  * (type codes A–D → `gov-contracts`, exactly as before) and grants (type
  * codes 02/03/04/05 → `gov-grants`, [verify-live] — see docs/sources/
  * usaspending.md). Both universes share the record shape, the normalizer,
@@ -156,18 +158,37 @@ interface UniverseSyncOutcome {
   /** Raw rows iterated (attempted), for the shared --limit budget across universes. */
   processed: number;
   /** Set when the walk ended before the window did; see SourceSyncResult. */
-  stoppedEarly?: "deadline" | "limit" | "upstream";
+  stoppedEarly?: "deadline" | "limit" | "upstream" | "window";
   /** With `stoppedEarly`: the last signing date fully covered, or null. */
   completedThrough?: string | null;
 }
 
+/** How one bounded query over the award search ended. */
+interface WalkOutcome {
+  /** Rows the server handed over (attempted normalizations). */
+  processed: number;
+  /** Newest signing date seen on the sort key, for resume points and the watermark. */
+  maxSignedDate: string | null;
+  /** The server said there was no next page. */
+  exhausted: boolean;
+  /** `exhausted` with at least a result window of rows: the tail may be missing. */
+  truncated: boolean;
+  /** Ended before exhausting the query, for one of these reasons. */
+  stop?: "deadline" | "limit" | "upstream";
+  note?: string;
+}
+
 /**
  * Walks one award universe (contracts or grants) from its own watermark
- * (or `opts.since`) through `opts.until` (or today), paging with
- * search_after until exhausted, until `opts.deadlineMs`, until `budget`
+ * (or `opts.since`) through `opts.until` (or today), paging by number until
+ * the server reports no next page, until `opts.deadlineMs`, until `budget`
  * (the remaining shared --limit across universes) runs out, or until the
- * upstream API stops answering. Every early stop reports the last signing
- * date fully covered: rows arrive sorted ascending on it, so once a page is
+ * upstream API stops answering. The server also caps any one query at a
+ * result window (client.ts): a multi-day window that filled it stops with
+ * the last fully covered day so the caller resumes from the next one, and a
+ * single day that filled it is re-read one award type at a time, then one
+ * amount band at a time. Every early stop reports the last signing date
+ * fully covered: rows arrive sorted ascending on it, so once a page is
  * stored every award signed strictly before that page's last date is in the
  * store.
  */
@@ -210,24 +231,17 @@ async function syncUniverse(
     rawStart > endDate ? (opts.since ? endDate : addDays(endDate, -REWALK_DAYS)) : rawStart;
 
   const nowMs = () => (ctx.now?.() ?? new Date()).getTime();
-
-  let page = 1;
-  let after: AwardSearchCursor | null = null;
-  // search_after is preferred (no result-window cap) but has answered 5xx
-  // live for some sort fields; a cursor request that fails is retried once
-  // by page number and the walk stays on page numbers from then on. Past
-  // the result window that path stops with the day it reached, and the
-  // backfill engine resumes from there.
-  let cursorsAccepted = true;
-  let maxSignedDate: string | null = null;
+  const windowRows = resultWindowRows();
   let fingerprinted = false;
-  let complete = false;
+  // Assigned from inside `walk`, so kept on an object: TypeScript narrows a
+  // plain `let` to its initializer across closure writes.
+  const progress: { maxSignedDate: string | null } = { maxSignedDate: null };
 
   // Day-granular resume point for an early stop: the day before the newest
   // signing date stored, when that still lies inside the window.
   const coveredThrough = (): string | null => {
-    if (maxSignedDate === null) return null;
-    const through = addDays(maxSignedDate, -1);
+    if (progress.maxSignedDate === null) return null;
+    const through = addDays(progress.maxSignedDate, -1);
     return through >= startDate ? through : null;
   };
   const stopEarly = (reason: NonNullable<UniverseSyncOutcome["stoppedEarly"]>, note: string) => {
@@ -236,101 +250,172 @@ async function syncUniverse(
     out.notes.push(`${universe.datasetId}: ${note}`);
   };
 
-  for (;;) {
-    if (opts.deadlineMs !== undefined && nowMs() >= opts.deadlineMs) {
-      stopEarly("deadline", `deadline reached before page ${page}; watermark not advanced`);
-      break;
-    }
-    const remaining = Number.isFinite(budget)
-      ? Math.max(1, Math.min(AWARD_SEARCH_PAGE_LIMIT, budget - out.processed))
-      : AWARD_SEARCH_PAGE_LIMIT;
-
-    const withCursor = cursorsAccepted ? after : null;
-    let response;
-    try {
-      response = await fetchAwardSearchPage(politeFetch, {
-        startDate,
-        endDate,
-        page,
-        limit: remaining,
-        awardTypeCodes: universe.awardTypeCodes,
-        after: withCursor,
-      });
-    } catch (error) {
-      // A response that no longer matches the contract is drift — fail
-      // loudly. Anything else (an HTTP status or a dropped connection
-      // that outlived the polite fetch's retries) is the upstream API
-      // giving out: keep the partial progress, report where it stopped.
-      if (error instanceof ZodError) throw error;
-      const message = error instanceof Error ? error.message : String(error);
-      if (withCursor !== null) {
-        cursorsAccepted = false;
-        const note = `search_after paging rejected at page ${page} (${message}); continuing by page number`;
-        out.notes.push(`${universe.datasetId}: ${note}`);
-        logger.warn(`${universe.datasetId}: ${note}`);
-        continue;
+  /** One bounded query, paged by number until the server says there is no next page. */
+  const walk = async (
+    awardTypeCodes: readonly string[],
+    amount: AmountBand | undefined,
+    from: string,
+    to: string,
+  ): Promise<WalkOutcome> => {
+    const outcome: WalkOutcome = {
+      processed: 0,
+      maxSignedDate: null,
+      exhausted: false,
+      truncated: false,
+    };
+    const label =
+      `${universe.datasetId}` +
+      (awardTypeCodes.length === 1 ? ` type ${awardTypeCodes[0]}` : "") +
+      (amount ? ` amount ${amount.lower ?? 0}..${amount.upper ?? "∞"}` : "");
+    let page = 1;
+    for (;;) {
+      if (opts.deadlineMs !== undefined && nowMs() >= opts.deadlineMs) {
+        outcome.stop = "deadline";
+        outcome.note = `deadline reached before page ${page}; watermark not advanced`;
+        return outcome;
       }
-      stopEarly("upstream", message);
-      break;
-    }
+      const remaining = Number.isFinite(budget)
+        ? Math.max(1, Math.min(AWARD_SEARCH_PAGE_LIMIT, budget - out.processed))
+        : AWARD_SEARCH_PAGE_LIMIT;
 
-    if (!fingerprinted && response.results[0]) {
-      await ctx.store.setFingerprint(
-        "usaspending",
-        universe.fingerprintKey,
-        awardRowFingerprint(response.results[0]),
-      );
-      fingerprinted = true;
-    }
-
-    const awards: GovContractAward[] = [];
-    for (const raw of response.results) {
-      out.processed += 1;
-      out.parse.attempted += 1;
+      let response;
       try {
-        const award = await normalizeAwardRow(raw, retrievedAt, ctx.store);
-        awards.push(award);
-        out.parse.succeeded += 1;
-      } catch (error) {
-        logger.warn(`${universe.datasetId} row failed to normalize`, {
-          error: error instanceof Error ? error.message : String(error),
+        response = await fetchAwardSearchPage(politeFetch, {
+          startDate: from,
+          endDate: to,
+          page,
+          limit: remaining,
+          awardTypeCodes,
+          amount,
         });
+      } catch (error) {
+        // A response that no longer matches the contract is drift — fail
+        // loudly. Anything else (an HTTP status or a dropped connection
+        // that outlived the polite fetch's retries) is the upstream API
+        // giving out: keep the partial progress, report where it stopped.
+        if (error instanceof ZodError) throw error;
+        outcome.stop = "upstream";
+        outcome.note = error instanceof Error ? error.message : String(error);
+        return outcome;
       }
-      // Progress is measured on the sort key itself, never on a fallback
-      // date, so the resume point stays honest for rows missing it.
-      const signed = raw[AWARD_DATE_FIELD];
-      if (typeof signed === "string" && ISO_DATE.test(signed)) {
-        if (maxSignedDate === null || signed > maxSignedDate) maxSignedDate = signed;
-      }
-    }
 
-    if (awards.length > 0) {
-      const { rows } = await ctx.store.upsert(DATASETS[universe.datasetId], awards);
-      out.rowsUpserted += rows;
-      out.perDataset[universe.datasetId] = (out.perDataset[universe.datasetId] ?? 0) + rows;
+      if (!fingerprinted && response.results[0]) {
+        await ctx.store.setFingerprint(
+          "usaspending",
+          universe.fingerprintKey,
+          awardRowFingerprint(response.results[0]),
+        );
+        fingerprinted = true;
+      }
+
+      const awards: GovContractAward[] = [];
+      for (const raw of response.results) {
+        out.processed += 1;
+        outcome.processed += 1;
+        out.parse.attempted += 1;
+        try {
+          const award = await normalizeAwardRow(raw, retrievedAt, ctx.store);
+          awards.push(award);
+          out.parse.succeeded += 1;
+        } catch (error) {
+          logger.warn(`${universe.datasetId} row failed to normalize`, {
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+        // Progress is measured on the sort key itself, never on a fallback
+        // date, so the resume point stays honest for rows missing it.
+        const signed = raw[AWARD_DATE_FIELD];
+        if (typeof signed === "string" && ISO_DATE.test(signed)) {
+          if (outcome.maxSignedDate === null || signed > outcome.maxSignedDate) {
+            outcome.maxSignedDate = signed;
+          }
+          if (progress.maxSignedDate === null || signed > progress.maxSignedDate) {
+            progress.maxSignedDate = signed;
+          }
+        }
+      }
+
+      if (awards.length > 0) {
+        const { rows } = await ctx.store.upsert(DATASETS[universe.datasetId], awards);
+        out.rowsUpserted += rows;
+        out.perDataset[universe.datasetId] = (out.perDataset[universe.datasetId] ?? 0) + rows;
+      }
+      logger.info(`${label} page ${page}: ${awards.length} rows (${from}..${to})`);
+
+      if (!response.page_metadata.hasNext) {
+        outcome.exhausted = true;
+        outcome.truncated = outcome.processed >= windowRows;
+        return outcome;
+      }
+      if (out.processed >= budget) {
+        outcome.stop = "limit";
+        outcome.note = `stopped at --limit ${opts.limit}; watermark not advanced`;
+        return outcome;
+      }
+      page += 1;
     }
-    logger.info(
-      `${universe.datasetId} page ${page}: ${awards.length} rows (${startDate}..${endDate})`,
+  };
+
+  let complete = false;
+  const primary = await walk(universe.awardTypeCodes, undefined, startDate, endDate);
+  if (primary.stop) {
+    stopEarly(primary.stop, primary.note ?? primary.stop);
+  } else if (!primary.truncated) {
+    complete = true;
+  } else if (startDate !== endDate) {
+    // The window filled the server's result window: everything signed
+    // before the newest date seen is stored, the rest of that day and the
+    // days after it are not. Hand the caller the day to resume from.
+    stopEarly(
+      "window",
+      `result window (${windowRows} rows) reached at ${primary.maxSignedDate}; ` +
+        `covered through ${coveredThrough() ?? "nothing"}; watermark not advanced`,
     );
-
-    if (!response.page_metadata.hasNext) {
+  } else {
+    // One day alone overflows the window: re-read it one award type at a
+    // time, and any type that still overflows one amount band at a time.
+    // Upserts dedupe, so rows already stored by the overflowing read cost
+    // nothing but the page fetch.
+    let truncatedSlices = 0;
+    let stopped = false;
+    for (const code of universe.awardTypeCodes) {
+      const byType = await walk([code], undefined, startDate, endDate);
+      if (byType.stop) {
+        stopEarly(byType.stop, byType.note ?? byType.stop);
+        stopped = true;
+        break;
+      }
+      if (!byType.truncated) continue;
+      for (const band of AMOUNT_BANDS) {
+        const byBand = await walk([code], band, startDate, endDate);
+        if (byBand.stop) {
+          stopEarly(byBand.stop, byBand.note ?? byBand.stop);
+          stopped = true;
+          break;
+        }
+        if (byBand.truncated) truncatedSlices += 1;
+      }
+      if (stopped) break;
+    }
+    if (!stopped) {
       complete = true;
-      break;
+      out.notes.push(
+        `${universe.datasetId}: ${startDate} overflowed the result window; re-read by award type` +
+          (truncatedSlices > 0
+            ? `, and ${truncatedSlices} type/amount slice(s) still overflowed it (rows beyond ${windowRows} per slice are missing)`
+            : " and amount band in full"),
+      );
     }
-    if (out.processed >= budget) {
-      stopEarly("limit", `stopped at --limit ${opts.limit}; watermark not advanced`);
-      break;
-    }
-    after = nextCursor(response);
-    page += 1;
   }
+  // A stop inside a single-day re-read covers nothing of that day.
+  if (out.stoppedEarly && startDate === endDate) out.completedThrough = null;
 
   // Only a completed walk may advance the watermark, only forward, and never
   // past the window's end: a bounded (--until) historical backfill run must
   // never regress or overshoot the live incremental watermark. A stored
   // future watermark is the one value this may overwrite backwards.
-  if (complete && maxSignedDate !== null) {
-    const advanceTo = maxSignedDate > endDate ? endDate : maxSignedDate;
+  if (complete && progress.maxSignedDate !== null) {
+    const advanceTo = progress.maxSignedDate > endDate ? endDate : progress.maxSignedDate;
     const existing = await ctx.store.getWatermark("usaspending", universe.watermarkKey);
     if (existing === null || advanceTo > existing || existing > today) {
       await ctx.store.setWatermark("usaspending", universe.watermarkKey, advanceTo);

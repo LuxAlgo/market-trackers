@@ -66,8 +66,12 @@ export interface SourceSyncResult {
    * parse failure). Callers that treat a sync as ground covered — the
    * backfill engine advancing `backfill.completedThrough` — must check this
    * instead of assuming a clean return means the window is done.
+   * `window`: the upstream API capped the query's result set before the
+   * window was exhausted (a server-side result window); the source read
+   * everything before `completedThrough` and the caller should resume from
+   * the next day at once — no cooldown, nothing is wrong upstream.
    */
-  stoppedEarly?: "deadline" | "limit" | "upstream";
+  stoppedEarly?: "deadline" | "limit" | "upstream" | "window";
   /**
    * With `stoppedEarly`, for date-walking sources: the last date
    * (YYYY-MM-DD) fully covered before stopping — the caller's safe resume

@@ -25,6 +25,7 @@ interface CapturedBody {
   filters: {
     time_period: { start_date: string; end_date: string; date_type?: string }[];
     award_type_codes: string[];
+    award_amounts?: { lower_bound?: number; upper_bound?: number }[];
   };
   fields: string[];
   page: number;
@@ -98,12 +99,12 @@ describe("usaspendingSource.sync — contracts", () => {
     // No watermark yet: backfillDays (3) before the pinned today, bounded on
     // the signing date so every award falls in exactly one window.
     expect(captured[0]?.filters.time_period).toEqual(window("2026-08-21", "2026-08-24"));
-    // Page 1 starts from the top; page 2 resumes after page 1's last row
-    // (search_after), never by page number alone.
-    expect(captured[0]?.last_record_unique_id).toBeUndefined();
-    expect(captured[0]?.last_record_sort_value).toBeUndefined();
-    expect(captured[1]?.last_record_unique_id).toBe(110020002);
-    expect(captured[1]?.last_record_sort_value).toBe("2026-08-19");
+    // Paging is by number only: the server's search_after cursor answers
+    // 503 for this sort field live, so it is never echoed.
+    for (const body of captured) {
+      expect(body.last_record_unique_id).toBeUndefined();
+      expect(body.last_record_sort_value).toBeUndefined();
+    }
 
     // Stored rows match the hand-verified expected output exactly.
     const rows: GovContractAward[] = [];
@@ -267,8 +268,7 @@ describe("usaspendingSource.sync — walk semantics", () => {
       datasets: ["gov-contracts"],
       since: "2026-08-01",
     });
-    // Page 2 by cursor, then page 2 by number (the cursor fallback), then stop.
-    expect(captured.map((b) => b.page)).toEqual([1, 2, 2]);
+    expect(captured.map((b) => b.page)).toEqual([1, 2]);
     expect(result.rowsUpserted).toBe(2);
     expect(await store.count("gov-contracts")).toBe(2);
     expect(result.stoppedEarly).toBe("upstream");
@@ -278,35 +278,6 @@ describe("usaspendingSource.sync — walk semantics", () => {
     expect(result.notes.join(" ")).toMatch(/HTTP 400/);
     // An incomplete walk never advances the watermark.
     expect(await store.getWatermark("usaspending", "usaspending.lastActionDate")).toBeNull();
-    await store.close();
-  });
-
-  it("falls back to page numbers when the server rejects the search_after cursor", async () => {
-    const { ctx, store, captured } = await makeCtx();
-    const fixtureFetch = ctx.fetchImpl!;
-    ctx.fetchImpl = (async (url: Parameters<typeof fetch>[0], init?: RequestInit) => {
-      const body = JSON.parse(String(init?.body)) as CapturedBody;
-      const real = await fixtureFetch(url, init);
-      // The cursor request fails (400: surfaced without retries); the same
-      // page by number succeeds.
-      return body.last_record_unique_id !== undefined
-        ? new Response("cursor rejected", { status: 400 })
-        : real;
-    }) as typeof fetch;
-
-    const result = await usaspendingSource.sync(ctx, { datasets: ["gov-contracts"] });
-    expect(captured.map((b) => [b.page, b.last_record_unique_id ?? null])).toEqual([
-      [1, null],
-      [2, 110020002],
-      [2, null],
-    ]);
-    expect(result.rowsUpserted).toBe(4);
-    expect(result.stoppedEarly).toBeUndefined();
-    expect(result.notes.join(" ")).toMatch(/search_after paging rejected at page 2/);
-    expect(await store.count("gov-contracts")).toBe(4);
-    expect(await store.getWatermark("usaspending", "usaspending.lastActionDate")).toBe(
-      "2026-08-21",
-    );
     await store.close();
   });
 
@@ -335,9 +306,8 @@ describe("usaspendingSource.sync — walk semantics", () => {
     const result = await usaspendingSource.sync(ctx, { since: "2026-08-01" });
     expect(result.stoppedEarly).toBe("upstream");
     expect(result.completedThrough).toBeNull();
-    // Contracts got its requests (page 2 by cursor, then by number); grants
-    // were never started.
-    expect(captured).toHaveLength(3);
+    // Contracts got two requests; grants were never started.
+    expect(captured).toHaveLength(2);
     expect(captured.every((b) => b.filters.award_type_codes[0] === "A")).toBe(true);
     expect(await store.count("gov-grants")).toBe(0);
     await store.close();
@@ -474,6 +444,146 @@ describe("usaspendingSource.sync — grants", () => {
     const { ctx, captured } = await makeCtx();
     await usaspendingSource.sync(ctx, { datasets: ["gov-grants"], until: "2030-01-01" });
     expect(captured[0]?.filters.time_period[0]?.end_date).toBe("2026-08-24");
+  });
+});
+
+describe("usaspendingSource.sync — the server's result window", () => {
+  const ENV = "MARKET_TRACKERS_USASPENDING_RESULT_WINDOW";
+  function rowsResponse(ids: string[], hasNext: boolean, date = "2026-08-21") {
+    return new Response(
+      JSON.stringify({
+        results: ids.map((id) => ({
+          generated_internal_id: id,
+          "Award ID": id,
+          "Recipient Name": "SLICE RECIPIENT",
+          "Recipient UEI": null,
+          "Awarding Agency": "Department of Example",
+          "Awarding Sub Agency": null,
+          "Award Amount": 1000,
+          Description: null,
+          "Contract Award Type": "DEFINITIVE CONTRACT",
+          "NAICS Code": null,
+          "NAICS Description": null,
+          "Base Obligation Date": date,
+          "Start Date": date,
+        })),
+        page_metadata: { page: 1, hasNext },
+      }),
+      { status: 200, headers: { "content-type": "application/json" } },
+    );
+  }
+
+  it("a multi-day window that fills the result window stops with the day to resume from", async () => {
+    process.env[ENV] = "4";
+    try {
+      const { ctx, store } = await makeCtx();
+      // The fixture's four rows arrive over two pages and the server then
+      // reports no next page: exactly the window size, so the tail of the
+      // newest day (and every later day) may be missing.
+      const result = await usaspendingSource.sync(ctx, {
+        datasets: ["gov-contracts"],
+        since: "2026-08-01",
+      });
+      expect(result.rowsUpserted).toBe(4);
+      expect(result.stoppedEarly).toBe("window");
+      expect(result.completedThrough).toBe("2026-08-20");
+      expect(result.notes.join(" ")).toMatch(/result window \(4 rows\) reached at 2026-08-21/);
+      expect(await store.getWatermark("usaspending", "usaspending.lastActionDate")).toBeNull();
+      await store.close();
+    } finally {
+      delete process.env[ENV];
+    }
+  });
+
+  it("a single day that fills the result window is re-read one award type at a time", async () => {
+    process.env[ENV] = "4";
+    try {
+      const { ctx, store, captured } = await makeCtx();
+      const fixtureFetch = ctx.fetchImpl!;
+      ctx.fetchImpl = (async (url: Parameters<typeof fetch>[0], init?: RequestInit) => {
+        const body = JSON.parse(String(init?.body)) as CapturedBody;
+        const codes = body.filters.award_type_codes;
+        // The whole universe overflows (fixture: 4 rows = the window); each
+        // single type fits comfortably.
+        if (codes.length === 1) {
+          captured.push(body);
+          return rowsResponse([`TYPE_${codes[0]}_0001`], false);
+        }
+        return fixtureFetch(url, init);
+      }) as typeof fetch;
+
+      const result = await usaspendingSource.sync(ctx, {
+        datasets: ["gov-contracts"],
+        since: "2026-08-21",
+        until: "2026-08-21",
+      });
+      expect(result.stoppedEarly).toBeUndefined();
+      expect(result.notes.join(" ")).toMatch(
+        /2026-08-21 overflowed the result window; re-read by award type and amount band in full/,
+      );
+      // Two whole-universe pages, then one request per type code, no amount bands.
+      expect(captured.map((b) => b.filters.award_type_codes.join(""))).toEqual([
+        "ABCD",
+        "ABCD",
+        "A",
+        "B",
+        "C",
+        "D",
+      ]);
+      expect(captured.every((b) => b.filters.award_amounts === undefined)).toBe(true);
+      expect(await store.count("gov-contracts")).toBe(8);
+      // The day completed, so the watermark advances to it.
+      expect(await store.getWatermark("usaspending", "usaspending.lastActionDate")).toBe(
+        "2026-08-21",
+      );
+      await store.close();
+    } finally {
+      delete process.env[ENV];
+    }
+  });
+
+  it("an award type that still overflows a single day is re-read by amount band", async () => {
+    process.env[ENV] = "4";
+    try {
+      const { ctx, store, captured } = await makeCtx();
+      const fixtureFetch = ctx.fetchImpl!;
+      ctx.fetchImpl = (async (url: Parameters<typeof fetch>[0], init?: RequestInit) => {
+        const body = JSON.parse(String(init?.body)) as CapturedBody;
+        const codes = body.filters.award_type_codes;
+        if (codes.length === 4) return fixtureFetch(url, init);
+        captured.push(body);
+        // Type A alone still fills the window; each of its amount bands fits.
+        if (codes[0] === "A" && !body.filters.award_amounts) {
+          return rowsResponse(["A_0001", "A_0002", "A_0003", "A_0004"], false);
+        }
+        if (codes[0] === "A") {
+          const band = body.filters.award_amounts![0]!;
+          return rowsResponse([`A_BAND_${band.lower_bound ?? 0}`], false);
+        }
+        return rowsResponse([`TYPE_${codes[0]}_0001`], false);
+      }) as typeof fetch;
+
+      const result = await usaspendingSource.sync(ctx, {
+        datasets: ["gov-contracts"],
+        since: "2026-08-21",
+        until: "2026-08-21",
+      });
+      expect(result.stoppedEarly).toBeUndefined();
+      const bandRequests = captured.filter((b) => b.filters.award_amounts);
+      expect(bandRequests.map((b) => b.filters.award_amounts![0])).toEqual([
+        { upper_bound: 25_000 },
+        { lower_bound: 25_000, upper_bound: 100_000 },
+        { lower_bound: 100_000, upper_bound: 1_000_000 },
+        { lower_bound: 1_000_000 },
+      ]);
+      expect(bandRequests.every((b) => b.filters.award_type_codes[0] === "A")).toBe(true);
+      // 4 fixture rows + 4 type-A rows + 4 band rows + one each for B, C, D.
+      expect(await store.count("gov-contracts")).toBe(15);
+      expect(result.notes.join(" ")).toMatch(/in full/);
+      await store.close();
+    } finally {
+      delete process.env[ENV];
+    }
   });
 });
 

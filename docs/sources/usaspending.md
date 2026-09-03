@@ -52,14 +52,15 @@ pinned the daily window to an empty `[today, today]`.
 - **Sort and date:** `Base Obligation Date` (the signing date, `date_signed` server-side),
   ascending. It is also the row's `actionDate`; a record with no signing date falls back to its
   `Start Date`.
-- **Paging:** every response's `page_metadata.last_record_unique_id` /
-  `last_record_sort_value` is echoed on the next request, which switches the server to
-  search_after paging with no result-window cap. Live, the cursor request has answered 503
-  for this sort field, so a cursor request that fails is retried once by page number and the
-  walk stays on page numbers from then on; those answer 422 past the result window
-  (`ES_AWARDS_MAX_RESULT_WINDOW`, 50k rows), which the walk reports as an early stop with
-  the day it reached, and the backfill engine resumes from that day. Keep backfill chunks
-  small enough (7 days) that a window rarely reaches the cap.
+- **Paging:** plain `page` numbers. The server caps any one query at a result window of
+  20k rows (`hasNext` turns false there regardless of what remains); its search_after cursor
+  (`last_record_unique_id` / `last_record_sort_value`) would lift the cap but answers 503 for
+  this sort field, live and repeatably, so it is not used. A multi-day window that fills the
+  cap stops with the last fully covered day (`stoppedEarly: "window"`) and the backfill engine
+  resumes from the next day at once; a single day that fills the cap is re-read one award type
+  at a time and, for a type that still overflows, one `award_amounts` band at a time (under
+  $25k, $25k–$100k, $100k–$1M, over $1M). A slice that still overflows is noted as truncated.
+  Keep backfill chunks at 7 days so most windows fit without a resume.
 - **Resume point:** rows arrive sorted on the signing date, so when a walk stops early (time
   budget, `--limit`, or the API giving out after the polite fetch's retries) every award signed
   strictly before the newest stored date is in the store; the sync reports `stoppedEarly` and

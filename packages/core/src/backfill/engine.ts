@@ -103,7 +103,7 @@ export interface BackfillChunkOutcome {
   notes: string[];
   error: string | null;
   /** The source stopped itself inside this chunk (deadline, limit, or upstream retries exhausted). */
-  stoppedEarly?: "deadline" | "limit" | "upstream";
+  stoppedEarly?: "deadline" | "limit" | "upstream" | "window";
   /** With `stoppedEarly`: the last date the source fully covered, if it says. */
   completedThrough?: string | null;
 }
@@ -283,6 +283,20 @@ async function backfillOneSource(
           lastCompletedThrough = covered;
           await ctx.store.setWatermark(source, BACKFILL_WATERMARK_KEY, covered);
         }
+        if (outcome.stoppedEarly === "window") {
+          // The source read the chunk up to the API's result window and
+          // banked the last full day: continue from the next day at once.
+          // No progress inside the chunk means a day the source could not
+          // read even in slices, which it reports as an error stop.
+          const resumeFrom = covered && covered >= chunkStart ? addDays(covered, 1) : null;
+          if (resumeFrom) {
+            logger.info(
+              `${source}: result window reached inside chunk ${chunkStart}..${chunkEnd}; resuming from ${resumeFrom}`,
+            );
+            chunkStart = resumeFrom;
+            continue;
+          }
+        }
         if (outcome.stoppedEarly === "upstream") {
           // Same blip policy as a failed chunk, minus the re-walk: resume
           // from the banked day after one cooldown. A retry that makes
@@ -304,9 +318,9 @@ async function backfillOneSource(
         base.stoppedReason =
           outcome.stoppedEarly === "deadline"
             ? "budget"
-            : outcome.stoppedEarly === "upstream"
-              ? "error"
-              : "limit";
+            : outcome.stoppedEarly === "limit"
+              ? "limit"
+              : "error";
         logger.info(
           `${source}: ${outcome.stoppedEarly} stop inside chunk ${chunkStart}..${chunkEnd}` +
             (covered ? ` — banked progress through ${covered}` : ""),

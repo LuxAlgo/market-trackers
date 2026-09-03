@@ -587,6 +587,64 @@ describe("runBackfill — per-source failure isolation", () => {
     await ctx.store.close();
   });
 
+  it("a result-window stop resumes from the banked day at once, without a cooldown", async () => {
+    const ctx = await makeCtx();
+    let slept = 0;
+    const { fn, calls } = fakeRunSync((_opts, i) =>
+      i === 0
+        ? {
+            rowsUpserted: 20_000,
+            parse: { attempted: 20_000, succeeded: 20_000 },
+            stoppedEarly: "window" as const,
+            completedThrough: "2024-01-05",
+          }
+        : completeChunk(1),
+    );
+
+    const summary = await runBackfill(ctx, {
+      sources: ["edgar"],
+      from: "2024-01-01",
+      to: "2024-01-20",
+      chunkDays: 10,
+      runSyncFn: fn,
+      sleep: async () => {
+        slept += 1;
+      },
+    });
+
+    expect(slept).toBe(0);
+    expect(calls.map((c) => [c.since, c.until])).toEqual([
+      ["2024-01-01", "2024-01-10"],
+      ["2024-01-06", "2024-01-15"],
+      ["2024-01-16", "2024-01-20"],
+    ]);
+    const result = summary.sources[0];
+    expect(result?.complete).toBe(true);
+    expect(await ctx.store.getWatermark("edgar", BACKFILL_WATERMARK_KEY)).toBe("2024-01-20");
+    await ctx.store.close();
+  });
+
+  it("a result-window stop that covered nothing of the chunk ends the run as an error", async () => {
+    const ctx = await makeCtx();
+    const { fn, calls } = fakeRunSync(() => ({
+      rowsUpserted: 20_000,
+      parse: { attempted: 20_000, succeeded: 20_000 },
+      stoppedEarly: "window" as const,
+      completedThrough: null,
+    }));
+    const summary = await runBackfill(ctx, {
+      sources: ["edgar"],
+      from: "2024-01-01",
+      to: "2024-01-20",
+      chunkDays: 10,
+      runSyncFn: fn,
+    });
+    expect(calls).toHaveLength(1);
+    expect(summary.sources[0]?.stoppedReason).toBe("error");
+    expect(summary.sources[0]?.complete).toBe(false);
+    await ctx.store.close();
+  });
+
   it("an upstream stop whose retry makes progress keeps the walk going", async () => {
     const ctx = await makeCtx();
     // A blip mid-chunk, then the API recovers: the retry from the banked day

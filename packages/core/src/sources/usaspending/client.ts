@@ -20,12 +20,14 @@ import type { Logger } from "../../lib/logger.js";
  * signed inside the window — and sort on that same signing date, so each
  * award falls in exactly one window and a walk can resume to the day.
  *
- * Paging: plain `page`/`limit` is capped by the server's result window
- * (`ES_AWARDS_MAX_RESULT_WINDOW`, tens of thousands of rows) and answers 422
- * past it. Every response carries `last_record_unique_id` /
- * `last_record_sort_value`; sending them back switches the server to
- * search_after paging, which has no such cap — a busy month of contracts is
- * well past the window.
+ * Paging: plain `page`/`limit`, and the server caps any one query at a
+ * result window of 20k rows (`hasNext` goes false there whatever remains).
+ * Its search_after cursor (`last_record_unique_id` / `last_record_sort_value`)
+ * would lift that cap but answers 503 for this sort field, live and
+ * repeatably, so it is not used. The walk instead notices a window that
+ * filled the cap and resumes from the day it reached; a single day past
+ * the cap is re-read partitioned by award type and then by amount band
+ * (`award_amounts`), so no window silently loses rows.
  *
  * Everything about the live payload this module assumes is listed under
  * `[verify-live]` in docs/sources/usaspending.md; the canary fingerprints
@@ -75,6 +77,36 @@ export const AWARD_SEARCH_FIELDS = [
 
 export const AWARD_SEARCH_PAGE_LIMIT = 100;
 
+/**
+ * Rows the server returns for one query at most, observed live: `hasNext`
+ * turns false at the 200th page of 100 no matter how many awards match.
+ * Overridable for tests (MARKET_TRACKERS_USASPENDING_RESULT_WINDOW).
+ */
+export function resultWindowRows(): number {
+  const raw = process.env.MARKET_TRACKERS_USASPENDING_RESULT_WINDOW;
+  const parsed = raw ? Number(raw) : Number.NaN;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 20_000;
+}
+
+/** One `award_amounts` band; open-ended when a bound is omitted. */
+export interface AmountBand {
+  lower?: number;
+  upper?: number;
+}
+
+/**
+ * Partition of the amount axis used to re-read a single day that overflowed
+ * the result window for one award type. Bounds in USD; the server treats
+ * them as inclusive on both ends, so an award landing exactly on a boundary
+ * may appear in two bands and dedupes on upsert.
+ */
+export const AMOUNT_BANDS: readonly AmountBand[] = [
+  { upper: 25_000 },
+  { lower: 25_000, upper: 100_000 },
+  { lower: 100_000, upper: 1_000_000 },
+  { lower: 1_000_000 },
+];
+
 /** One result row, validated loosely — unknown extra fields pass through. */
 export const awardSearchRowSchema = z
   .object({
@@ -113,21 +145,6 @@ export const awardSearchResponseSchema = z
 
 export type AwardSearchResponse = z.infer<typeof awardSearchResponseSchema>;
 
-/** search_after position: the last row of a page, echoed back to fetch the next one. */
-export interface AwardSearchCursor {
-  uniqueId: number;
-  sortValue: string | number;
-}
-
-/** The cursor for the page after `response`, or null when the server sent none. */
-export function nextCursor(response: AwardSearchResponse): AwardSearchCursor | null {
-  const { last_record_unique_id: uniqueId, last_record_sort_value: sortValue } =
-    response.page_metadata;
-  if (uniqueId === null || uniqueId === undefined) return null;
-  if (sortValue === null || sortValue === undefined) return null;
-  return { uniqueId, sortValue };
-}
-
 export interface UsaspendingFetchOptions {
   userAgent: string;
   fetchImpl?: typeof fetch;
@@ -155,14 +172,10 @@ export interface AwardSearchRequest {
   endDate: string;
   page: number;
   limit?: number;
-  /** Which award universe to query — contracts (A–D) or grants (02/03/04/05). */
+  /** Which award universe (or single type code) to query. */
   awardTypeCodes: readonly string[];
-  /**
-   * Position of the previous page's last row. Set for every page after the
-   * first: it switches the server to search_after paging, past the result
-   * window that plain `page` numbers hit.
-   */
-  after?: AwardSearchCursor | null;
+  /** Optional `award_amounts` band, for re-reading an overflowing day in slices. */
+  amount?: AmountBand;
 }
 
 export async function fetchAwardSearchPage(
@@ -182,18 +195,26 @@ export async function fetchAwardSearchPage(
           },
         ],
         award_type_codes: [...request.awardTypeCodes],
+        ...(request.amount
+          ? {
+              award_amounts: [
+                {
+                  ...(request.amount.lower !== undefined
+                    ? { lower_bound: request.amount.lower }
+                    : {}),
+                  ...(request.amount.upper !== undefined
+                    ? { upper_bound: request.amount.upper }
+                    : {}),
+                },
+              ],
+            }
+          : {}),
       },
       fields: [...AWARD_SEARCH_FIELDS],
       page: request.page,
       limit: request.limit ?? AWARD_SEARCH_PAGE_LIMIT,
       sort: AWARD_DATE_FIELD,
       order: "asc",
-      ...(request.after
-        ? {
-            last_record_unique_id: request.after.uniqueId,
-            last_record_sort_value: request.after.sortValue,
-          }
-        : {}),
     }),
   });
   if (!response.ok) {
