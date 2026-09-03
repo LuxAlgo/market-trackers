@@ -7,9 +7,11 @@
 ## Access pattern (verify payload shape live)
 
 - `POST https://api.usaspending.gov/api/v2/search/spending_by_award/` with a JSON body:
-  `filters.time_period` (`action_date` range from the watermark), `filters.award_type_codes`,
-  requested `fields` (award id, recipient name/UEI, awarding agency/sub-agency, obligated
-  amount, action date, description, NAICS), `page`/`limit` pagination, sorted by action date.
+  `filters.time_period` (a signing-date window, `date_type: "new_awards_only"`, from the
+  watermark), `filters.award_type_codes`, requested `fields` (award id, recipient name/UEI,
+  awarding agency/sub-agency, obligated amount, `Base Obligation Date`, `Start Date`,
+  description, NAICS), sorted ascending on `Base Obligation Date`, paged with
+  `last_record_unique_id` / `last_record_sort_value` (search_after). See "Walk semantics".
 - **One endpoint, two award universes** — only `award_type_codes` differs:
   - Contracts: `A`, `B`, `C`, `D` (BPA calls, purchase orders, delivery orders, definitive
     contracts) → `gov-contracts`, unchanged from before this dataset existed.
@@ -19,8 +21,10 @@
     below) fails loudly if the result-row shape for either universe drifts.
 - Natural key: `generated_internal_id`, shared across both universes (no collision risk — an
   award is either a contract or a grant, never both). Paginate until exhausted per universe.
-- Two **independent** watermarks, so one universe lagging or drifting never masks the other:
-  - `usaspending.lastActionDate` — contracts (unchanged).
+- Two **independent** watermarks (newest signing date of a completed walk; the key names
+  predate the switch from action dates), so one universe lagging or drifting never masks the
+  other:
+  - `usaspending.lastActionDate` — contracts.
   - `usaspending.grants.lastActionDate` — grants.
 - `SyncOptions.datasets` restricts to one universe (`["gov-contracts"]` or `["gov-grants"]`);
   omitted, both run in one `sync()` call, contracts first. `SyncOptions.until` bounds either
@@ -31,6 +35,34 @@
   grants only gets what's left — a run with `--limit 50` never fetches 50 contracts _and_ 50
   grants.
 - Be polite: modest rate limit (the API is free but shared), backoff on 5xx.
+
+## Walk semantics
+
+The window and the sort key agree, and they have to. The server evaluates a bare
+`time_period` asymmetrically — `start_date` against the award's latest action date, `end_date`
+against its signing date — so every long-running award with any activity after the window
+start matches every window, and a walk sorted on a date keeps returning the same oldest awards
+for each one. Observed live: a multi-year backfill that upserted ~20k rows per 30-day chunk
+and still held fewer than 20k distinct awards, with event years back to 1949, and a live
+watermark that had climbed to 2027 (period-of-performance start dates run years ahead), which
+pinned the daily window to an empty `[today, today]`.
+
+- **Window:** `date_type: "new_awards_only"` — only awards whose base transaction was signed
+  inside `[start_date, end_date]`. Each award falls in exactly one window.
+- **Sort and date:** `Base Obligation Date` (the signing date, `date_signed` server-side),
+  ascending. It is also the row's `actionDate`; a record with no signing date falls back to its
+  `Start Date`.
+- **Paging:** every response's `page_metadata.last_record_unique_id` /
+  `last_record_sort_value` is echoed on the next request, which switches the server to
+  search_after paging. Plain `page` numbers answer 422 past the result window
+  (`ES_AWARDS_MAX_RESULT_WINDOW`), and a busy month of contracts is far past it.
+- **Resume point:** rows arrive sorted on the signing date, so when a walk stops early (time
+  budget, `--limit`, or the API giving out after the polite fetch's retries) every award signed
+  strictly before the newest stored date is in the store; the sync reports `stoppedEarly` and
+  `completedThrough` = that date minus one day, and the backfill engine resumes there.
+- **Watermark:** advanced only by a completed walk, only forward, and never past the walked
+  window's end. A stored watermark later than today is treated as today and rewritten by the
+  next completed walk.
 
 ## Why one parser for both universes
 

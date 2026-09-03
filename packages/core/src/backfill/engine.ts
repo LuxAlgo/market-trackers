@@ -283,6 +283,24 @@ async function backfillOneSource(
           lastCompletedThrough = covered;
           await ctx.store.setWatermark(source, BACKFILL_WATERMARK_KEY, covered);
         }
+        if (outcome.stoppedEarly === "upstream") {
+          // Same blip policy as a failed chunk, minus the re-walk: resume
+          // from the banked day after one cooldown. A retry that makes
+          // progress moves the resume point and earns another; the same
+          // resume point failing twice in a row still stops the run.
+          const resumeFrom = covered && covered >= chunkStart ? addDays(covered, 1) : chunkStart;
+          if (retriedChunkStart !== resumeFrom) {
+            retriedChunkStart = resumeFrom;
+            logger.warn(
+              `${source}: upstream stop inside chunk ${chunkStart}..${chunkEnd}` +
+                (covered ? ` (banked through ${covered})` : "") +
+                `; retrying from ${resumeFrom} after cooldown`,
+            );
+            await sleep(chunkRetryDelayMs);
+            chunkStart = resumeFrom;
+            continue;
+          }
+        }
         base.stoppedReason =
           outcome.stoppedEarly === "deadline"
             ? "budget"

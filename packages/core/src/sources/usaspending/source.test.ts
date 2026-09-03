@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { usaspendingSource, USASPENDING_AWARD_SEARCH_URL } from "./source.js";
+import { normalizeAwardRow, usaspendingSource, USASPENDING_AWARD_SEARCH_URL } from "./source.js";
 import { DATASETS } from "../../schema/datasets.js";
 import type { GovContractAward } from "../../schema/gov-contract-award.js";
 import { TrackerStore } from "../../store/store.js";
@@ -22,12 +22,22 @@ const NOW = "2026-08-24T12:00:00.000Z";
 const GRANT_CODES = ["02", "03", "04", "05"];
 
 interface CapturedBody {
-  filters: { time_period: { start_date: string; end_date: string }[]; award_type_codes: string[] };
+  filters: {
+    time_period: { start_date: string; end_date: string; date_type?: string }[];
+    award_type_codes: string[];
+  };
   fields: string[];
   page: number;
   limit: number;
   sort: string;
   order: string;
+  last_record_unique_id?: number;
+  last_record_sort_value?: string | number;
+}
+
+/** The window every request is expected to carry: signing-date bounded, inclusive. */
+function window(start_date: string, end_date: string) {
+  return [{ start_date, end_date, date_type: "new_awards_only" }];
 }
 
 function mockFetch(captured: CapturedBody[]): typeof fetch {
@@ -79,15 +89,21 @@ describe("usaspendingSource.sync — contracts", () => {
     expect(captured[0]?.page).toBe(1);
     expect(captured[1]?.page).toBe(2);
     expect(captured[0]?.limit).toBe(100);
-    expect(captured[0]?.sort).toBe("Start Date");
+    expect(captured[0]?.sort).toBe("Base Obligation Date");
     expect(captured[0]?.order).toBe("asc");
     expect(captured[0]?.filters.award_type_codes).toEqual(["A", "B", "C", "D"]);
     expect(captured[0]?.fields).toContain("generated_internal_id");
     expect(captured[0]?.fields).toContain("Recipient UEI");
-    // No watermark yet: backfillDays (3) before the pinned today.
-    expect(captured[0]?.filters.time_period).toEqual([
-      { start_date: "2026-08-21", end_date: "2026-08-24" },
-    ]);
+    expect(captured[0]?.fields).toContain("Base Obligation Date");
+    // No watermark yet: backfillDays (3) before the pinned today, bounded on
+    // the signing date so every award falls in exactly one window.
+    expect(captured[0]?.filters.time_period).toEqual(window("2026-08-21", "2026-08-24"));
+    // Page 1 starts from the top; page 2 resumes after page 1's last row
+    // (search_after), never by page number alone.
+    expect(captured[0]?.last_record_unique_id).toBeUndefined();
+    expect(captured[0]?.last_record_sort_value).toBeUndefined();
+    expect(captured[1]?.last_record_unique_id).toBe(110020002);
+    expect(captured[1]?.last_record_sort_value).toBe("2026-08-19");
 
     // Stored rows match the hand-verified expected output exactly.
     const rows: GovContractAward[] = [];
@@ -96,7 +112,7 @@ describe("usaspendingSource.sync — contracts", () => {
       readFixtureJson<GovContractAward[]>("usaspending", "case-award-search", "expected.json"),
     );
 
-    // Watermark lands on the max action date; fingerprint recorded.
+    // Watermark lands on the newest signing date; fingerprint recorded.
     expect(await store.getWatermark("usaspending", "usaspending.lastActionDate")).toBe(
       "2026-08-21",
     );
@@ -109,9 +125,7 @@ describe("usaspendingSource.sync — contracts", () => {
     const second = await usaspendingSource.sync(ctx, { datasets: ["gov-contracts"] });
     expect(second.rowsUpserted).toBe(4);
     expect(await store.count("gov-contracts")).toBe(4);
-    expect(captured[2]?.filters.time_period).toEqual([
-      { start_date: "2026-08-18", end_date: "2026-08-24" },
-    ]);
+    expect(captured[2]?.filters.time_period).toEqual(window("2026-08-18", "2026-08-24"));
 
     await store.close();
   });
@@ -178,6 +192,145 @@ describe("usaspendingSource.sync — contracts", () => {
       uei: null,
       tickers: ["TRFC"],
     });
+    // No signing date on this row: the period-of-performance start stands in.
+    expect(rows[0]?.actionDate).toBe("2026-08-20");
+    await store.close();
+  });
+});
+
+describe("usaspendingSource.sync — walk semantics", () => {
+  const baseRow = {
+    generated_internal_id: "CONT_AWD_X_1",
+    "Award ID": "X-1",
+    "Recipient Name": "EXAMPLE CORP",
+    "Recipient UEI": null,
+    "Awarding Agency": "Department of Example",
+    "Awarding Sub Agency": null,
+    "Award Amount": 1,
+    Description: null,
+    "Contract Award Type": "DEFINITIVE CONTRACT",
+    "NAICS Code": null,
+    "NAICS Description": null,
+  };
+
+  it("dates a row by its signing date, falling back to the period-of-performance start", async () => {
+    const store = await TrackerStore.open(":memory:");
+    const signed = await normalizeAwardRow(
+      { ...baseRow, "Base Obligation Date": "2026-08-10", "Start Date": "2026-09-01" },
+      NOW,
+      store,
+    );
+    expect(signed.actionDate).toBe("2026-08-10");
+    const unsigned = await normalizeAwardRow(
+      { ...baseRow, "Base Obligation Date": null, "Start Date": "2026-09-01" },
+      NOW,
+      store,
+    );
+    expect(unsigned.actionDate).toBe("2026-09-01");
+    await expect(
+      normalizeAwardRow(
+        { ...baseRow, "Base Obligation Date": null, "Start Date": null },
+        NOW,
+        store,
+      ),
+    ).rejects.toThrow(/unusable/);
+    await store.close();
+  });
+
+  it("treats a stored watermark in the future as today and rewrites it on a completed walk", async () => {
+    const { ctx, store, captured } = await makeCtx();
+    await store.setWatermark("usaspending", "usaspending.lastActionDate", "2027-08-31");
+
+    const result = await usaspendingSource.sync(ctx, { datasets: ["gov-contracts"] });
+    // The window is the trailing re-walk from today, not an empty [today, today].
+    expect(captured[0]?.filters.time_period).toEqual(window("2026-08-21", "2026-08-24"));
+    expect(result.rowsUpserted).toBe(4);
+    expect(result.notes.join(" ")).toMatch(/2027-08-31 is in the future/);
+    // The completed walk replaces the artifact with a real date.
+    expect(await store.getWatermark("usaspending", "usaspending.lastActionDate")).toBe(
+      "2026-08-21",
+    );
+    await store.close();
+  });
+
+  it("a mid-walk upstream failure keeps the rows already stored and reports the covered day", async () => {
+    const { ctx, store, captured } = await makeCtx();
+    const fixtureFetch = ctx.fetchImpl!;
+    ctx.fetchImpl = (async (url: Parameters<typeof fetch>[0], init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as CapturedBody;
+      const real = await fixtureFetch(url, init);
+      // 400 is not a retry status, so the polite fetch surfaces it at once.
+      return body.page === 2 ? new Response("gone", { status: 400 }) : real;
+    }) as typeof fetch;
+
+    const result = await usaspendingSource.sync(ctx, {
+      datasets: ["gov-contracts"],
+      since: "2026-08-01",
+    });
+    expect(captured).toHaveLength(2);
+    expect(result.rowsUpserted).toBe(2);
+    expect(await store.count("gov-contracts")).toBe(2);
+    expect(result.stoppedEarly).toBe("upstream");
+    // Page 1's newest signing date is 2026-08-19; every award signed before
+    // it is stored, so the day before is the safe resume point.
+    expect(result.completedThrough).toBe("2026-08-18");
+    expect(result.notes.join(" ")).toMatch(/HTTP 400/);
+    // An incomplete walk never advances the watermark.
+    expect(await store.getWatermark("usaspending", "usaspending.lastActionDate")).toBeNull();
+    await store.close();
+  });
+
+  it("an elapsed deadline stops before the first request", async () => {
+    const { ctx, store, captured } = await makeCtx();
+    const result = await usaspendingSource.sync(ctx, {
+      datasets: ["gov-contracts"],
+      deadlineMs: new Date(NOW).getTime() - 1,
+    });
+    expect(captured).toHaveLength(0);
+    expect(result.stoppedEarly).toBe("deadline");
+    expect(result.completedThrough).toBeNull();
+    expect(result.rowsUpserted).toBe(0);
+    await store.close();
+  });
+
+  it("a stop in the contracts walk leaves nothing fully covered, since grants never ran", async () => {
+    const { ctx, store, captured } = await makeCtx();
+    const fixtureFetch = ctx.fetchImpl!;
+    ctx.fetchImpl = (async (url: Parameters<typeof fetch>[0], init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as CapturedBody;
+      const real = await fixtureFetch(url, init);
+      return body.page === 2 ? new Response("gone", { status: 400 }) : real;
+    }) as typeof fetch;
+
+    const result = await usaspendingSource.sync(ctx, { since: "2026-08-01" });
+    expect(result.stoppedEarly).toBe("upstream");
+    expect(result.completedThrough).toBeNull();
+    // Contracts got two requests; grants were never started.
+    expect(captured).toHaveLength(2);
+    expect(captured.every((b) => b.filters.award_type_codes[0] === "A")).toBe(true);
+    expect(await store.count("gov-grants")).toBe(0);
+    await store.close();
+  });
+
+  it("a stop in the grants walk reports grants' covered day, contracts having completed", async () => {
+    const { ctx, store } = await makeCtx();
+    const fixtureFetch = ctx.fetchImpl!;
+    ctx.fetchImpl = (async (url: Parameters<typeof fetch>[0], init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body)) as CapturedBody;
+      const isGrant = body.filters.award_type_codes.includes("02");
+      const real = await fixtureFetch(url, init);
+      return isGrant && body.page === 2 ? new Response("gone", { status: 400 }) : real;
+    }) as typeof fetch;
+
+    const result = await usaspendingSource.sync(ctx, { since: "2026-08-01" });
+    expect(result.stoppedEarly).toBe("upstream");
+    expect(result.completedThrough).toBe("2026-08-18");
+    expect(await store.count("gov-contracts")).toBe(4);
+    expect(await store.count("gov-grants")).toBe(2);
+    expect(await store.getWatermark("usaspending", "usaspending.lastActionDate")).toBe(
+      "2026-08-21",
+    );
+    expect(await store.getWatermark("usaspending", "usaspending.grants.lastActionDate")).toBeNull();
     await store.close();
   });
 });
@@ -275,14 +428,13 @@ describe("usaspendingSource.sync — grants", () => {
       until: "2026-07-15",
     });
 
-    expect(captured[0]?.filters.time_period).toEqual([
-      { start_date: "2026-07-01", end_date: "2026-07-15" },
-    ]);
+    expect(captured[0]?.filters.time_period).toEqual(window("2026-07-01", "2026-07-15"));
     // The bounded walk still completes (hasNext: false on page 2) and
-    // advances the watermark to the max action date it found.
+    // advances the watermark — but never past the window it walked, even
+    // when rows (synthetic here) carry later dates.
     expect(result.rowsUpserted).toBe(4);
     expect(await store.getWatermark("usaspending", "usaspending.grants.lastActionDate")).toBe(
-      "2026-08-21",
+      "2026-07-15",
     );
     await store.close();
   });

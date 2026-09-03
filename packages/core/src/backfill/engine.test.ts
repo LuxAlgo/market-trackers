@@ -552,13 +552,13 @@ describe("runBackfill — per-source failure isolation", () => {
     await ctx.store.close();
   });
 
-  it("an upstream stop banks covered ground and reports stoppedReason error", async () => {
+  it("an upstream stop banks covered ground, retries once from there, and reports stoppedReason error", async () => {
     const ctx = await makeCtx();
     // The source exhausted its retries against the API mid-walk (rate-limit
     // contention or an outage), stopped cleanly, and reported what it had
     // fully covered. The run is resumable, not complete — and it is not a
     // budget or limit stop, so it surfaces as "error".
-    const { fn } = fakeRunSync(() => ({
+    const { fn, calls } = fakeRunSync(() => ({
       rowsUpserted: 3,
       parse: { attempted: 4, succeeded: 3 },
       stoppedEarly: "upstream" as const,
@@ -571,13 +571,56 @@ describe("runBackfill — per-source failure isolation", () => {
       to: "2024-01-31",
       chunkDays: 15,
       runSyncFn: fn,
+      chunkRetryDelayMs: 0,
     });
 
+    // One cooled-down retry from the banked day; it stopped at the same
+    // point again, so the run ends there.
+    expect(calls).toHaveLength(2);
+    expect(calls[0]?.since).toBe("2024-01-01");
+    expect(calls[1]?.since).toBe("2024-01-10");
     const result = summary.sources[0];
     expect(result?.stoppedReason).toBe("error");
     expect(result?.complete).toBe(false);
     expect(result?.completedThrough).toBe("2024-01-09");
     expect(await ctx.store.getWatermark("edgar", BACKFILL_WATERMARK_KEY)).toBe("2024-01-09");
+    await ctx.store.close();
+  });
+
+  it("an upstream stop whose retry makes progress keeps the walk going", async () => {
+    const ctx = await makeCtx();
+    // A blip mid-chunk, then the API recovers: the retry from the banked day
+    // finishes the chunk and the walk proceeds to the next one, re-walking
+    // nothing before the banked day.
+    const { fn, calls } = fakeRunSync((_opts, i) =>
+      i === 0
+        ? {
+            rowsUpserted: 3,
+            parse: { attempted: 4, succeeded: 3 },
+            stoppedEarly: "upstream" as const,
+            completedThrough: "2024-01-06",
+          }
+        : completeChunk(1),
+    );
+
+    const summary = await runBackfill(ctx, {
+      sources: ["edgar"],
+      from: "2024-01-01",
+      to: "2024-01-20",
+      chunkDays: 10,
+      runSyncFn: fn,
+      chunkRetryDelayMs: 0,
+    });
+
+    expect(calls.map((c) => [c.since, c.until])).toEqual([
+      ["2024-01-01", "2024-01-10"],
+      ["2024-01-07", "2024-01-16"],
+      ["2024-01-17", "2024-01-20"],
+    ]);
+    const result = summary.sources[0];
+    expect(result?.complete).toBe(true);
+    expect(result?.stoppedReason).toBeNull();
+    expect(await ctx.store.getWatermark("edgar", BACKFILL_WATERMARK_KEY)).toBe("2024-01-20");
     await ctx.store.close();
   });
 });

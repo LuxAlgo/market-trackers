@@ -7,11 +7,20 @@
   "parseInput": {
     "request": {
       "url": "https://api.usaspending.gov/api/v2/search/spending_by_award/",
-      "award_type_codes": ["02", "03", "04", "05"],
-      "sort": "Start Date",
-      "order": "asc"
+      "award_type_codes": [
+        "02",
+        "03",
+        "04",
+        "05"
+      ],
+      "sort": "Base Obligation Date",
+      "order": "asc",
+      "date_type": "new_awards_only"
     },
     "retrievedAt": "2026-08-24T12:00:00.000Z"
   },
-  "expectedStats": { "attempted": 4, "succeeded": 4 }
+  "expectedStats": {
+    "attempted": 4,
+    "succeeded": 4
+  }
 }

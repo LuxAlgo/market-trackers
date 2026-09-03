@@ -24,7 +24,11 @@ export const govContractAwardSchema = z.object({
   }),
   /** Total obligated amount in USD. */
   amountUsd: z.number().nullable(),
-  /** Award action date (YYYY-MM-DD). */
+  /**
+   * Award date (YYYY-MM-DD): the signing date of the award's base transaction
+   * (USAspending "Base Obligation Date"), falling back to the
+   * period-of-performance start when the record carries no signing date.
+   */
   actionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   description: z.string().nullable(),
   naicsCode: z.string().nullable(),

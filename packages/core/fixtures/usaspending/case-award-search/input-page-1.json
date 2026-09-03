@@ -13,6 +13,7 @@
       "Contract Award Type": "DEFINITIVE CONTRACT",
       "NAICS Code": "336411",
       "NAICS Description": "AIRCRAFT MANUFACTURING",
+      "Base Obligation Date": "2026-08-18",
       "Start Date": "2026-08-18",
       "generated_internal_id": "CONT_AWD_FA860126C0001_9700_-NONE-_-NONE-"
     },
@@ -28,6 +29,7 @@
       "Contract Award Type": "PURCHASE ORDER",
       "NAICS Code": "561730",
       "NAICS Description": "LANDSCAPING SERVICES",
+      "Base Obligation Date": "2026-08-19",
       "Start Date": "2026-08-19",
       "generated_internal_id": "CONT_AWD_W912DY26P0042_2100_-NONE-_-NONE-"
     }

@@ -6,11 +6,26 @@ import type { Logger } from "../../lib/logger.js";
 
 /**
  * USAspending award-search client. The API is free and keyless but shared —
- * stay well under any radar at ≤2 requests per rolling second, and page
- * with the documented `page_metadata.hasNext` cursor. One endpoint serves
- * both award universes LuxAlgo Market Trackers tracks (contracts and grants); only the
- * requested `award_type_codes` differ, so the request/response shapes below
- * are shared rather than duplicated per dataset.
+ * stay well under any radar at ≤2 requests per rolling second. One endpoint
+ * serves both award universes LuxAlgo Market Trackers tracks (contracts and
+ * grants); only the requested `award_type_codes` differ, so the
+ * request/response shapes below are shared rather than duplicated per dataset.
+ *
+ * Window semantics matter here. A bare `time_period` is asymmetric on the
+ * server (`start_date` compares to the latest action date, `end_date` to the
+ * signing date), so every long-running award with any activity after the
+ * window start matches it, and a walk sorted on a date field keeps
+ * returning the same oldest awards for every window. Requests therefore set
+ * `date_type: "new_awards_only"` — only awards whose base transaction was
+ * signed inside the window — and sort on that same signing date, so each
+ * award falls in exactly one window and a walk can resume to the day.
+ *
+ * Paging: plain `page`/`limit` is capped by the server's result window
+ * (`ES_AWARDS_MAX_RESULT_WINDOW`, tens of thousands of rows) and answers 422
+ * past it. Every response carries `last_record_unique_id` /
+ * `last_record_sort_value`; sending them back switches the server to
+ * search_after paging, which has no such cap — a busy month of contracts is
+ * well past the window.
  *
  * Everything about the live payload this module assumes is listed under
  * `[verify-live]` in docs/sources/usaspending.md; the canary fingerprints
@@ -32,8 +47,15 @@ export const CONTRACT_AWARD_TYPE_CODES = ["A", "B", "C", "D"] as const;
  */
 export const GRANT_AWARD_TYPE_CODES = ["02", "03", "04", "05"] as const;
 
-/** The award date field requested, sorted on, and used for the watermark. */
-export const AWARD_DATE_FIELD = "Start Date";
+/**
+ * The award date the walk filters on, sorts by, watermarks, and stores as
+ * `actionDate`: USAspending's "Base Obligation Date", the signing date of the
+ * award's base transaction (`date_signed` server-side). A per-award scalar,
+ * so a `new_awards_only` window enumerates every award exactly once.
+ */
+export const AWARD_DATE_FIELD = "Base Obligation Date";
+/** Period-of-performance start — the fallback date for rows with no signing date. */
+export const AWARD_START_FIELD = "Start Date";
 
 export const AWARD_SEARCH_FIELDS = [
   "Award ID",
@@ -47,6 +69,7 @@ export const AWARD_SEARCH_FIELDS = [
   "NAICS Code",
   "NAICS Description",
   AWARD_DATE_FIELD,
+  AWARD_START_FIELD,
   "generated_internal_id",
 ] as const;
 
@@ -67,6 +90,7 @@ export const awardSearchRowSchema = z
     "NAICS Code": z.union([z.string(), z.number()]).nullish(),
     "NAICS Description": z.string().nullish(),
     [AWARD_DATE_FIELD]: z.string().nullish(),
+    [AWARD_START_FIELD]: z.string().nullish(),
   })
   .passthrough();
 
@@ -76,11 +100,33 @@ export type AwardSearchRow = z.infer<typeof awardSearchRowSchema>;
 export const awardSearchResponseSchema = z
   .object({
     results: z.array(z.record(z.string(), z.unknown())),
-    page_metadata: z.object({ page: z.number(), hasNext: z.boolean() }).passthrough(),
+    page_metadata: z
+      .object({
+        page: z.number(),
+        hasNext: z.boolean(),
+        last_record_unique_id: z.number().nullish(),
+        last_record_sort_value: z.union([z.string(), z.number()]).nullish(),
+      })
+      .passthrough(),
   })
   .passthrough();
 
 export type AwardSearchResponse = z.infer<typeof awardSearchResponseSchema>;
+
+/** search_after position: the last row of a page, echoed back to fetch the next one. */
+export interface AwardSearchCursor {
+  uniqueId: number;
+  sortValue: string | number;
+}
+
+/** The cursor for the page after `response`, or null when the server sent none. */
+export function nextCursor(response: AwardSearchResponse): AwardSearchCursor | null {
+  const { last_record_unique_id: uniqueId, last_record_sort_value: sortValue } =
+    response.page_metadata;
+  if (uniqueId === null || uniqueId === undefined) return null;
+  if (sortValue === null || sortValue === undefined) return null;
+  return { uniqueId, sortValue };
+}
 
 export interface UsaspendingFetchOptions {
   userAgent: string;
@@ -104,13 +150,19 @@ export function createUsaspendingFetch(options: UsaspendingFetchOptions): Polite
 }
 
 export interface AwardSearchRequest {
-  /** Inclusive YYYY-MM-DD bounds on the award date field. */
+  /** Inclusive YYYY-MM-DD bounds on the award's signing date (`new_awards_only`). */
   startDate: string;
   endDate: string;
   page: number;
   limit?: number;
   /** Which award universe to query — contracts (A–D) or grants (02/03/04/05). */
   awardTypeCodes: readonly string[];
+  /**
+   * Position of the previous page's last row. Set for every page after the
+   * first: it switches the server to search_after paging, past the result
+   * window that plain `page` numbers hit.
+   */
+  after?: AwardSearchCursor | null;
 }
 
 export async function fetchAwardSearchPage(
@@ -122,7 +174,13 @@ export async function fetchAwardSearchPage(
     headers: { "content-type": "application/json", accept: "application/json" },
     body: JSON.stringify({
       filters: {
-        time_period: [{ start_date: request.startDate, end_date: request.endDate }],
+        time_period: [
+          {
+            start_date: request.startDate,
+            end_date: request.endDate,
+            date_type: "new_awards_only",
+          },
+        ],
         award_type_codes: [...request.awardTypeCodes],
       },
       fields: [...AWARD_SEARCH_FIELDS],
@@ -130,6 +188,12 @@ export async function fetchAwardSearchPage(
       limit: request.limit ?? AWARD_SEARCH_PAGE_LIMIT,
       sort: AWARD_DATE_FIELD,
       order: "asc",
+      ...(request.after
+        ? {
+            last_record_unique_id: request.after.uniqueId,
+            last_record_sort_value: request.after.sortValue,
+          }
+        : {}),
     }),
   });
   if (!response.ok) {

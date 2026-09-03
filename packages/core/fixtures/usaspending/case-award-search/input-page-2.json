@@ -13,6 +13,7 @@
       "Contract Award Type": "DELIVERY ORDER",
       "NAICS Code": "336412",
       "NAICS Description": "AIRCRAFT ENGINE AND ENGINE PARTS MANUFACTURING",
+      "Base Obligation Date": "2026-08-20",
       "Start Date": "2026-08-20",
       "generated_internal_id": "CONT_AWD_N0001926F0107_1700_-NONE-_-NONE-"
     },
@@ -28,6 +29,7 @@
       "Contract Award Type": "DEFINITIVE CONTRACT",
       "NAICS Code": "541511",
       "NAICS Description": "CUSTOM COMPUTER PROGRAMMING SERVICES",
+      "Base Obligation Date": "2026-08-21",
       "Start Date": "2026-08-21",
       "generated_internal_id": "CONT_AWD_75N98026D0009_7529_-NONE-_-NONE-"
     }

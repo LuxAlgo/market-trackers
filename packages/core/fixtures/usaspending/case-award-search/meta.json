@@ -1,17 +1,26 @@
 {
   "synthetic": true,
   "verified": true,
-  "notes": "Format-faithful synthetic spending_by_award response pair (page 1 hasNext, page 2 final). Exercises a curated-map exact match (Lockheed → LMT), a word-boundary prefix match (Pratt & Whitney Military Engines → RTX), an unmatched recipient stored with tickers: [], a null Recipient UEI, and a null Description + null Award Amount row (nulls stay null).",
+  "notes": "Format-faithful synthetic spending_by_award response pair (page 1 hasNext, page 2 final). Exercises a curated-map exact match (Lockheed \u2192 LMT), a word-boundary prefix match (Pratt & Whitney Military Engines \u2192 RTX), an unmatched recipient stored with tickers: [], a null Recipient UEI, and a null Description + null Award Amount row (nulls stay null).",
   "sourceUrl": null,
   "parser": "usaspending-awards@1",
   "parseInput": {
     "request": {
       "url": "https://api.usaspending.gov/api/v2/search/spending_by_award/",
-      "award_type_codes": ["A", "B", "C", "D"],
-      "sort": "Start Date",
-      "order": "asc"
+      "award_type_codes": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ],
+      "sort": "Base Obligation Date",
+      "order": "asc",
+      "date_type": "new_awards_only"
     },
     "retrievedAt": "2026-08-24T12:00:00.000Z"
   },
-  "expectedStats": { "attempted": 4, "succeeded": 4 }
+  "expectedStats": {
+    "attempted": 4,
+    "succeeded": 4
+  }
 }
