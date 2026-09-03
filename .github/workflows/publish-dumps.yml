@@ -169,13 +169,14 @@ jobs:
             fi
           done
 
-      # "/explorer" is excluded because the exporter never produces it — it is
-      # installed by the next step, and without the exclusion this --delete
-      # would wipe it on every run just to have it re-committed minutes later.
+      # "/explorer", "/llms.txt" and "/archives.json" are excluded because the
+      # exporter never produces them — they are maintained by the steps below,
+      # and without the exclusion this --delete would wipe them on every run
+      # just to have them re-committed minutes later.
       - name: Commit & push dumps
         if: steps.creds.outputs.push == 'true'
         run: |
-          rsync -a --delete --exclude ".git" --exclude "README.md" --exclude "LICENSE" --exclude "/explorer" --exclude "/llms.txt" dumps/ data-repo/
+          rsync -a --delete --exclude ".git" --exclude "README.md" --exclude "LICENSE" --exclude "/explorer" --exclude "/llms.txt" --exclude "/archives.json" dumps/ data-repo/
           cd data-repo
           git config user.name "market-trackers-publish[bot]"
           git config user.email "market-trackers-publish@users.noreply.github.com"
@@ -184,6 +185,30 @@ jobs:
             echo "No data changes today."
           else
             git commit -m "data: $(date -u +%F) daily publish"
+            git push
+          fi
+
+      # Refreshes archives.json — the index of the deep-history archive
+      # releases (newest complete year shard per dataset and year; see
+      # scripts/build-archives-index.mjs and docs/market-trackers-data.md), so
+      # consumers can reach the backfilled history from one URL without the
+      # GitHub API. Its own commit, like the explorer below; the dumps rsync
+      # above excludes it so a failed refresh keeps the previous index.
+      - name: Refresh archive index
+        if: steps.creds.outputs.push == 'true'
+        env:
+          DATA_REPO: ${{ vars.ALT_DATASETS_REPO }}
+          ALT_DATASETS_TOKEN: ${{ secrets.ALT_DATASETS_TOKEN }}
+        run: |
+          node scripts/build-archives-index.mjs dumps/manifest.json data-repo/archives.json
+          cd data-repo
+          git config user.name "market-trackers-publish[bot]"
+          git config user.email "market-trackers-publish@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No archive index changes today."
+          else
+            git commit -m "data: $(date -u +%F) refresh archive index"
             git push
           fi
 

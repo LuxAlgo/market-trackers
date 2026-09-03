@@ -139,6 +139,28 @@ columnar format earns its keep.
 | `sources.<id>.lastCanaryStatus` / `.lastCanaryAt` | Newest canary verdict (`green`/`amber`/`red`/`skip`) and when.                                                                                                                                       |
 | `sources.<id>.watermarks`                         | The per-source incremental cursors (e.g. last completed EDGAR index day).                                                                                                                            |
 
+## The archive index
+
+Deep-history backfills publish their year shards as GitHub Release assets rather than into the
+live tree (see [`docs/backfill.md`](backfill.md), "The archive-release layout"). `archives.json` at
+the repo root indexes them so a consumer can reach the backfilled history from one URL, without
+the GitHub API. The daily publish refreshes it from the release list:
+
+| Field                        | Meaning                                                                                                                                                                 |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `generatedAt` / `repository` | When the index was built, and the `owner/repo` the release URLs belong to.                                                                                              |
+| `datasets.<id>.years.<YYYY>` | `{ tag, asset, bytes, updatedAt }` — the release tag and asset name of the newest complete shard for that dataset and event year, its compressed size, and upload time. |
+| `releases[]`                 | Every archive release seen: `tag`, `source`, `from`, `to`, `publishedAt`, `assets`.                                                                                     |
+
+The asset URL is `https://github.com/<repository>/releases/download/<tag>/<asset>`. Per dataset
+and year the **largest** asset wins (ties to the newest): a resumed backfill's cumulative store
+only ever grows a year's shard, and across sources the complete shard is the large one, while a
+later upload can be a small stray-row shard. A year can legitimately exist in both places — the
+live tree carries the rows the daily lane ingested, the archive the deep history — so a consumer
+reading "all of 2026" reads both and deduplicates by `id`. Years outside 1900..next year are
+garbage event dates in source documents and are excluded. The index is built by
+[`scripts/build-archives-index.mjs`](../scripts/build-archives-index.mjs).
+
 ## `schemaVersion` policy
 
 `SCHEMA_VERSION` lives in `packages/core/src/schema/datasets.ts` and is recorded in every

@@ -20,8 +20,10 @@ Each dataset lives in its own directory and follows the same shape:
 <dataset-dir>/
   <YYYY>/<YYYY-MM-DD>.json   # daily delta: rows ingested on that (UTC) day
   latest.json                # the newest daily delta, at a stable URL
-  snapshot.json.gz           # the entire dataset, gzipped
+  snapshot-<YYYY>.json.gz    # the dataset sharded by event year, gzipped
+  snapshot.json.gz           # the entire dataset, gzipped (small datasets only)
 manifest.json                # row counts, watermarks, per-source health, schema version
+archives.json                # index of the deep-history archive releases (see below)
 ```
 
 | Dataset              | Directory               |
@@ -42,6 +44,16 @@ time, and per source, sync/canary health and watermarks; check it before trustin
 The record shapes are defined by the schemas in
 [LuxAlgo/market-trackers](https://github.com/LuxAlgo/market-trackers); the manifest's `schemaVersion` bumps
 whenever a published shape changes.
+
+## Deep history
+
+The live tree carries what the daily pipeline ingests. Multi-decade backfills are attached to
+this repository's **GitHub Releases** as `archive-<source>-<from>-<to>` tags, one
+`snapshot-<YYYY>.json.gz` asset per event year. `archives.json` at the root indexes them: for every
+dataset and year, the release asset holding the newest complete shard (`tag`, `asset`, `bytes`),
+downloadable at `https://github.com/LuxAlgo/market-trackers-data/releases/download/<tag>/<asset>`.
+A year can exist in both places — the live shard holds the rows the daily lane ingested, the
+archive the deep history — so read both and deduplicate rows by `id` when you want a whole year.
 
 ## Feeds, Parquet, and the explorer
 

@@ -24,15 +24,22 @@
   congressional trades, `feeds/by-member/<bioguideId>.xml`.
 - Deep-history archives too large for the working tree are attached to this
   repository's GitHub Releases as `archive-<source>-<from>-<to>` tags, sharded
-  by event year; restore them with `market-trackers import` from the pipeline repo.
+  by event year. `archives.json` at the repo root indexes them (per dataset
+  and year: the release tag, asset name and size of the newest complete
+  shard, downloadable at `releases/download/<tag>/<asset>`); restore them
+  with `market-trackers import` from the pipeline repo.
 - Every file is a plain JSON array on one line; every row validates against the
   zod schemas in the pipeline repo (`packages/core/src/schema/`), and amount
   ranges from disclosure forms are preserved as ranges, never point-estimated.
 
 ## Query it as an agent
 
+- The hosted LuxAlgo MCP server (`https://mcp.luxalgo.com/mcp`, source at
+  https://github.com/LuxAlgo/luxalgo-mcp-server) reads these dumps directly:
+  `trackers_datasets`, `trackers_query`, `trackers_latest`, `trackers_ticker`.
+  Keyless; no store to build.
 - The pipeline repo ships an MCP server (`@luxalgo/market-trackers-mcp`) exposing these
-  datasets as typed tools over any store built from this data — the intended
+  datasets as typed tools over any store built from this data — the full SQL-backed
   interface for AI agents. See https://github.com/LuxAlgo/market-trackers#readme.
 - For SQL, load the Parquet files directly (e.g. DuckDB over HTTPS) or rebuild a
   SQLite/Postgres store from the dumps with `market-trackers import`.

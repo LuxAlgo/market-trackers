@@ -170,6 +170,17 @@ release note explaining the source and window. Re-dispatching the same window (e
 after a timeout, or re-running to pick up a parser fix) reuses the same release and replaces
 same-named assets rather than creating duplicates.
 
+When a run's dumps hold more than one dataset (a source's store can carry siblings — USAspending
+contracts and grants, FEC candidates and contributions), assets are named
+`{dataset-id}--snapshot-{YYYY}.json.gz` instead, because same-named assets on one release replace
+each other and bare names would let one dataset's shard for a year silently overwrite another's.
+Single-dataset runs keep the bare name.
+
+The daily publish indexes every archive release into the data repo's root `archives.json` —
+the newest complete shard per dataset and event year, with its size and URL — so consumers
+never need the Releases API (see "The archive index" in
+[`docs/market-trackers-data.md`](market-trackers-data.md)).
+
 A single asset over GitHub's 2GB release-asset limit is reported and **skipped**, never
 aborting the rest of the run — the workflow's own note tells you which asset and suggests
 either a manual publish (checkout the data repo and add it directly, the same as any human

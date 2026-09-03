@@ -262,10 +262,38 @@ jobs:
               return created;
             }
 
+            // Asset names: `snapshot-{YYYY}.json.gz` when this run's dumps hold
+            // one dataset, `{dataset-id}--snapshot-{YYYY}.json.gz` when they
+            // hold several (a source's store can carry sibling datasets —
+            // USAspending contracts and grants, FEC candidates and
+            // contributions). Same-named assets on one release replace each
+            // other, so bare names would let the second dataset's shard for a
+            // year silently overwrite the first's. The archive index
+            // (scripts/build-archives-index.mjs) reads both forms.
+            let datasetOf = () => null;
+            try {
+              const manifest = JSON.parse(fs.readFileSync("dumps/manifest.json", "utf8"));
+              const byDir = new Map(
+                Object.entries(manifest.datasets).map(([id, d]) => [d.exportDir, id]),
+              );
+              datasetOf = (file) =>
+                byDir.get(path.relative("dumps", path.dirname(file)).split(path.sep).join("/")) ??
+                null;
+            } catch (error) {
+              core.warning(`dumps/manifest.json unreadable (${error.message}); using bare asset names.`);
+            }
+            const datasetsPresent = new Set(files.map(datasetOf).filter(Boolean));
+            const assetName = (file) => {
+              const dataset = datasetOf(file);
+              return datasetsPresent.size > 1 && dataset
+                ? `${dataset}--${path.basename(file)}`
+                : path.basename(file);
+            };
+
             const TWO_GB = 2 * 1024 * 1024 * 1024;
             const failedAssets = [];
             for (const file of files) {
-              const name = path.basename(file);
+              const name = assetName(file);
               const size = fs.statSync(file).size;
               if (size > TWO_GB) {
                 core.warning(
