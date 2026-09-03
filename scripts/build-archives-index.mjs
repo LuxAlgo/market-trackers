@@ -24,8 +24,11 @@
  * resumed backfill's cumulative store only ever grows a year's shard, and
  * across sources (the EDGAR daily-index walk vs the SEC bulk data sets) the
  * complete shard is the large one, while a later upload can be a small
- * stray-row shard. Years outside 1900..next year are garbage event dates in
- * source documents and are skipped.
+ * stray-row shard. An asset whose name carries its dataset id outranks any
+ * bare-named candidate for that dataset and year whatever the sizes: the
+ * bare name's attribution is inferred, and for a multi-dataset source it
+ * may label a sibling dataset's shard. Years outside 1900..next year are
+ * garbage event dates in source documents and are skipped.
  *
  * An API failure (network, rate limit) leaves the previous index in place:
  * the script warns and exits 0 without writing. Anything else fails loudly.
@@ -137,18 +140,22 @@ for (const release of releases) {
       continue;
     }
 
+    const explicit = prefixedDataset !== undefined;
     const years = chosen.get(dataset) ?? new Map();
     const current = years.get(year);
-    if (
+    const wins =
       !current ||
-      asset.size > current.bytes ||
-      (asset.size === current.bytes && asset.updated_at > current.updatedAt)
-    ) {
+      (explicit && !current.explicit) ||
+      (explicit === current.explicit &&
+        (asset.size > current.bytes ||
+          (asset.size === current.bytes && asset.updated_at > current.updatedAt)));
+    if (wins) {
       years.set(year, {
         tag: release.tag_name,
         asset: asset.name,
         bytes: asset.size,
         updatedAt: asset.updated_at,
+        explicit,
       });
     }
     chosen.set(dataset, years);
@@ -168,7 +175,11 @@ for (const id of datasetOrder) {
   const years = chosen.get(id);
   if (!years) continue;
   datasets[id] = {
-    years: Object.fromEntries([...years.entries()].sort(([a], [b]) => a - b)),
+    years: Object.fromEntries(
+      [...years.entries()]
+        .sort(([a], [b]) => a - b)
+        .map(([year, { explicit: _explicit, ...shard }]) => [year, shard]),
+    ),
   };
 }
 
