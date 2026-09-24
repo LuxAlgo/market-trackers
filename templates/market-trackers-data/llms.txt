@@ -1,4 +1,4 @@
-# LuxAlgo Market Trackerssets
+# LuxAlgo Market Trackers datasets
 
 > Free, CC0-licensed daily dumps of the public record of US markets: congressional
 > trades, insider filings, 13F holdings, government contracts and grants, lobbying,

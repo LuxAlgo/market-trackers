@@ -18,7 +18,7 @@
     "url": "git+https://github.com/LuxAlgo/market-trackers.git",
     "directory": "packages/cli"
   },
-  "homepage": "https://github.com/LuxAlgo/market-trackers#readme",
+  "homepage": "https://www.luxalgo.com/market-trackers/",
   "bugs": "https://github.com/LuxAlgo/market-trackers/issues",
   "keywords": [
     "cli",
