@@ -35,7 +35,7 @@ dependencies = []
 pandas = ["pandas>=1.5"]
 
 [project.urls]
-Homepage = "https://github.com/LuxAlgo/market-trackers"
+Homepage = "https://www.luxalgo.com/market-trackers/"
 Repository = "https://github.com/LuxAlgo/market-trackers"
 Data = "https://github.com/LuxAlgo/market-trackers-data"
 

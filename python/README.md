@@ -12,9 +12,12 @@ Stdlib only; pandas is an optional extra.
 
 ## Install
 
+The package is not on PyPI yet; install it from a checkout of the main repository:
+
 ```bash
-pip install market-trackers-data          # stdlib only
-pip install market-trackers-data[pandas]  # + to_dataframe()
+git clone https://github.com/LuxAlgo/market-trackers
+pip install ./market-trackers/python              # stdlib only
+pip install "./market-trackers/python[pandas]"    # + to_dataframe()
 ```
 
 ## Quick start

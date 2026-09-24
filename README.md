@@ -2,6 +2,8 @@
 
 <img src="docs/assets/banner.svg" alt="LuxAlgo Market Trackers: public record → rows → agents" width="100%" />
 
+# Market Trackers
+
 **The public record, as infrastructure.**
 
 What Congress trades, what insiders file, who wins federal contracts, what the Fed said:
@@ -14,8 +16,8 @@ from.
 [![Data: CC0](https://img.shields.io/badge/data-CC0-blue.svg)](data-licenses/DATA-LICENSE)
 [![No telemetry](https://img.shields.io/badge/telemetry-none-brightgreen.svg)](#principles)
 
-LuxAlgo Market Trackers is a LuxAlgo open-source project. The official repository is
-[github.com/LuxAlgo/market-trackers](https://github.com/LuxAlgo/market-trackers), and the published data lives
+LuxAlgo Market Trackers is a LuxAlgo open-source project. Its homepage is
+[luxalgo.com/market-trackers](https://www.luxalgo.com/market-trackers/), and the published data lives
 at [github.com/LuxAlgo/market-trackers-data](https://github.com/LuxAlgo/market-trackers-data).
 
 </div>
@@ -51,8 +53,8 @@ market-trackers status
 market-trackers serve
 ```
 
-The same commands ship on npm as `npx @luxalgo/market-trackers-cli …` when you'd rather not hold a
-checkout.
+The CLI and the MCP server are not published to npm yet, so both run from a checkout like the one
+above.
 
 Or skip ingestion entirely: the published dumps are a rebuildable archive, and `market-trackers import`
 is the exact mirror image of `market-trackers export`:
@@ -103,8 +105,8 @@ what Congress bought this week, it can show you the actual filings.
 {
   "mcpServers": {
     "market-trackers": {
-      "command": "npx",
-      "args": ["-y", "@luxalgo/market-trackers-mcp"],
+      "command": "node",
+      "args": ["/path/to/market-trackers/packages/mcp/dist/stdio.js"],
       "env": { "MARKET_TRACKERS_DB": "/path/to/market-trackers.db" },
     },
   },
@@ -215,7 +217,7 @@ honest baseline you can reproduce, not a pitch. Details: [`docs/analytics.md`](d
 
 The rows chart well, and the hosted trackers show how: the
 [insider tracker on LuxAlgo](https://www.luxalgo.com/markets/insider-tracker) paints every Form 4
-fill onto the ticker's price tape with [Vela](https://github.com/LuxAlgo/Vela), LuxAlgo's
+fill onto the ticker's price tape with [Vela™](https://github.com/LuxAlgo/Vela), LuxAlgo's
 open-source charting engine (`@luxalgo/vela`, Apache-2.0), as a custom renderer layer: the same
 `tracker_insider_trades` rows this repo serves, each marker still linking to its filing. That
 happens in the visitor's browser. Nothing here draws or serves a chart, and the price bars come
